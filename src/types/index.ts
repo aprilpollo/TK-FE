@@ -1,0 +1,1 @@
+export type {RoutesType, RouteItemType, RouteConfigType, RouteConfigsType} from "./routes";
