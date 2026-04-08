@@ -1,10 +1,7 @@
 import { memo, type ReactNode } from "react"
 import { type LayoutConfigDefaultsType } from "@/layouts/configs/LayoutConfig"
 import { Outlet } from "react-router"
-import {
-  SidebarProvider,
-  SidebarInset,
-} from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "./components/AppSidebar"
 import { AppHeader } from "./components/AppHeader"
 import useLayoutSettings from "@/layouts/hooks/useLayoutSettings"

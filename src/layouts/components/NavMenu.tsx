@@ -26,6 +26,7 @@ export function NavMenu({
     url: string
     icon?: LucideIcon
     isActive?: boolean
+    defaultOpen?: boolean
     items?: {
       title: string
       url: string
@@ -41,25 +42,30 @@ export function NavMenu({
           <Collapsible
             key={item.title}
             asChild
-            defaultOpen={item.isActive}
-            className="group/collapsible"
+            defaultOpen={item.defaultOpen}
+            className="group/collapsible space-y-1"
           >
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title} className="cursor-pointer" isActive={item.isActive}>
+                <SidebarMenuButton
+                  tooltip={item.title}
+                  className="cursor-pointer"
+                  isActive={item.isActive}
+                >
                   {item.items ? (
-                    <>
+                    <span className="flex h-full w-full items-center gap-2">
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
-                    </>
+                      <ChevronRight className="ml-auto size-3 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    </span>
                   ) : (
-                    <Link to={item.url} className="flex items-center gap-2 w-full">
+                    <Link
+                      to={item.url}
+                      className="flex h-full w-full items-center gap-2"
+                    >
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
                     </Link>
-                  )}
-                  {item.items && (
-                    <ChevronRight className="ml-auto size-3 transition-transform group-data-[state=open]:rotate-90" />
                   )}
                 </SidebarMenuButton>
               </CollapsibleTrigger>

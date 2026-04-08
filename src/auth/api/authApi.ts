@@ -29,6 +29,14 @@ export async function authProfile(
   });
 }
 
+export async function authOrganization(
+  accessToken: string
+): Promise<Response> {
+  return apiFetch("/api/v1/organizations", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
 /**
  * Sign in
  */

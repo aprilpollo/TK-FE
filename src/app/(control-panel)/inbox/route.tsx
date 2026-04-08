@@ -7,7 +7,7 @@ const Inbox = lazy(() => import("./inbox"))
 const InboxRoute: RouteItemType = {
   path: "inbox",
   element: <Inbox />,
-  auth: ["superadmin"],
+  auth: authRoles.user,
 }
 
 export default InboxRoute

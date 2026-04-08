@@ -5,55 +5,56 @@ import {
   useMemo,
   useImperativeHandle,
   forwardRef,
-} from "react";
-import type { PartialDeep } from "type-fest";
+} from "react"
+import type { PartialDeep } from "type-fest"
 import {
   type AuthProviderComponentProps,
   type AuthProviderState,
   type AuthProviderMethods,
-} from "../types/AuthTypes";
-import { type User } from "@/auth/user";
-import { isTokenValid } from "../utils/jwtUtils";
+} from "../types/AuthTypes"
+import { type User, type Organization } from "@/auth/user"
+import { isTokenValid } from "../utils/jwtUtils"
 import {
   authRefreshToken,
   authSignIn,
   authSignInWithGoogle,
   authProfile,
+  authOrganization,
   authSignUp,
   authUpdateDbUser,
-} from "../api/authApi";
-import { removeGlobalHeaders, setGlobalHeaders } from "@/utils/apiFetch";
-import AuthContext, { type AuthContextType } from "../context/JwtAuthContext";
+} from "../api/authApi"
+import { removeGlobalHeaders, setGlobalHeaders } from "@/utils/apiFetch"
+import AuthContext, { type AuthContextType } from "../context/JwtAuthContext"
 
-import useLocalStorage from "@/hooks/useLocalStorage";
+import useLocalStorage from "@/hooks/useLocalStorage"
 
 export type SignInPayload = {
-  email: string;
-  password: string;
-};
+  email: string
+  password: string
+}
 
 export type SignUpPayload = {
-  displayName: string;
-  email: string;
-  password: string;
-};
+  displayName: string
+  email: string
+  password: string
+}
 
 const JwtAuthProvider = forwardRef<
   AuthProviderMethods<User>,
   AuthProviderComponentProps
 >((props, ref) => {
-  const { children, onAuthStateChanged } = props;
+  const { children, onAuthStateChanged } = props
   const {
     value: tokenStorageValue,
     setValue: setTokenStorageValue,
     removeValue: removeTokenStorageValue,
-  } = useLocalStorage<string>("access_token");
+  } = useLocalStorage<string>("access_token")
 
   const [authState, setAuthState] = useState<AuthProviderState<User>>({
     authStatus: "configuring",
     isAuthenticated: false,
     user: null,
-  });
+  })
 
   /**
    * Watch for changes in the auth state
@@ -61,48 +62,52 @@ const JwtAuthProvider = forwardRef<
    */
   useEffect(() => {
     if (onAuthStateChanged) {
-      onAuthStateChanged(authState);
+      onAuthStateChanged(authState)
     }
-  }, [authState, onAuthStateChanged]);
+  }, [authState, onAuthStateChanged])
 
   /**
    * Attempt to auto login with the stored token
    */
   useEffect(() => {
     const attemptAutoLogin = async () => {
-      const accessToken = tokenStorageValue;
+      const accessToken = tokenStorageValue
 
       if (isTokenValid(accessToken)) {
         try {
-          // Race: authProfile vs 8-second timeout
-          // ป้องกันกรณี backend ช้า/ไม่ตอบกลับ → isLoading ค้าง
-          const timeoutPromise = new Promise<false>((resolve) =>
-            setTimeout(() => resolve(false), 8000)
-          );
-          const profilePromise = authProfile(accessToken).then(
-            async (response) => {
-              if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-              }
-              const userData = (await response.json()) as {
-                code: number;
-                error: string | null;
-                message: string;
-                payload: User;
-              };
-              return userData.payload;
-            }
-          );
 
-          const result = await Promise.race([profilePromise, timeoutPromise]);
-          return result;
+          const result = await Promise.all([
+            authProfile(accessToken),
+            authOrganization(accessToken),
+          ])
+
+          const [responseProfile, responseOrganization] = await Promise.all([
+            result[0].json() as Promise<{
+              code: number
+              error: string | null
+              message: string
+              payload: User
+            }>,
+            result[1].json() as Promise<{
+              code: number
+              error: string | null
+              message: string
+              payload: Organization[]
+            }>,
+          ])
+
+          const userData = {
+              ...responseProfile.payload,
+              organization: responseOrganization.payload,
+            }
+          return userData
         } catch (error) {
-          return false;
+          return false
         }
       }
 
-      return false;
-    };
+      return false
+    }
 
     if (!authState.isAuthenticated) {
       attemptAutoLogin().then((userData) => {
@@ -111,63 +116,74 @@ const JwtAuthProvider = forwardRef<
             authStatus: "authenticated",
             isAuthenticated: true,
             user: userData,
-          });
+          })
         } else {
-          removeTokenStorageValue();
-          removeGlobalHeaders(["Authorization"]);
+          removeTokenStorageValue()
+          removeGlobalHeaders(["Authorization"])
           setAuthState({
             authStatus: "unauthenticated",
             isAuthenticated: false,
             user: null,
-          });
+          })
         }
-      });
+      })
     }
     // eslint-disable-next-line
-  }, [authState.isAuthenticated]);
+  }, [authState.isAuthenticated])
 
   /**
    * Sign in
    */
   const signIn = useCallback(
     async (credentials: SignInPayload) => {
-      const responseSignIn = await authSignIn(credentials);
+      const responseSignIn = await authSignIn(credentials)
 
       const sessionSignIn = (await responseSignIn.json()) as {
-        code: number;
-        error: string | null;
-        message: string;
+        code: number
+        error: string | null
+        message: string
         payload: {
-          token: string;
-        };
-      };
+          token: string
+        }
+      }
 
-      const responseProfile = await authProfile(sessionSignIn.payload.token);
+      const [responseProfile, responseOrganization] = await Promise.all([
+        authProfile(sessionSignIn.payload.token),
+        authOrganization(sessionSignIn.payload.token),
+      ])
 
-      const sessionProfile = (await responseProfile.json()) as {
-        code: number;
-        error: string | null;
-        message: string;
-        payload: User;
-      };
+      const [sessionProfile, _] = await Promise.all([
+        responseProfile.json() as Promise<{
+          code: number
+          error: string | null
+          message: string
+          payload: User
+        }>,
+        responseOrganization.json() as Promise<{
+          code: number
+          error: string | null
+          message: string
+          payload: Organization[]
+        }>,
+      ])
 
       if (sessionSignIn && sessionProfile) {
         setAuthState({
           authStatus: "authenticated",
           isAuthenticated: true,
           user: sessionProfile.payload,
-        });
-        
-        setTokenStorageValue(sessionSignIn.payload.token);
+        })
+
+        setTokenStorageValue(sessionSignIn.payload.token)
         setGlobalHeaders({
           Authorization: `Bearer ${sessionSignIn.payload.token}`,
-        });
+        })
       }
 
-      return responseSignIn;
+      return responseSignIn
     },
     [setTokenStorageValue]
-  );
+  )
 
   /**
    * Sign in with Google
@@ -179,94 +195,94 @@ const JwtAuthProvider = forwardRef<
         "google",
         idToken,
         nonce
-      );
+      )
 
       const sessionSignIn = (await responseSignIn.json()) as {
-        code: number;
-        error: string | null;
-        message: string;
+        code: number
+        error: string | null
+        message: string
         payload: {
-          token: string;
-        };
-      };
+          token: string
+        }
+      }
 
-      const responseProfile = await authProfile(sessionSignIn.payload.token);
+      const responseProfile = await authProfile(sessionSignIn.payload.token)
 
       const sessionProfile = (await responseProfile.json()) as {
-        code: number;
-        error: string | null;
-        message: string;
-        payload: User;
-      };
+        code: number
+        error: string | null
+        message: string
+        payload: User
+      }
 
       if (sessionSignIn && sessionProfile) {
         setAuthState({
           authStatus: "authenticated",
           isAuthenticated: true,
           user: sessionProfile.payload,
-        });
-        setTokenStorageValue(sessionSignIn.payload.token);
+        })
+        setTokenStorageValue(sessionSignIn.payload.token)
         setGlobalHeaders({
           Authorization: `Bearer ${sessionSignIn.payload.token}`,
-        });
+        })
       }
 
-      return responseSignIn;
+      return responseSignIn
     },
     [setTokenStorageValue]
-  );
+  )
 
   /**
    * Sign up
    */
   const signUp = useCallback(
     async (data: SignUpPayload) => {
-      const response = await authSignUp(data);
+      const response = await authSignUp(data)
 
       const session = (await response.json()) as {
-        user: User;
-        access_token: string;
-      };
+        user: User
+        access_token: string
+      }
 
       if (session) {
         setAuthState({
           authStatus: "authenticated",
           isAuthenticated: true,
           user: session.user,
-        });
-        setTokenStorageValue(session.access_token);
-        setGlobalHeaders({ Authorization: `Bearer ${session.access_token}` });
+        })
+        setTokenStorageValue(session.access_token)
+        setGlobalHeaders({ Authorization: `Bearer ${session.access_token}` })
       }
 
-      return response;
+      return response
     },
     [setTokenStorageValue]
-  );
+  )
 
   /**
    * Sign out
    */
   const signOut: AuthContextType["signOut"] = useCallback(() => {
-    removeTokenStorageValue();
-    removeGlobalHeaders(["Authorization"]);
+    removeTokenStorageValue()
+    removeGlobalHeaders(["Authorization"])
     setAuthState({
       authStatus: "unauthenticated",
       isAuthenticated: false,
       user: null,
-    });
-  }, [removeTokenStorageValue]);
+    })
+  }, [removeTokenStorageValue])
 
   /**
    * Update user
    */
   const updateUser = useCallback(async (_user: PartialDeep<User>) => {
     try {
-      return await authUpdateDbUser(_user);
+      return await authUpdateDbUser(_user)
     } catch (error) {
-      console.error("Error updating user:", error);
-      return Promise.reject(error);
+      console.error("Error updating user:", error)
+      return Promise.reject(error)
     }
-  }, []);
+  }, [])
 
   /**
    * Set user (update auth state with new user data)
@@ -275,21 +291,21 @@ const JwtAuthProvider = forwardRef<
     setAuthState((prev) => ({
       ...prev,
       user: newUser,
-    }));
-  }, []);
+    }))
+  }, [])
 
   /**
    * Refresh access token
    */
   const refreshToken: AuthContextType["refreshToken"] =
     useCallback(async () => {
-      const response = await authRefreshToken();
+      const response = await authRefreshToken()
 
       if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status}`)
 
-      return response;
-    }, []);
+      return response
+    }, [])
 
   /**
    * Auth Context Value
@@ -305,7 +321,7 @@ const JwtAuthProvider = forwardRef<
         updateUser,
         setUser,
         refreshToken,
-      } as AuthContextType),
+      }) as AuthContextType,
     [
       authState,
       signIn,
@@ -316,7 +332,7 @@ const JwtAuthProvider = forwardRef<
       setUser,
       refreshToken,
     ]
-  );
+  )
 
   /**
    * Expose methods to the FuseAuthProvider
@@ -324,41 +340,41 @@ const JwtAuthProvider = forwardRef<
   useImperativeHandle(ref, () => ({
     signOut,
     updateUser,
-  }));
+  }))
 
   /**
    * Intercept fetch requests to refresh the access token
    */
   const interceptFetch = useCallback(() => {
-    const { fetch: originalFetch } = window;
+    const { fetch: originalFetch } = window
 
     window.fetch = async (...args) => {
-      const [resource, config] = args;
-      const response = await originalFetch(resource, config);
-      const newAccessToken = response.headers.get("New-Access-Token");
+      const [resource, config] = args
+      const response = await originalFetch(resource, config)
+      const newAccessToken = response.headers.get("New-Access-Token")
 
       if (newAccessToken) {
-        setGlobalHeaders({ Authorization: `Bearer ${newAccessToken}` });
-        setTokenStorageValue(newAccessToken);
+        setGlobalHeaders({ Authorization: `Bearer ${newAccessToken}` })
+        setTokenStorageValue(newAccessToken)
       }
 
       if (response.status === 401) {
-        signOut();
+        signOut()
 
-        console.error("Unauthorized request. User was signed out.");
+        console.error("Unauthorized request. User was signed out.")
       }
 
-      return response;
-    };
-  }, [setTokenStorageValue, signOut]);
+      return response
+    }
+  }, [setTokenStorageValue, signOut])
 
   useEffect(() => {
     if (authState.isAuthenticated) {
-      interceptFetch();
+      interceptFetch()
     }
-  }, [authState.isAuthenticated, interceptFetch]);
+  }, [authState.isAuthenticated, interceptFetch])
 
-  return <AuthContext value={authContextValue}>{children}</AuthContext>;
-});
+  return <AuthContext value={authContextValue}>{children}</AuthContext>
+})
 
-export default JwtAuthProvider;
+export default JwtAuthProvider

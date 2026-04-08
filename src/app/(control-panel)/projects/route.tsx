@@ -7,8 +7,7 @@ const Projects = lazy(() => import("./projects"))
 const ProjectsRoute: RouteItemType = {
   path: "projects",
   element: <Projects />,
-  //auth: authRoles.user,
-  auth: null,
+  auth: authRoles.user,
 }
 
 export default ProjectsRoute

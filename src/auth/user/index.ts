@@ -5,6 +5,16 @@ import type { PartialDeep } from "type-fest";
 /**
  * The type definition for a user object.
  */
+
+export type Organization = {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string;
+  is_active: boolean;
+  logo_url?: string;
+};
+
 export type User = AuthUser & {
   id: string;
   role: string[] | string | null;
@@ -15,17 +25,7 @@ export type User = AuthUser & {
   email?: string;
   bio?: string;
   shortcuts?: string[];
-  organization: {
-    id: string;
-    slug: string;
-    name: string;
-    description?: string;
-    photoURL?: string;
-    can_view: boolean;
-    can_create: boolean;
-    can_update: boolean;
-    can_delete: boolean;
-  };
+  organization: Organization[];
   settings?: PartialDeep<SettingsConfigType>;
   loginRedirectUrl?: string; // The URL to redirect to after login.
 };
