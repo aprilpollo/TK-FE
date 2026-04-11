@@ -12,13 +12,14 @@ type useUser = {
     newSettings: User["settings"]
   ) => Promise<User["settings"] | undefined>;
   signOut: () => void;
+  refreshPermissions: (organizationId: number) => Promise<void>;
 };
 
 function useUser(): useUser {
-  const { authState, signOut, updateUser } = useAuth();
+  const { authState, signOut, updateUser, refreshPermissions } = useAuth();
   const user = authState?.user as User;
   const isGuest = useMemo(
-    () => !user?.role || user?.role?.length === 0,
+    () => !user?.permissions.role_name || user?.permissions.role_name?.length === 0,
     [user]
   );
 
@@ -68,12 +69,23 @@ function useUser(): useUser {
     return signOut();
   }
 
+  /**
+   * Refresh permissions
+   */
+  async function handleRefreshPermissions(organizationId: number) {
+    if (!refreshPermissions) {
+      throw new Error("refreshPermissions is not available");
+    }
+    return refreshPermissions(organizationId);
+  }
+
   return {
     data: user,
     isGuest,
     signOut: handleSignOut,
     updateUser: handleUpdateUser,
     updateUserSettings: handleUpdateUserSettings,
+    refreshPermissions: handleRefreshPermissions,
   };
 }
 

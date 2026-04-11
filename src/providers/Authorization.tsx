@@ -85,7 +85,6 @@ class Authorization extends Component<AuthorizationProps, State> {
     // is auth is empy array
     const isOnlyGuestAllowed = Array.isArray(auth) && auth.length === 0;
     const isGuest = isUserGuest(userRole);
-
     const userHasPermission = Utils.hasPermission(authForPermission, userRole);
 
     if (auth && !userHasPermission && !ignoredPaths.includes(pathname)) {

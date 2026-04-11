@@ -7,8 +7,12 @@ const Settings = lazy(() => import("./settings"))
 const SettingsRoute: RouteItemType = {
   path: "settings",
   element: <Settings />,
-  //auth: authRoles.user,
-  auth: null,
+  auth: authRoles.user,
+  // settings: {
+  //   layout: {
+  //      config:{leftSidePanel: {display: false}}
+  //   },
+  // },
 }
 
 export default SettingsRoute

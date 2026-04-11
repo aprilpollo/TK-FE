@@ -46,29 +46,36 @@ export function NavMenu({
             className="group/collapsible space-y-1"
           >
             <SidebarMenuItem>
-              <CollapsibleTrigger asChild>
-                <SidebarMenuButton
-                  tooltip={item.title}
-                  className="cursor-pointer"
-                  isActive={item.isActive}
-                >
-                  {item.items ? (
+              {item.items && item.items.length > 0 ? (
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    className="cursor-pointer"
+                    isActive={item.isActive}
+                  >
                     <span className="flex h-full w-full items-center gap-2">
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
                       <ChevronRight className="ml-auto size-3 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                     </span>
-                  ) : (
-                    <Link
-                      to={item.url}
-                      className="flex h-full w-full items-center gap-2"
-                    >
-                      {item.icon && <item.icon />}
-                      <span>{item.title}</span>
-                    </Link>
-                  )}
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+              ) : (
+                <SidebarMenuButton
+                  tooltip={item.title}
+                  className="cursor-pointer"
+                  isActive={item.isActive}
+                >
+                  <Link
+                    to={item.url}
+                    className="flex h-full w-full items-center gap-2"
+                  >
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                  </Link>
                 </SidebarMenuButton>
-              </CollapsibleTrigger>
+              )}
+
               <CollapsibleContent>
                 <SidebarMenuSub>
                   {item.items?.map((subItem) => (

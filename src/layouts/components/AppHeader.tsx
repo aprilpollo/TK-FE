@@ -59,10 +59,9 @@ function getInitials(name?: string | null, email?: string | null): string {
   return "U"
 }
 
-export function AppHeader() {
+export function AppHeader({ showSidebar = true }: { showSidebar?: boolean }) {
   const pageLabel = useBreadcrumb()
   const { data: user, signOut } = useUser()
-
   const fallbackName = [user?.first_name, user?.last_name]
     .filter(Boolean)
     .join(" ")
@@ -72,19 +71,19 @@ export function AppHeader() {
   const initials = getInitials(user?.display_name, user?.email)
 
   return (
-    <header className="flex shrink-0 h-12 items-center gap-2 border-b bg-background px-3">
-     
-      <div className="flex items-center gap-2">
-        <SidebarTrigger className="-ml-1" />
-        <div className="h-4 border-x" />
-        <nav className="flex items-center gap-1 text-sm">
-          <span className="text-muted-foreground">Workspace</span>
-          <ChevronRight className="size-3.5 text-muted-foreground" />
-          <span className="font-medium text-foreground">{pageLabel}</span>
-        </nav>
-      </div>
+    <header className="flex h-12 shrink-0 items-center gap-2 border-b bg-background px-3">
+      {showSidebar && (
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="-ml-1 cursor-pointer" />
+          <div className="h-4 border-x" />
+          <nav className="flex items-center gap-1 text-sm">
+            <span className="text-muted-foreground">Workspace</span>
+            <ChevronRight className="size-3.5 text-muted-foreground" />
+            <span className="font-medium text-foreground">{pageLabel}</span>
+          </nav>
+        </div>
+      )}
 
-      
       <div className="mx-4 flex flex-1 items-center justify-center">
         <div className="relative w-full max-w-sm">
           <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -95,10 +94,13 @@ export function AppHeader() {
         </div>
       </div>
 
-     
       <div className="flex items-center gap-1">
         {/* Notification bell */}
-        <Button variant="ghost" size="icon" className="relative h-8 w-8">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-8 w-8 cursor-pointer"
+        >
           <Bell className="size-4" />
           <span className="absolute top-1.5 right-1.5 flex size-2 items-center justify-center rounded-full bg-blue-500" />
           <span className="sr-only">Notifications</span>

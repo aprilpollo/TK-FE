@@ -5,6 +5,7 @@ import { type AuthUser } from "./AuthUser";
 export type AuthProviderMethods<T = AuthUser> = {
   signOut: () => void;
   updateUser: (U: PartialDeep<T>) => Promise<Response>;
+  refreshPermissions?: (organizationId: number) => Promise<void>;
 };
 
 export type AuthProviderComponentProps = React.PropsWithChildren<{

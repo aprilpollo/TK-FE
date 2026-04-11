@@ -137,9 +137,7 @@ function AuthProvider(props: AuthenticationProviderProps) {
   }, [onAuthStateChanged, authState]);
 
   useEffect(() => {
-    if (allProvidersReady && currentAuthStatus !== "configuring") {
-      setIsLoading(false);
-    }
+    setIsLoading(!(allProvidersReady && currentAuthStatus !== "configuring"));
   }, [allProvidersReady, currentAuthStatus, providerStatuses]);
 
   const signOut = useCallback(() => {
@@ -163,6 +161,14 @@ function AuthProvider(props: AuthenticationProviderProps) {
     [currentProvider]
   );
 
+  const refreshPermissions = useCallback(async (organizationId: number) => {
+    if (currentProvider?.refreshPermissions) {
+      return currentProvider.refreshPermissions(organizationId);
+    }
+
+    throw new Error("No current auth provider to refresh permissions from");
+  }, [currentProvider]);
+
   const contextValue = useMemo(
     () => ({
       isAuthenticated: authState?.isAuthenticated,
@@ -172,6 +178,7 @@ function AuthProvider(props: AuthenticationProviderProps) {
       providers,
       signOut,
       updateUser,
+      refreshPermissions,
       authState,
     }),
     [
@@ -182,6 +189,7 @@ function AuthProvider(props: AuthenticationProviderProps) {
       providers,
       signOut,
       updateUser,
+      refreshPermissions,
     ]
   );
 

@@ -11,33 +11,20 @@ type LayoutProps = {
 }
 
 /**
- * MainLayout - Main layout with sidebar
- * Respects route config for showing/hiding sidebar
+ * MainLayout
  */
 function MainLayout(props: LayoutProps) {
   const { children } = props
   const settings = useLayoutSettings()
   const config = settings.config as LayoutConfigDefaultsType
+  const showNavebar = config?.navbar?.display !== false
+  const showSidebar = config?.leftSidePanel?.display !== false
 
-  // Check if navbar (sidebar) should be displayed
-  const showSidebar = config?.navbar?.display !== false
-
-  // If sidebar is hidden, render minimal layout
-  if (!showSidebar) {
-    return (
-      <main className="min-h-screen bg-background">
-        <Outlet />
-        {children}
-      </main>
-    )
-  }
-
-  // Full layout with sidebar
   return (
     <SidebarProvider>
-      <AppSidebar />
+      {showSidebar && <AppSidebar />}
       <SidebarInset>
-        <AppHeader />
+        {showNavebar && <AppHeader showSidebar={showSidebar} />}
         <main className="bg-background">
           {children}
           <Outlet />

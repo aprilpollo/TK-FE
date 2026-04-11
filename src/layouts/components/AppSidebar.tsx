@@ -12,22 +12,19 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar"
 import { TeamSwitcher } from "./TeamSwitcher"
 import { NavMenu } from "./NavMenu"
-import useUser from "@/auth/hooks/useUser"
 
 export function AppSidebar() {
   const location = useLocation()
   const isActive = (href: string) => location.pathname === href
-  const { data: user } = useUser()
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
       <SidebarHeader>
-        <TeamSwitcher teams={user?.organization || []} />
+        <TeamSwitcher />
       </SidebarHeader>
 
       <SidebarContent>
@@ -100,20 +97,19 @@ export function AppSidebar() {
             },
           ]}
         />
+        <div className="mt-auto">
+          <NavMenu
+            items={[
+              {
+                title: "Settings",
+                icon: Settings,
+                url: "/settings",
+                isActive: isActive("/settings"),
+              },
+            ]}
+          />
+        </div>
       </SidebarContent>
-
-      <SidebarFooter>
-        <NavMenu
-          items={[
-            {
-              title: "Settings",
-              icon: Settings,
-              url: "/settings",
-              isActive: isActive("/settings"),
-            },
-          ]}
-        />
-      </SidebarFooter>
     </Sidebar>
   )
 }

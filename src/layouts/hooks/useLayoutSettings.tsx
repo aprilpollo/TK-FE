@@ -1,8 +1,8 @@
 import { useContext } from "react";
-import FuseLayoutSettingsContext from "../context/LayoutSettingsContext";
+import LayoutSettingsContext from "../context/LayoutSettingsContext";
 
 const useLayoutSettings = () => {
-  const context = useContext(FuseLayoutSettingsContext);
+  const context = useContext(LayoutSettingsContext);
 
   if (context === undefined) {
     throw new Error(

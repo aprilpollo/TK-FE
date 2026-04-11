@@ -20,6 +20,7 @@ export const initialAuthState: AuthState = {
 
 export type AuthContextType = {
   updateUser?: (U: PartialDeep<User>) => Promise<Response>;
+  refreshPermissions?: (organizationId: number) => Promise<void>;
   signOut?: () => void;
   authState: AuthProviderState | null;
   providers: AuthProviderType[];

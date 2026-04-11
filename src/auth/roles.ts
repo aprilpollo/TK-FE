@@ -3,6 +3,11 @@
  */
 const authRoles = {
 	/**
+	 * The owner role grants access to users with the 'owner' role.
+	 */
+	owner: ['owner'],
+
+	/**
 	 * The admin role grants access to users with the 'admin' role.
 	 */
 	admin: ['admin'],
@@ -13,9 +18,9 @@ const authRoles = {
 	staff: ['admin', 'staff'],
 
 	/**
-	 * The user role grants access to users with the 'admin', 'staff', or 'user' role.
+	 * The user role grants access to users with the 'owner', 'admin', 'staff', or 'user' role.
 	 */
-	user: ['admin', 'staff', 'user'],
+	user: ['owner', 'admin', 'staff', 'user'],
 
 	/**
 	 * The onlyGuest role grants access to unauthenticated users.

@@ -6,26 +6,24 @@ import {
   useImperativeHandle,
   forwardRef,
 } from "react"
-import type { PartialDeep } from "type-fest"
 import {
   type AuthProviderComponentProps,
   type AuthProviderState,
   type AuthProviderMethods,
 } from "../types/AuthTypes"
-import { type User, type Organization } from "@/auth/user"
+import type { User, Organization, Permissions } from "@/auth/user"
 import { isTokenValid } from "../utils/jwtUtils"
 import {
-  authRefreshToken,
   authSignIn,
+  authSignUp,
   authSignInWithGoogle,
   authProfile,
   authOrganization,
-  authSignUp,
-  authUpdateDbUser,
+  authOrganizationPermissions,
+  authUpdatePrimaryOrganization
 } from "../api/authApi"
 import { removeGlobalHeaders, setGlobalHeaders } from "@/utils/apiFetch"
 import AuthContext, { type AuthContextType } from "../context/JwtAuthContext"
-
 import useLocalStorage from "@/hooks/useLocalStorage"
 
 export type SignInPayload = {
@@ -56,32 +54,29 @@ const JwtAuthProvider = forwardRef<
     user: null,
   })
 
-  /**
-   * Watch for changes in the auth state
-   * and pass them to the FuseAuthProvider
-   */
   useEffect(() => {
     if (onAuthStateChanged) {
       onAuthStateChanged(authState)
     }
   }, [authState, onAuthStateChanged])
 
-  /**
-   * Attempt to auto login with the stored token
-   */
   useEffect(() => {
     const attemptAutoLogin = async () => {
       const accessToken = tokenStorageValue
 
       if (isTokenValid(accessToken)) {
         try {
-
           const result = await Promise.all([
             authProfile(accessToken),
             authOrganization(accessToken),
+            authOrganizationPermissions(accessToken),
           ])
 
-          const [responseProfile, responseOrganization] = await Promise.all([
+          const [
+            responseProfile,
+            responseOrganization,
+            responseOrganizationPermissions,
+          ] = await Promise.all([
             result[0].json() as Promise<{
               code: number
               error: string | null
@@ -94,12 +89,19 @@ const JwtAuthProvider = forwardRef<
               message: string
               payload: Organization[]
             }>,
+            result[2].json() as Promise<{
+              code: number
+              error: string | null
+              message: string
+              payload: Permissions
+            }>,
           ])
 
           const userData = {
-              ...responseProfile.payload,
-              organization: responseOrganization.payload,
-            }
+            ...responseProfile.payload,
+            organization: responseOrganization.payload,
+            permissions: responseOrganizationPermissions.payload,
+          }
           return userData
         } catch (error) {
           return false
@@ -128,12 +130,8 @@ const JwtAuthProvider = forwardRef<
         }
       })
     }
-    // eslint-disable-next-line
   }, [authState.isAuthenticated])
 
-  /**
-   * Sign in
-   */
   const signIn = useCallback(
     async (credentials: SignInPayload) => {
       const responseSignIn = await authSignIn(credentials)
@@ -147,31 +145,48 @@ const JwtAuthProvider = forwardRef<
         }
       }
 
-      const [responseProfile, responseOrganization] = await Promise.all([
+      const result = await Promise.all([
         authProfile(sessionSignIn.payload.token),
         authOrganization(sessionSignIn.payload.token),
+        authOrganizationPermissions(sessionSignIn.payload.token),
       ])
 
-      const [sessionProfile, _] = await Promise.all([
-        responseProfile.json() as Promise<{
+      const [
+        responseProfile,
+        responseOrganization,
+        responseOrganizationPermissions,
+      ] = await Promise.all([
+        result[0].json() as Promise<{
           code: number
           error: string | null
           message: string
           payload: User
         }>,
-        responseOrganization.json() as Promise<{
+        result[1].json() as Promise<{
           code: number
           error: string | null
           message: string
           payload: Organization[]
         }>,
+        result[2].json() as Promise<{
+          code: number
+          error: string | null
+          message: string
+          payload: Permissions
+        }>,
       ])
 
-      if (sessionSignIn && sessionProfile) {
+      const userData = {
+        ...responseProfile.payload,
+        organization: responseOrganization.payload,
+        permissions: responseOrganizationPermissions.payload,
+      }
+
+      if (sessionSignIn && userData) {
         setAuthState({
           authStatus: "authenticated",
           isAuthenticated: true,
-          user: sessionProfile.payload,
+          user: userData,
         })
 
         setTokenStorageValue(sessionSignIn.payload.token)
@@ -184,10 +199,6 @@ const JwtAuthProvider = forwardRef<
     },
     [setTokenStorageValue]
   )
-
-  /**
-   * Sign in with Google
-   */
 
   const signInWithGoogle = useCallback(
     async (idToken: string, nonce: string) => {
@@ -232,9 +243,40 @@ const JwtAuthProvider = forwardRef<
     [setTokenStorageValue]
   )
 
-  /**
-   * Sign up
-   */
+  const refreshPermissions = useCallback(async (organizationId: number) => {
+    setAuthState((prev) => ({
+      ...prev,
+      authStatus: "configuring",
+    }))
+
+    const accessToken = tokenStorageValue
+    try {
+      await authUpdatePrimaryOrganization(accessToken ?? "", organizationId)
+      const response = await authOrganizationPermissions(accessToken ?? "")
+      const session = (await response.json()) as {
+        code: number
+        error: string | null
+        message: string
+        payload: Permissions
+      }
+
+      setAuthState((prev) => ({
+        ...prev,
+        authStatus: prev.isAuthenticated ? "authenticated" : "unauthenticated",
+        user: {
+          ...prev?.user,
+          permissions: session.payload,
+        } as User,
+      }))
+    } catch (error) {
+      setAuthState((prev) => ({
+        ...prev,
+        authStatus: prev.isAuthenticated ? "authenticated" : "unauthenticated",
+      }))
+      throw error
+    }
+  }, [tokenStorageValue])
+
   const signUp = useCallback(
     async (data: SignUpPayload) => {
       const response = await authSignUp(data)
@@ -259,9 +301,6 @@ const JwtAuthProvider = forwardRef<
     [setTokenStorageValue]
   )
 
-  /**
-   * Sign out
-   */
   const signOut: AuthContextType["signOut"] = useCallback(() => {
     removeTokenStorageValue()
     removeGlobalHeaders(["Authorization"])
@@ -272,21 +311,18 @@ const JwtAuthProvider = forwardRef<
     })
   }, [removeTokenStorageValue])
 
-  /**
-   * Update user
-   */
-  const updateUser = useCallback(async (_user: PartialDeep<User>) => {
-    try {
-      return await authUpdateDbUser(_user)
-    } catch (error) {
-      console.error("Error updating user:", error)
-      return Promise.reject(error)
-    }
-  }, [])
+  useImperativeHandle(
+    ref,
+    () => ({
+      signOut,
+      updateUser: async () => {
+        throw new Error("updateUser is not implemented for JwtAuthProvider")
+      },
+      refreshPermissions,
+    }),
+    [signOut, refreshPermissions]
+  )
 
-  /**
-   * Set user (update auth state with new user data)
-   */
   const setUser = useCallback((newUser: User) => {
     setAuthState((prev) => ({
       ...prev,
@@ -294,22 +330,6 @@ const JwtAuthProvider = forwardRef<
     }))
   }, [])
 
-  /**
-   * Refresh access token
-   */
-  const refreshToken: AuthContextType["refreshToken"] =
-    useCallback(async () => {
-      const response = await authRefreshToken()
-
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`)
-
-      return response
-    }, [])
-
-  /**
-   * Auth Context Value
-   */
   const authContextValue = useMemo(
     () =>
       ({
@@ -317,34 +337,21 @@ const JwtAuthProvider = forwardRef<
         signIn,
         signInWithGoogle,
         signUp,
+        refreshPermissions,
         signOut,
-        updateUser,
         setUser,
-        refreshToken,
       }) as AuthContextType,
     [
       authState,
       signIn,
       signInWithGoogle,
       signUp,
+      refreshPermissions,
       signOut,
-      updateUser,
       setUser,
-      refreshToken,
     ]
   )
 
-  /**
-   * Expose methods to the FuseAuthProvider
-   */
-  useImperativeHandle(ref, () => ({
-    signOut,
-    updateUser,
-  }))
-
-  /**
-   * Intercept fetch requests to refresh the access token
-   */
   const interceptFetch = useCallback(() => {
     const { fetch: originalFetch } = window
 

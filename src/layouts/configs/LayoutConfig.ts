@@ -103,6 +103,56 @@ const LayoutConfig = {
 				}
 			}
 		},
+		sidebar: {
+			type: 'group',
+			title: 'Sidebar',
+			children: {
+				display: {
+					title: 'Display',
+					type: 'switch'
+				},
+				position: {
+					title: 'Position',
+					type: 'radio',
+					options: [
+						{
+							name: 'Left',
+							value: 'left'
+						},
+						{
+							name: 'Right',
+							value: 'right'
+						}
+					]
+				},
+				style: {
+					title: 'Style',
+					type: 'radio',
+					options: [
+						{
+							name: 'Slide (style-1)',
+							value: 'style-1'
+						},
+						{
+							name: 'Folded (style-2)',
+							value: 'style-2'
+						},
+						{
+							name: 'Tabbed (style-3)',
+							value: 'style-3'
+						},
+						{
+							name: 'Tabbed Dense (style-3-dense)',
+							value: 'style-3-dense'
+						}
+					]
+				},
+				folded: {
+					title: 'Folded (style-2, style-3)',
+					type: 'switch'
+				}
+			}
+		},
 		toolbar: {
 			type: 'group',
 			title: 'Toolbar',

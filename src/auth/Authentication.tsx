@@ -22,14 +22,9 @@ function Authentication(props: AuthenticationProps) {
   return (
     <AuthProvider providers={authProviders}>
       {(authState) => {
-        const isAuthenticated = authState?.isAuthenticated ?? false;
-        const rawRole = authState?.user?.role as User["role"];
-
-        // Backend อาจไม่ส่ง role กลับมา — ถ้า login แล้วแต่ไม่มี role ให้ default เป็น ["user"]
-        // เพื่อให้ Authorization รู้ว่าเป็น member ไม่ใช่ guest
-        const userRole: User["role"] = isAuthenticated
-          ? (rawRole ?? ["user"])
-          : (rawRole ?? []);
+        const user = authState?.user as User | null;
+        const rawRole = user?.permissions?.role_name;
+        const userRole: User["permissions"]["role_name"] = rawRole ?? [];
 
         return <Authorization userRole={userRole}>{children}</Authorization>;
       }}
