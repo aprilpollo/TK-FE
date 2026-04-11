@@ -1,5 +1,4 @@
 import { lazy } from "react"
-import authRoles from "@/auth/roles"
 import type { RouteItemType } from "@/types"
 
 const Members = lazy(() => import("./members"))

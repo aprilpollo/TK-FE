@@ -350,7 +350,7 @@ class Utils {
    */
   static hasPermission(
     authArr: string[] | string | undefined,
-    userRole: User["role"]
+    userRole: User["permissions"]["role_name"]
   ): boolean {
     /**
      * If auth array is not defined
@@ -365,7 +365,11 @@ class Utils {
        * if auth array is empty means,
        * allow only user role is guest (null or empty[])
        */
-      return !userRole || userRole.length === 0
+      return (
+        !userRole ||
+        (Array.isArray(userRole) && userRole.length === 0) ||
+        (typeof userRole === "string" && userRole.length === 0)
+      )
     }
 
     /**

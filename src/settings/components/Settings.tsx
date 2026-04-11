@@ -1,10 +1,7 @@
 import { Controller, useForm } from "react-hook-form";
-import themeLayoutConfigs, {
-  type themeLayoutDefaultsProps,
-} from "@/layouts/configs/themeLayoutConfigs";
+import themeLayoutConfigs from "@/layouts/configs/themeLayoutConfigs";
 import _ from "lodash";
 import { memo, useEffect, useMemo } from "react";
-import type { PartialDeep } from "type-fest";
 import LayoutConfigs from "./LayoutConfigs";
 import usePrevious from "@/hooks/usePrevious";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";

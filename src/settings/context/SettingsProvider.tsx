@@ -92,10 +92,10 @@ class SettingsProvider extends Component<
   }
 
   static getDerivedStateFromProps(
-    nextProps: SettingsProviderProps,
+    _nextProps: SettingsProviderProps,
     prevState: SettingsProviderState
   ) {
-    const { data: user, location } = nextProps
+    const { data: user, location } = _nextProps
 
     const userSettings = user?.settings as
       | PartialDeep<SettingsConfigType>
@@ -119,8 +119,9 @@ class SettingsProvider extends Component<
   }
 
   shouldComponentUpdate(
-    nextProps: SettingsProviderProps,
-    nextState: { data: SettingsConfigType }
+    _nextProps: Readonly<SettingsProviderProps>,
+    nextState: Readonly<SettingsProviderState>,
+    _nextContext: any
   ) {
     const { data } = this.state
     return !_.isEqual(data, nextState.data)
