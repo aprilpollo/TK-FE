@@ -2,7 +2,7 @@ import Storage from "./storage";
 
 const apiUrl = new URL((import.meta?.env?.VITE_API_BASE_URL as string) || 'http://localhost:3000');
 const devApiBaseHost = apiUrl.hostname;
-const devApiBaseUrl = `${apiUrl.protocol}//${devApiBaseHost}:${apiUrl.port}`;
+const devApiBaseUrl = `${apiUrl.protocol}//${devApiBaseHost}`;
 
 export const API_BASE_URL = import.meta.env.DEV ? devApiBaseUrl : (import.meta.env.VITE_API_BASE_URL as string) || '/';
 
