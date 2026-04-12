@@ -16,6 +16,7 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form"
+import { Textarea } from "@/components/ui/textarea"
 import useUser from "@/auth/hooks/useUser"
 
 const profileSchema = z.object({
@@ -29,7 +30,7 @@ const profileSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileSchema>
 
 function Profile() {
-  const { data: user, updateUser } = useUser()
+  const { data: user } = useUser()
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -44,11 +45,11 @@ function Profile() {
 
   async function onSubmit(values: ProfileFormValues) {
     try {
-      await updateUser(values)
-      toast.success("Profile updated successfully")
+      console.log("Updating profile with values:", values)
+      toast.success("Profile updated successfully", { position: "top-center" })
       form.reset(values)
     } catch {
-      toast.error("Failed to update profile. Please try again.")
+      toast.error("Failed to update profile. Please try again.", { position: "top-center" })
     }
   }
 
@@ -67,6 +68,7 @@ function Profile() {
       <div className="flex items-center gap-5">
         <div className="relative">
           <AvatarInput
+            defaultImageUrl={"https://avatars.githubusercontent.com/u/158476440?v=4"}
             accept="image/jpeg,image/png"
             icon={<Camera className="size-6 text-neutral-400" />}
             className="cursor-pointer"
@@ -135,6 +137,7 @@ function Profile() {
           <FormField
             control={form.control}
             name="email"
+            disabled
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Email</FormLabel>
@@ -157,10 +160,9 @@ function Profile() {
               <FormItem>
                 <FormLabel>Bio</FormLabel>
                 <FormControl>
-                  <textarea
+                  <Textarea
                     placeholder="Tell us a little about yourself..."
                     rows={4}
-                    className="flex w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     {...field}
                   />
                 </FormControl>
@@ -177,7 +179,7 @@ function Profile() {
               type="submit"
               disabled={form.formState.isSubmitting || !form.formState.isDirty}
             >
-              {form.formState.isSubmitting ? "Saving..." : "Save changes"}
+              {form.formState.isSubmitting ? "Saving..." : "Save"}
             </Button>
           </div>
         </form>

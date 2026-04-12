@@ -1,6 +1,7 @@
 import { Provider } from "react-redux"
 import { ThemeProvider } from "@/components/theme-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { Toaster } from "@/components/ui/sonner"
 import Authentication from "@/auth/Authentication"
 import ErrorBoundary from "@/utils/ErrorBoundary"
 import AppContext from "@/context/AppContext"
@@ -19,6 +20,7 @@ function App() {
       <AppContext value={AppContextValue}>
         <Provider store={store}>
           <ThemeProvider defaultTheme="system" storageKey="app-theme">
+            <Toaster />
             <TooltipProvider>
               <Authentication>
                 <SettingsProvider>

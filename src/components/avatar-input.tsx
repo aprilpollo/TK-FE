@@ -86,11 +86,13 @@ export function AvatarInput({
   accept,
   icon,
   className,
+  defaultImageUrl,
   ...props
 }: {
   accept?: string
   icon?: React.ReactNode
   className?: string
+  defaultImageUrl?: string
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const [
     { files, isDragging },
@@ -110,7 +112,7 @@ export function AvatarInput({
   const previewUrl = files[0]?.preview || null
   const fileId = files[0]?.id
 
-  const [finalImageUrl, setFinalImageUrl] = useState<string | null>(null)
+  const [finalImageUrl, setFinalImageUrl] = useState<string | null>(defaultImageUrl || null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   // Ref to track the previous file ID to detect new uploads
