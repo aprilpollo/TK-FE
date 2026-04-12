@@ -8,6 +8,7 @@ const Profile = lazy(() => import("./profile/profile"))
 const Account = lazy(() => import("./account/account"))
 const Notification = lazy(() => import("./notification/notification"))
 const Appearance = lazy(() => import("./appearance/appearance"))
+const Organization = lazy(() => import("./organization/organization"))
 
 const SettingsRoute: RouteItemType = {
   path: "settings",
@@ -35,6 +36,16 @@ const SettingsRoute: RouteItemType = {
         page: {
           title: "Account",
           description: "Manage your account information and preferences",
+        },
+      },
+    },
+    {
+      path: "organization",
+      element: <Organization />,
+      settings: {
+        page: {
+          title: "Organization",
+          description: "Manage the organizations you belong to",
         },
       },
     },

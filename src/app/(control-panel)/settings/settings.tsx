@@ -7,6 +7,7 @@ import {
   User,
   Settings as SettingsIcon,
   Bell,
+  Hotel
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import useUser from "@/auth/hooks/useUser"
@@ -22,6 +23,7 @@ type SettingsTab = {
 const settingsTabs: SettingsTab[] = [
   { title: "Profile", icon: User, path: "/settings/profile" },
   { title: "Account", icon: SettingsIcon, path: "/settings/account" },
+  { title: "Organization", icon: Hotel, path: "/settings/organization" },
   { title: "Notifications", icon: Bell, path: "/settings/notification" },
   { title: "Appearance", icon: Palette, path: "/settings/appearance" },
 ]
