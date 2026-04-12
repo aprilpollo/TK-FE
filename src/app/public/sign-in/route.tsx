@@ -1,8 +1,8 @@
-import { type RouteItemType } from "@/types";
-import { Navigate, Outlet } from "react-router";
-import authRoles from "@/auth/roles";
-import SignInPage from "./SignInPage";
-import Callback from "./callback/Callback";
+import { type RouteItemType } from "@/types"
+import { Navigate, Outlet } from "react-router"
+import authRoles from "@/auth/roles"
+import SignInPage from "./SignInPage"
+import Callback from "./callback/Callback"
 
 const SignInPageRoute: RouteItemType = {
   path: "auth",
@@ -37,12 +37,18 @@ const SignInPageRoute: RouteItemType = {
     {
       path: "sign-in",
       element: <SignInPage />,
+      settings: {
+        page: {
+          title: "Sign In",
+          description: "Please enter your credentials to access your account",
+        },
+      },
     },
     {
       path: "callback/google",
       element: <Callback />,
     },
   ],
-};
+}
 
-export default SignInPageRoute;
+export default SignInPageRoute

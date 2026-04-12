@@ -8,6 +8,12 @@ const ProjectsRoute: RouteItemType = {
   path: "projects",
   element: <Projects />,
   auth: authRoles.user,
+  settings:{
+    page: {
+      title: "Projects",
+      description: "Manage your projects and tasks"
+    },
+  }
 }
 
 export default ProjectsRoute

@@ -33,8 +33,15 @@ export type PaletteType = {
 export type ThemeType = { palette: PaletteType };
 export type ThemesType = Record<string, ThemeType>;
 
+export type PageMetaType = {
+  title?: string;
+  description?: string;
+  keywords?: string;
+};
+
 export type SettingsConfigType = {
   layout: { style?: string; config?: PartialDeep<themeLayoutDefaultsProps> };
+  page?: PageMetaType;
   customScrollbars?: boolean;
   direction: "rtl" | "ltr";
   theme: {

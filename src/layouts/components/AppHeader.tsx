@@ -1,4 +1,4 @@
-import { useLocation, Link } from "react-router"
+import { useLocation } from "react-router"
 import {
   Bell,
   Search,
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import ThemeToggle from "@/shared/ThemeToggle"
 import useUser from "@/auth/hooks/useUser"
+import Link from "@/shared/Link"
 
 // Map pathname → readable label
 const PAGE_LABELS: Record<string, string> = {
@@ -72,17 +73,17 @@ export function AppHeader({ showSidebar = true }: { showSidebar?: boolean }) {
 
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 border-b bg-background px-3">
-      {showSidebar && (
-        <div className="flex items-center gap-2">
-          <SidebarTrigger className="-ml-1 cursor-pointer" />
-          <div className="h-4 border-x" />
-          <nav className="flex items-center gap-1 text-sm">
-            <span className="text-muted-foreground">Workspace</span>
-            <ChevronRight className="size-3.5 text-muted-foreground" />
-            <span className="font-medium text-foreground">{pageLabel}</span>
-          </nav>
-        </div>
-      )}
+      <div className="flex items-center gap-2">
+        {showSidebar && <SidebarTrigger className="-ml-1 cursor-pointer" />}
+        {showSidebar && <div className="h-4 border-x" />}
+        <nav className="flex items-center gap-1 text-sm">
+          <Link to="/" className="text-muted-foreground">
+            Home
+          </Link>
+          <ChevronRight className="size-3.5 text-muted-foreground" />
+          <span className="font-medium text-foreground">{pageLabel}</span>
+        </nav>
+      </div>
 
       <div className="mx-4 flex flex-1 items-center justify-center">
         <div className="relative w-full max-w-sm">

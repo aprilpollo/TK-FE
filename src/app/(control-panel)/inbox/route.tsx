@@ -8,6 +8,12 @@ const InboxRoute: RouteItemType = {
   path: "inbox",
   element: <Inbox />,
   auth: authRoles.user,
+  settings:{
+    page: {
+      title: "Inbox",
+      description: "Your inbox messages"
+    },
+  }
 }
 
 export default InboxRoute

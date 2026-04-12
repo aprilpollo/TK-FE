@@ -11,6 +11,12 @@ const DashboardRoute: RouteItemType = {
 	path: 'dashboard',
 	element: <Dashboard />,
 	auth: authRoles.user,
+	settings: {
+		page: {
+			title: 'Dashboard',
+			description: 'Overview of your tasks and activities',
+		},
+	},
 };
 
 export default DashboardRoute;
