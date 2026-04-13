@@ -3,7 +3,16 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
-import { Building2, Crown, LogOut, Pencil, X, Check } from "lucide-react"
+import {
+  Building2,
+  Crown,
+  LogOut,
+  Pencil,
+  X,
+  Check,
+  BadgeCheck,
+  Ellipsis,
+} from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import useUser from "@/auth/hooks/useUser"
@@ -20,10 +29,14 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form"
+import { Badge } from "@/components/ui/badge"
 
 const editOrgSchema = z.object({
   name: z.string().min(1, "Organization name is required"),
-  description: z.string().max(200, "Description must be 200 characters or less").optional(),
+  description: z
+    .string()
+    .max(200, "Description must be 200 characters or less")
+    .optional(),
 })
 
 type EditOrgFormValues = z.infer<typeof editOrgSchema>
@@ -69,7 +82,7 @@ function OrgCard({ org }: { org: Organization }) {
   return (
     <div className="rounded-lg border bg-card">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 p-4">
+      <div className="flex items-start justify-between gap-4 border-b p-4">
         <div className="flex items-center gap-3">
           <Avatar className="size-10 rounded-md">
             <AvatarImage src={org.logo_url} alt={org.name} />
@@ -82,26 +95,35 @@ function OrgCard({ org }: { org: Organization }) {
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">{org.name}</span>
               {org.is_owner && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                  <Crown className="size-3" />
+                <Badge
+                  // variant="secondary"
+                  className="bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                >
+                  <BadgeCheck data-icon="inline-start" />
                   Owner
-                </span>
+                </Badge>
               )}
-              <span
+              <Badge
+                // variant="outline"
                 className={cn(
-                  "rounded-full px-2 py-0.5 text-xs font-medium",
                   org.is_active
-                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                    ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
                     : "bg-muted text-muted-foreground"
                 )}
               >
                 {org.is_active ? "Active" : "Inactive"}
-              </span>
+              </Badge>
             </div>
             <p className="text-xs text-muted-foreground">
-              /{org.slug}
               {org.joined_at && (
-                <> · Joined {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(org.joined_at))}</>
+                <>
+                  Joined{" "}
+                  {new Intl.DateTimeFormat("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  }).format(new Date(org.joined_at))}
+                </>
               )}
             </p>
           </div>
@@ -114,9 +136,9 @@ function OrgCard({ org }: { org: Organization }) {
               variant="ghost"
               size="sm"
               onClick={() => setIsEditing(true)}
+              className="cursor-pointer"
             >
-              <Pencil className="size-4" />
-              Edit
+              <Ellipsis  className="size-4" />
             </Button>
           )}
           {!org.is_owner && (
@@ -137,7 +159,6 @@ function OrgCard({ org }: { org: Organization }) {
       {/* Description (view mode) */}
       {!isEditing && org.description && (
         <>
-          <Separator />
           <p className="px-4 py-3 text-sm text-muted-foreground">
             {org.description}
           </p>
@@ -147,10 +168,12 @@ function OrgCard({ org }: { org: Organization }) {
       {/* Edit form (owner only) */}
       {isEditing && (
         <>
-          <Separator />
           <div className="p-4">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="name"
@@ -175,7 +198,7 @@ function OrgCard({ org }: { org: Organization }) {
                         <textarea
                           placeholder="A short description of your organization..."
                           rows={3}
-                          className="flex w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                          className="flex w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           {...field}
                         />
                       </FormControl>
@@ -197,7 +220,9 @@ function OrgCard({ org }: { org: Organization }) {
                   <Button
                     type="submit"
                     size="sm"
-                    disabled={form.formState.isSubmitting || !form.formState.isDirty}
+                    disabled={
+                      form.formState.isSubmitting || !form.formState.isDirty
+                    }
                   >
                     <Check className="size-4" />
                     {form.formState.isSubmitting ? "Saving..." : "Save"}
