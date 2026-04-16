@@ -1,0 +1,222 @@
+import type {
+  BoardProps,
+  Column,
+  Task,
+  DragStartEvent,
+  DragEndEvent,
+  DragOverEvent,
+} from "@/types"
+import { useMemo, useState } from "react"
+import { createPortal } from "react-dom"
+import {
+  DndContext,
+  DragOverlay,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  pointerWithin,
+  KeyboardSensor,
+} from "@dnd-kit/core"
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import { restrictToHorizontalAxis } from "@dnd-kit/modifiers"
+import { KanbanColumn } from "@/components/kanban/column"
+import { KanbanCard } from "@/components/kanban/card"
+import { AddGroup } from "@/components/kanban/add-group"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import useTask from "@/hooks/useTask"
+
+export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
+  const { columns, tasks, setColumns, setTasks } = useTask()
+  const [activeColumn, setActiveColumn] = useState<Column | null>(null)
+  const [activeTask, setActiveTask] = useState<Task | null>(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3, // Start dragging after 3px movement
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  const columnsId = useMemo(() => columns.map((col) => col.uuid), [columns])
+
+  function onDragStart(event: DragStartEvent) {
+    if (event.active.data.current?.type === "Column") {
+      setActiveColumn(event.active.data.current.column)
+      return
+    }
+
+    if (event.active.data.current?.type === "Task") {
+      setActiveTask(event.active.data.current.task)
+      return
+    }
+  }
+
+  function onDragEnd(event: DragEndEvent) {
+    setActiveColumn(null)
+    setActiveTask(null)
+
+    const { active, over } = event
+    if (!over) return
+
+    const activeId = active.id
+    const overId = over.id
+
+    // if (activeId === overId) return;
+
+    const isActiveColumn = active.data.current?.type === "Column"
+    if (isActiveColumn) {
+      setColumns((columns) => {
+        const activeIndex = columns.findIndex((col) => col.uuid === activeId)
+        const overIndex = columns.findIndex((col) => col.uuid === overId)
+        return arrayMove(columns, activeIndex, overIndex)
+      })
+      if (onDragEndColumn) onDragEndColumn(event)
+      return
+    }
+
+    const isActiveTask = active.data.current?.type === "Task"
+    if (isActiveTask) {
+      setTasks((tasks) => {
+        const activeIndex = tasks.findIndex((t) => t.id === activeId)
+        const overIndex = tasks.findIndex((t) => t.id === overId)
+
+        if (activeIndex === -1 || overIndex === -1) return tasks
+
+        // Only reorder if in the same column
+        if (tasks[activeIndex].columnId !== tasks[overIndex].columnId) {
+          return tasks
+        }
+
+        return arrayMove(tasks, activeIndex, overIndex)
+      })
+      if (onDragEndItem) onDragEndItem(event)
+    }
+  }
+
+  function onDragOver(event: DragOverEvent) {
+    const { active, over } = event
+    if (!over) return
+
+    const activeId = active.id
+    const overId = over.id
+
+    if (activeId === overId) return
+
+    const isActiveTask = active.data.current?.type === "Task"
+    if (!isActiveTask) return
+
+    setTasks((prev) => {
+      const activeIndex = prev.findIndex((t) => t.id === activeId)
+      const overIndex = prev.findIndex((t) => t.id === overId)
+
+      if (activeIndex === -1) return prev
+      const activeTask = prev[activeIndex]
+
+      // Safety check: activeTask really shouldn't be undefined if index != -1, but good to be safe.
+      if (!activeTask) return prev
+
+      const activeColumnId = activeTask.columnId
+
+      const isOverColumn = over.data.current?.type === "Column"
+      let overColumnId: number | string
+
+      if (isOverColumn) {
+        overColumnId = overId
+      } else {
+        // Dropping over a Task
+        if (overIndex === -1) return prev // Safety check
+        const overTask = prev[overIndex]
+        if (!overTask) return prev // Safety check
+        overColumnId = overTask.columnId
+      }
+
+      // 1. If columns are the SAME, do nothing in onDragOver.
+      if (activeColumnId === overColumnId) {
+        return prev
+      }
+
+      // 2. If columns are DIFFERENT, move the task to the new column.
+      const newTasks = [...prev]
+      newTasks[activeIndex] = {
+        ...newTasks[activeIndex],
+        columnId: overColumnId,
+      }
+
+      if (isOverColumn) {
+        return arrayMove(newTasks, activeIndex, activeIndex)
+      } else {
+        const isBelowOverItem =
+          over &&
+          active.rect.current.translated &&
+          active.rect.current.translated.top > over.rect.top + over.rect.height
+
+        const modifier = isBelowOverItem ? 1 : 0
+        const newIndex = overIndex >= 0 ? overIndex + modifier : prev.length + 1
+
+        return arrayMove(newTasks, activeIndex, newIndex)
+      }
+    })
+  }
+
+  return (
+    <ScrollArea>
+      <div className="flex h-[calc(100svh-160px)] space-x-4 px-4">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={pointerWithin}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          onDragOver={onDragOver}
+          modifiers={[
+            (args) => {
+              if (args.active?.data.current?.type === "Column") {
+                return restrictToHorizontalAxis(args)
+              }
+              return args.transform
+            },
+          ]}
+        >
+          <SortableContext
+            items={columnsId}
+            strategy={horizontalListSortingStrategy}
+          >
+            {columns.map((col) => (
+              <KanbanColumn
+                key={col.uuid}
+                column={col}
+                tasks={tasks.filter((task) => task.columnId === col.uuid)}
+              />
+            ))}
+            <AddGroup />
+          </SortableContext>
+
+          {typeof document !== "undefined" &&
+            createPortal(
+              <DragOverlay>
+                {activeColumn && (
+                  <KanbanColumn
+                    column={activeColumn}
+                    tasks={tasks.filter(
+                      (task) => task.columnId === activeColumn.uuid
+                    )}
+                  />
+                )}
+                {activeTask && <KanbanCard task={activeTask} isOverlay />}
+              </DragOverlay>,
+              document.body
+            )}
+        </DndContext>
+      </div>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
+  )
+}

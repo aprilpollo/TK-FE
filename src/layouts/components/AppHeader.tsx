@@ -72,7 +72,7 @@ export function AppHeader({ showSidebar = true }: { showSidebar?: boolean }) {
   const initials = getInitials(user?.display_name, user?.email)
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-2 border-b bg-background px-3">
+    <header className="flex h-12 shrink-0 items-center gap-2 bg-background px-3">
       <div className="flex items-center gap-2">
         {showSidebar && <SidebarTrigger className="-ml-1 cursor-pointer" />}
         {showSidebar && <div className="h-4 border-x" />}
@@ -117,7 +117,7 @@ export function AppHeader({ showSidebar = true }: { showSidebar?: boolean }) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 cursor-pointer gap-2 px-2">
               <Avatar className="size-6">
-                <AvatarImage src="https://github.com/shadcn.png" />
+                <AvatarImage src={user?.avatar} />
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
               <span className="hidden max-w-28 truncate text-sm font-medium sm:block">
@@ -130,7 +130,7 @@ export function AppHeader({ showSidebar = true }: { showSidebar?: boolean }) {
             <DropdownMenuLabel className="font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src="https://github.com/shadcn.png" />
+                  <AvatarImage src={user?.avatar} />
                   <AvatarFallback className="rounded-lg">
                     {initials}
                   </AvatarFallback>

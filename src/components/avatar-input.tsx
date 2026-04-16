@@ -87,12 +87,14 @@ export function AvatarInput({
   icon,
   className,
   defaultImageUrl,
+  onCropped,
   ...props
 }: {
   accept?: string
   icon?: React.ReactNode
   className?: string
   defaultImageUrl?: string
+  onCropped?: (data: { blob: Blob; file: File; previewUrl: string }) => void
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const [
     { files, isDragging },
@@ -112,7 +114,9 @@ export function AvatarInput({
   const previewUrl = files[0]?.preview || null
   const fileId = files[0]?.id
 
-  const [finalImageUrl, setFinalImageUrl] = useState<string | null>(defaultImageUrl || null)
+  const [finalImageUrl, setFinalImageUrl] = useState<string | null>(
+    defaultImageUrl || null
+  )
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   // Ref to track the previous file ID to detect new uploads
@@ -164,6 +168,16 @@ export function AvatarInput({
       // 4. Set the final avatar state to the NEW URL
       setFinalImageUrl(newFinalUrl)
 
+      // Emit cropped result only when user confirms with Apply
+      const croppedFile = new File([croppedBlob], `avatar-${Date.now()}.jpg`, {
+        type: "image/jpeg",
+      })
+      onCropped?.({
+        blob: croppedBlob,
+        file: croppedFile,
+        previewUrl: newFinalUrl,
+      })
+
       // 5. Close the dialog (don't remove the file yet)
       setIsDialogOpen(false)
     } catch (error) {
@@ -207,7 +221,7 @@ export function AvatarInput({
       <div className="relative inline-flex">
         {/* Drop area - uses finalImageUrl */}
         <button
-          {...props}
+         {...props}
           aria-label={finalImageUrl ? "Change image" : "Upload image"}
           className={cn(
             "relative flex size-16 items-center justify-center overflow-hidden rounded-full border border-dashed border-input transition-colors outline-none hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-disabled:pointer-events-none has-disabled:opacity-50 has-[img]:border-none data-[dragging=true]:bg-accent/50",

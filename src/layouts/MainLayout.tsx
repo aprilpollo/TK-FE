@@ -7,6 +7,7 @@ import { AppHeader } from "./components/AppHeader"
 import { Helmet } from "react-helmet-async"
 import useLayoutSettings from "@/layouts/hooks/useLayoutSettings"
 import useSettings from "@/settings/hooks/useSettings"
+// import Loading from "@/shared/Loading"
 
 type LayoutProps = {
   children?: ReactNode
@@ -39,9 +40,12 @@ function MainLayout(props: LayoutProps) {
         {showSidebar && <AppSidebar />}
         <SidebarInset>
           {showNavebar && <AppHeader showSidebar={showSidebar} />}
-          <main className="bg-background">
+          <main className="@container/main bg-background">
             {children}
             <Outlet />
+            {/* <Suspense fallback={<Loading />}>
+              <Outlet />
+            </Suspense> */}
           </main>
         </SidebarInset>
       </SidebarProvider>

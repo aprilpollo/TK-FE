@@ -1,8 +1,6 @@
-import { lazy } from "react"
-import authRoles from "@/auth/roles"
 import type { RouteItemType } from "@/types"
-
-const Inbox = lazy(() => import("./inbox"))
+import Inbox from "@/app/(control-panel)/inbox/page"
+import authRoles from "@/auth/roles"
 
 const InboxRoute: RouteItemType = {
   path: "inbox",

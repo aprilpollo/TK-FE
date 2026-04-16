@@ -1,14 +1,12 @@
-import { lazy } from "react"
+import type { RouteItemType } from "@/types"
 import { Navigate } from "react-router"
 import authRoles from "@/auth/roles"
-import type { RouteItemType } from "@/types"
-
-const Settings = lazy(() => import("./settings"))
-const Profile = lazy(() => import("./profile/profile"))
-const Account = lazy(() => import("./account/account"))
-const Notification = lazy(() => import("./notification/notification"))
-const Appearance = lazy(() => import("./appearance/appearance"))
-const Organization = lazy(() => import("./organization/organization"))
+import Settings from "@/app/(control-panel)/settings/page"
+import Profile from "@/app/(control-panel)/settings/profile/page"
+import Account from "@/app/(control-panel)/settings/account/page"
+import Notification from "@/app/(control-panel)/settings/notification/page"
+import Appearance from "@/app/(control-panel)/settings/appearance/page"
+import Organization from "@/app/(control-panel)/settings/organization/page"
 
 const SettingsRoute: RouteItemType = {
   path: "settings",

@@ -16,7 +16,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import useUser from "@/auth/hooks/useUser"
-import type { Organization } from "@/auth/user"
+import type { Organization as TypeOrganization } from "@/auth/user"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -41,7 +41,7 @@ const editOrgSchema = z.object({
 
 type EditOrgFormValues = z.infer<typeof editOrgSchema>
 
-function OrgCard({ org }: { org: Organization }) {
+function OrgCard({ org }: { org: TypeOrganization }) {
   const [isEditing, setIsEditing] = useState(false)
 
   const form = useForm<EditOrgFormValues>({
@@ -81,12 +81,12 @@ function OrgCard({ org }: { org: Organization }) {
 
   return (
     <div className="rounded-lg border bg-card">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 border-b p-4">
+      
+      <div className="flex items-start justify-between gap-4 p-4">
         <div className="flex items-center gap-3">
-          <Avatar className="size-10 rounded-md">
+          <Avatar className="size-12">
             <AvatarImage src={org.logo_url} alt={org.name} />
-            <AvatarFallback className="rounded-md bg-primary/10 text-primary">
+            <AvatarFallback >
               <Building2 className="size-5" />
             </AvatarFallback>
           </Avatar>
@@ -114,18 +114,22 @@ function OrgCard({ org }: { org: Organization }) {
                 {org.is_active ? "Active" : "Inactive"}
               </Badge>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {org.joined_at && (
-                <>
-                  Joined{" "}
-                  {new Intl.DateTimeFormat("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  }).format(new Date(org.joined_at))}
-                </>
-              )}
-            </p>
+            <div className="mt-1 flex items-center gap-1">
+              <p className="text-xs text-muted-foreground">
+                {org.joined_at && (
+                  <>
+                    Joined{" "}
+                    {new Intl.DateTimeFormat("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    }).format(new Date(org.joined_at))}
+                  </>
+                )}
+              </p>
+              <p className="text-xs text-muted-foreground">|</p>
+              <p className="text-xs text-muted-foreground">{org.description}</p>
+            </div>
           </div>
         </div>
 
@@ -138,7 +142,7 @@ function OrgCard({ org }: { org: Organization }) {
               onClick={() => setIsEditing(true)}
               className="cursor-pointer"
             >
-              <Ellipsis  className="size-4" />
+              <Ellipsis className="size-4" />
             </Button>
           )}
           {!org.is_owner && (
@@ -155,84 +159,6 @@ function OrgCard({ org }: { org: Organization }) {
           )}
         </div>
       </div>
-
-      {/* Description (view mode) */}
-      {!isEditing && org.description && (
-        <>
-          <p className="px-4 py-3 text-sm text-muted-foreground">
-            {org.description}
-          </p>
-        </>
-      )}
-
-      {/* Edit form (owner only) */}
-      {isEditing && (
-        <>
-          <div className="p-4">
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Organization Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="My Organization" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <textarea
-                          placeholder="A short description of your organization..."
-                          rows={3}
-                          className="flex w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleCancel}
-                  >
-                    <X className="size-4" />
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    size="sm"
-                    disabled={
-                      form.formState.isSubmitting || !form.formState.isDirty
-                    }
-                  >
-                    <Check className="size-4" />
-                    {form.formState.isSubmitting ? "Saving..." : "Save"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </div>
-        </>
-      )}
     </div>
   )
 }

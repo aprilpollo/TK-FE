@@ -17,7 +17,10 @@ import {
   FormDescription,
 } from "@/components/ui/form"
 import { Textarea } from "@/components/ui/textarea"
+import { updateAvatar, updateProfile } from "@/api/user"
+import type { User } from "@/auth/user"
 import useUser from "@/auth/hooks/useUser"
+import useAuth from "@/auth/context/useJwtAuth"
 
 const profileSchema = z.object({
   display_name: z.string().min(1, "Display name is required"),
@@ -31,6 +34,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>
 
 function Profile() {
   const { data: user } = useUser()
+  const { setUser } = useAuth()
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -45,11 +49,47 @@ function Profile() {
 
   async function onSubmit(values: ProfileFormValues) {
     try {
-      console.log("Updating profile with values:", values)
+      const res = await updateProfile({
+        first_name: values.first_name,
+        last_name: values.last_name,
+        display_name: values.display_name,
+        bio: values.bio ?? "",
+      })
+      const updatedUser = (await res.json()) as {
+        code: number
+        error: string
+        message: string
+        payload: User
+      }
+      setUser({ ...user, ...updatedUser.payload })
+
       toast.success("Profile updated successfully", { position: "top-center" })
-      form.reset(values)
+      form.reset({
+        display_name: updatedUser.payload.display_name,
+        first_name: updatedUser.payload.first_name,
+        last_name: updatedUser.payload.last_name,
+        email: updatedUser.payload.email,
+        bio: updatedUser.payload.bio ?? "",
+      })
     } catch {
-      toast.error("Failed to update profile. Please try again.", { position: "top-center" })
+      toast.error("Failed to update profile. Please try again.", {
+        position: "top-center",
+      })
+    }
+  }
+
+  async function onAvatarChange(data: {
+    blob: Blob
+    file: File
+    previewUrl: string
+  }) {
+    try {
+      await updateAvatar(data.file)
+      toast.success("Avatar updated successfully", { position: "top-center" })
+    } catch {
+      toast.error("Failed to update avatar. Please try again.", {
+        position: "top-center",
+      })
     }
   }
 
@@ -68,10 +108,11 @@ function Profile() {
       <div className="flex items-center gap-5">
         <div className="relative">
           <AvatarInput
-            defaultImageUrl={"https://avatars.githubusercontent.com/u/158476440?v=4"}
+            defaultImageUrl={user?.avatar}
             accept="image/jpeg,image/png"
             icon={<Camera className="size-6 text-neutral-400" />}
             className="cursor-pointer"
+            onCropped={onAvatarChange}
           />
         </div>
         <div className="space-y-0.5">

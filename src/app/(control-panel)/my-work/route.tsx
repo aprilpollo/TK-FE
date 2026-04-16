@@ -1,7 +1,6 @@
-import { lazy } from "react"
 import type { RouteItemType } from "@/types"
 import authRoles from "@/auth/roles"
-const MyWork = lazy(() => import("./my-work"))
+import MyWork from "@/app/(control-panel)/my-work/page"
 
 const MyWorkRoute: RouteItemType = {
   path: "mywork",

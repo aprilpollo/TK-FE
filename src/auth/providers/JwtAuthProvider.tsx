@@ -20,11 +20,12 @@ import {
   authProfile,
   authOrganization,
   authOrganizationPermissions,
-  authUpdatePrimaryOrganization
+  authUpdatePrimaryOrganization,
 } from "../api/authApi"
 import { removeGlobalHeaders, setGlobalHeaders } from "@/utils/apiFetch"
 import AuthContext, { type AuthContextType } from "../context/JwtAuthContext"
 import useLocalStorage from "@/hooks/useLocalStorage"
+import Storage from "@/utils/storage"
 
 export type SignInPayload = {
   email: string
@@ -102,6 +103,12 @@ const JwtAuthProvider = forwardRef<
             organization: responseOrganization.payload,
             permissions: responseOrganizationPermissions.payload,
           }
+
+          setGlobalHeaders({
+            Authorization: `Bearer ${accessToken}`,
+            "Organization-ID": userData.permissions.organization_id?.toString() ?? "",
+          })
+
           return userData
         } catch (error) {
           return false
@@ -121,7 +128,7 @@ const JwtAuthProvider = forwardRef<
           })
         } else {
           removeTokenStorageValue()
-          removeGlobalHeaders(["Authorization"])
+          removeGlobalHeaders(["Authorization", "Organization-ID"])
           setAuthState({
             authStatus: "unauthenticated",
             isAuthenticated: false,
@@ -192,6 +199,7 @@ const JwtAuthProvider = forwardRef<
         setTokenStorageValue(sessionSignIn.payload.token)
         setGlobalHeaders({
           Authorization: `Bearer ${sessionSignIn.payload.token}`,
+          "Organization-ID": userData.permissions.organization_id?.toString() ?? "",
         })
       }
 
@@ -243,39 +251,50 @@ const JwtAuthProvider = forwardRef<
     [setTokenStorageValue]
   )
 
-  const refreshPermissions = useCallback(async (organizationId: number) => {
-    setAuthState((prev) => ({
-      ...prev,
-      authStatus: "configuring",
-    }))
+  const refreshPermissions = useCallback(
+    async (organizationId: number) => {
+      setAuthState((prev) => ({
+        ...prev,
+        authStatus: "configuring",
+      }))
 
-    const accessToken = tokenStorageValue
-    try {
-      await authUpdatePrimaryOrganization(accessToken ?? "", organizationId)
-      const response = await authOrganizationPermissions(accessToken ?? "")
-      const session = (await response.json()) as {
-        code: number
-        error: string | null
-        message: string
-        payload: Permissions
+      const accessToken = tokenStorageValue
+      try {
+        await authUpdatePrimaryOrganization(accessToken ?? "", organizationId)
+        const response = await authOrganizationPermissions(accessToken ?? "")
+        const session = (await response.json()) as {
+          code: number
+          error: string | null
+          message: string
+          payload: Permissions
+        }
+
+        setAuthState((prev) => ({
+          ...prev,
+          authStatus: prev.isAuthenticated
+            ? "authenticated"
+            : "unauthenticated",
+          user: {
+            ...prev?.user,
+            permissions: session.payload,
+          } as User,
+        }))
+        Storage.set(
+          "organization_id",
+          session.payload.organization_id?.toString() ?? ""
+        )
+      } catch (error) {
+        setAuthState((prev) => ({
+          ...prev,
+          authStatus: prev.isAuthenticated
+            ? "authenticated"
+            : "unauthenticated",
+        }))
+        throw error
       }
-
-      setAuthState((prev) => ({
-        ...prev,
-        authStatus: prev.isAuthenticated ? "authenticated" : "unauthenticated",
-        user: {
-          ...prev?.user,
-          permissions: session.payload,
-        } as User,
-      }))
-    } catch (error) {
-      setAuthState((prev) => ({
-        ...prev,
-        authStatus: prev.isAuthenticated ? "authenticated" : "unauthenticated",
-      }))
-      throw error
-    }
-  }, [tokenStorageValue])
+    },
+    [tokenStorageValue]
+  )
 
   const signUp = useCallback(
     async (data: SignUpPayload) => {

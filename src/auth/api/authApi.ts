@@ -56,3 +56,13 @@ export async function authUpdatePrimaryOrganization(accessToken: string, organiz
     headers: { Authorization: `Bearer ${accessToken}` },
   })
 }
+
+export async function authUpdateAvatar(file: File): Promise<Response> {
+  const formData = new FormData()
+  formData.append("avatar", file)
+
+  return apiFetch(`/api/v1/users/me/avatar`, {
+    method: "POST",
+    body: formData,
+  })
+}

@@ -1,72 +1,94 @@
-import Storage from "./storage";
 
-const apiUrl = new URL((import.meta?.env?.VITE_API_BASE_URL as string) || 'http://localhost:3000');
-const devApiBaseHost = apiUrl.hostname;
-const devApiBaseUrl = `${apiUrl.protocol}//${devApiBaseHost}`;
+const apiUrl = new URL(
+  (import.meta?.env?.VITE_API_BASE_URL as string) || "http://localhost:3000"
+)
+const devApiBaseHost = apiUrl.hostname
+const devApiBaseUrl = `${apiUrl.protocol}//${devApiBaseHost}`
 
-export const API_BASE_URL = import.meta.env.DEV ? devApiBaseUrl : (import.meta.env.VITE_API_BASE_URL as string) || '/';
+export const API_BASE_URL = import.meta.env.DEV
+  ? devApiBaseUrl
+  : (import.meta.env.VITE_API_BASE_URL as string) || "/"
 
 // Define the types for options and configuration
-type FetchOptions = RequestInit;
+type FetchOptions = RequestInit
 
 export class FetchApiError extends Error {
-	status: number;
+  status: number
 
-	data: unknown;
+  data: unknown
 
-	constructor(status: number, data: unknown) {
-		super(`FetchApiError: ${status}`);
-		this.status = status;
-		this.data = data;
-	}
+  constructor(status: number, data: unknown) {
+    super(`FetchApiError: ${status}`)
+    this.status = status
+    this.data = data
+  }
 }
 
 // Global headers configuration
-export const globalHeaders: Record<string, string> = {};
+export const globalHeaders: Record<string, string> = {}
 
 // Function to update global headers
 export const setGlobalHeaders = (newHeaders: Record<string, string>) => {
-	Object.assign(globalHeaders, newHeaders);
-};
+  Object.assign(globalHeaders, newHeaders)
+}
 
 export const removeGlobalHeaders = (headerKeys: string[]) => {
-	headerKeys.forEach((key) => {
-		delete globalHeaders[key];
-	});
-};
+  headerKeys.forEach((key) => {
+    delete globalHeaders[key]
+  })
+}
 
 // Main apiFetch function with interceptors and type safety
 const apiFetch = async (endpoint: string, options: FetchOptions = {}) => {
-	const { headers, ...restOptions } = options;
-	const method = restOptions.method || 'GET';
-	// Set default headers, including global headers
-	const accessToken = Storage.get("access_token");
+  const { headers, ...restOptions } = options
+  const method = restOptions.method || "GET"
 
-	if (accessToken) {
-		globalHeaders["Authorization"] = `Bearer ${accessToken}`;
-	}
+  const mergedHeaders = new Headers(globalHeaders)
+  if (headers instanceof Headers) {
+    headers.forEach((value, key) => {
+      mergedHeaders.set(key, value)
+    })
+  } else if (Array.isArray(headers)) {
+    headers.forEach(([key, value]) => {
+      mergedHeaders.set(key, value)
+    })
+  } else if (headers) {
+    Object.entries(headers).forEach(([key, value]) => {
+      if (typeof value === "string") {
+        mergedHeaders.set(key, value)
+      }
+    })
+  }
 
-	const config: FetchOptions = {
-		headers: {
-			...(method !== 'GET' && { 'Content-Type': 'application/json' }),
-			...globalHeaders,
-			...headers,
-		},
-		...restOptions
-	};
+  const hasBody = restOptions.body !== undefined && restOptions.body !== null
+  const isFormData =
+    typeof FormData !== "undefined" && restOptions.body instanceof FormData
+  if (
+    method !== "GET" &&
+    hasBody &&
+    !isFormData &&
+    !mergedHeaders.has("Content-Type")
+  ) {
+    mergedHeaders.set("Content-Type", "application/json")
+  }
 
-	try {
-		const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  const config: FetchOptions = {
+    headers: mergedHeaders,
+    ...restOptions,
+  }
 
-		if (!response.ok) {
-			throw new FetchApiError(response.status, await response.json());
-		}
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, config)
 
-		return response;
-	} catch (error) {
-		console.error('Error in apiFetch:', error);
-		throw error;
-	}
-};
+    if (!response.ok) {
+      throw new FetchApiError(response.status, await response.json())
+    }
 
-export default apiFetch;
+    return response
+  } catch (error) {
+    console.error("Error in apiFetch:", error)
+    throw error
+  }
+}
+
+export default apiFetch
