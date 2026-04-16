@@ -9,7 +9,7 @@ export async function fetchPriorities(): Promise<Response> {
 export async function fetchTaskStatuses(
   project_id: string | number
 ): Promise<Response> {
-  return apiFetch(`/api/v1/tasks/statuses/${project_id}`, {
+  return apiFetch(`/api/v1/tasks/statuses/${project_id}?_sort=position&_order=asc`, {
     method: "GET",
   })
 }
