@@ -257,40 +257,41 @@ function Tasks() {
     const { over } = event
     if (!over) return
 
+    // Read current tasks state synchronously via updater form, without changing state
+    let updates: { id: number | string; position: number; status_id: string | number }[] = []
     setTasks((currentTasks) => {
-      const updates = currentTasks.map((t) => {
-        // Find tasks within the same column to determine their visual position
+      updates = currentTasks.map((t) => {
         const tasksInColumn = currentTasks.filter(
           (item) => item.columnId === t.columnId
         )
         const position = tasksInColumn.findIndex((item) => item.id === t.id) + 1
         return {
           id: t.id,
-          position: position,
+          position,
           status_id: t.columnId,
         }
       })
-
-      try {
-        reorderTasks({
-          project_id: project.id,
-          updates,
-        })
-      } catch (error) {
-        FetchTasks(columns) // Revert to original state by re-fetching tasks
-        const description =
-          error instanceof FetchApiError
-            ? "An error occurred while saving the new task order. Please try again."
-            : error instanceof Error
-              ? error.message
-              : "An unexpected error occurred. Please try again."
-
-        toast("Failed to reorder tasks", {
-          description,
-        })
-      }
       return currentTasks
     })
+
+    try {
+      await reorderTasks({
+        project_id: project.id,
+        updates,
+      })
+    } catch (error) {
+      await FetchTasks(columns) // Revert to original state by re-fetching tasks
+      const description =
+        error instanceof FetchApiError
+          ? "An error occurred while saving the new task order. Please try again."
+          : error instanceof Error
+            ? error.message
+            : "An unexpected error occurred. Please try again."
+
+      toast("Failed to reorder tasks", {
+        description,
+      })
+    }
   }
 
   useEffect(() => {
