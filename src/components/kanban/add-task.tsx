@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Calendar, CornerDownLeft, Users, Flag } from "lucide-react"
-import { toast } from "sonner"
 
 const taskSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -14,8 +13,8 @@ const taskSchema = z.object({
 type TaskFormValues = z.infer<typeof taskSchema>
 
 export function AddTask({
-  columnId,
-  setAddTaskOpen,
+  columnId: _columnId,
+  setAddTaskOpen: _setAddTaskOpen,
 }: {
   columnId: string | number
   setAddTaskOpen: (open: boolean) => void
@@ -28,7 +27,7 @@ export function AddTask({
     },
   })
 
-  const onSubmit = async (data: TaskFormValues) => {}
+  const onSubmit = async (_data: TaskFormValues) => {}
 
   return (
     <Form {...form}>

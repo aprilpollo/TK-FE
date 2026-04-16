@@ -7,7 +7,6 @@ import {
   User,
   Settings as SettingsIcon,
   Bell,
-  Hotel
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import useUser from "@/auth/hooks/useUser"

@@ -1,15 +1,8 @@
 import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
 import { toast } from "sonner"
 import {
   Building2,
-  Crown,
   LogOut,
-  Pencil,
-  X,
-  Check,
   BadgeCheck,
   Ellipsis,
 } from "lucide-react"
@@ -19,55 +12,11 @@ import useUser from "@/auth/hooks/useUser"
 import type { Organization as TypeOrganization } from "@/auth/user"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form"
 import { Badge } from "@/components/ui/badge"
-
-const editOrgSchema = z.object({
-  name: z.string().min(1, "Organization name is required"),
-  description: z
-    .string()
-    .max(200, "Description must be 200 characters or less")
-    .optional(),
-})
-
-type EditOrgFormValues = z.infer<typeof editOrgSchema>
 
 function OrgCard({ org }: { org: TypeOrganization }) {
   const [isEditing, setIsEditing] = useState(false)
-
-  const form = useForm<EditOrgFormValues>({
-    resolver: zodResolver(editOrgSchema),
-    defaultValues: {
-      name: org.name,
-      description: org.description ?? "",
-    },
-  })
-
-  async function onSubmit(values: EditOrgFormValues) {
-    try {
-      // TODO: wire up organization update API
-      await new Promise((resolve) => setTimeout(resolve, 800))
-      toast.success("Organization updated successfully")
-      form.reset(values)
-      setIsEditing(false)
-    } catch {
-      toast.error("Failed to update organization. Please try again.")
-    }
-  }
-
-  function handleCancel() {
-    form.reset()
-    setIsEditing(false)
-  }
 
   async function handleLeave() {
     try {

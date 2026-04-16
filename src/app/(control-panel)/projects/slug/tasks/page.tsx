@@ -41,15 +41,6 @@ function Tasks() {
   >({})
 
   const [searchInput, setSearchInput] = useState("")
-  const [search, setSearch] = useState("")
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearch(searchInput)
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [searchInput])
 
   if (!project) {
     return <div>Loading...</div>
