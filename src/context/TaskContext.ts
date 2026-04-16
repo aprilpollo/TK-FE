@@ -10,6 +10,7 @@ export type TaskContextType = {
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>
   setColumns: React.Dispatch<React.SetStateAction<Column[]>>
   FetchTaskByStatus: (statusId: string | number) => Promise<void>
+  FetchTaskStatuses: () => Promise<Column[]>
   loadMoreTasks: (statusId: string | number) => Promise<void>
 }
 

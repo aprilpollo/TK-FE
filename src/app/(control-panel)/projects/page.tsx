@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
@@ -21,10 +20,11 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import Link from "@/shared/Link"
-import { Dot, LoaderCircle, Plus, Search } from "lucide-react"
+import { Dot, LoaderCircle, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatDate } from "@/utils/date"
 import { fetchProjects, fetchProjectStatuses } from "@/api/project"
+import NewProjectDialog from "@/components/new-project-dialog"
 
 type Project = {
   id: number
@@ -49,6 +49,7 @@ function Projects() {
   const [search, setSearch] = useState("")
   const [status, setStatus] = useState("")
   const [loading, setLoading] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   const loadProjectStatuses = async () => {
     try {
@@ -120,10 +121,11 @@ function Projects() {
             {projects.length} projects total
           </p>
         </div>
-        <Button className="cursor-pointer">
-          <Plus className="size-4" />
-          New Project
-        </Button>
+        <NewProjectDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          onCreated={loadProjects}
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

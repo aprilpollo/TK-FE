@@ -17,3 +17,14 @@ export async function fetchProjectByKey(key: string): Promise<Response> {
     method: "GET",
   })
 }
+
+export async function createProject(data: {
+  name: string
+  description?: string
+  due_date?: string
+}): Promise<Response> {
+  return apiFetch("/api/v1/projects", {
+    method: "POST",
+    body: JSON.stringify(data),
+  })
+}

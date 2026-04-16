@@ -1,4 +1,3 @@
-import type { Dispatch, SetStateAction } from "react"
 import type { DragEndEvent } from "@dnd-kit/core"
 
 export interface Column {

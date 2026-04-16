@@ -58,7 +58,7 @@ function Tasks() {
     }
   }
 
-  const FetchTaskStatuses = async () => {
+  const FetchTaskStatuses = async (): Promise<Column[]> => {
     try {
       const response = await fetchTaskStatuses(project.id)
       if (!response.ok) {
@@ -71,16 +71,17 @@ function Tasks() {
         payload: Column[]
       }
       setColumns(data.payload)
+      return data.payload || []
     } catch (error) {
       console.error("Error fetching task statuses:", error)
+      return []
     }
   }
 
-  const FetchTasks = async () => {
+  const FetchTasks = async (targetColumns: Column[] = columns) => {
     try {
       const paginationMap: Record<string | number, ColumnPagination> = {}
-
-      const promises = columns.map(async (col) => {
+      const promises = targetColumns.map(async (col) => {
         const response = await fetchTasks(project.id, col.id)
         if (!response.ok) {
           throw new Error(`Failed to fetch tasks for status ${col.id}`)
@@ -195,11 +196,15 @@ function Tasks() {
     }
   }
 
-  // useEffect(()=>{
-  //   FetchPriorities()
-  //   FetchTaskStatuses()
-  //   FetchTasks()
-  // },[project.id])
+  useEffect(() => {
+    const initializeTaskBoard = async () => {
+      FetchPriorities()
+      const statuses = await FetchTaskStatuses()
+      await FetchTasks(statuses)
+    }
+
+    initializeTaskBoard()
+  }, [project.id])
 
   return (
     <div className="space-y-4 pt-4">
@@ -266,6 +271,7 @@ function Tasks() {
             priority,
             columnPagination,
             FetchTaskByStatus,
+            FetchTaskStatuses,
             loadMoreTasks,
             setTasks,
             setColumns,

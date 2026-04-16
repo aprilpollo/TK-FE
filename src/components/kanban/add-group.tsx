@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Popover,
@@ -8,9 +8,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
-import { CornerDownLeft, Palette, Plus } from "lucide-react"
+import { CornerDownLeft, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
-// import { toast } from "sonner"
+import { createTaskStatus } from "@/api/task"
+import useProject from "@/hooks/useProject"
+import useTask from "@/hooks/useTask"
 
 const PRESET_COLORS = [
   "#005BC4",
@@ -24,12 +26,29 @@ const PRESET_COLORS = [
 ]
 
 export function AddGroup() {
+  const { project } = useProject()
+
+  const { FetchTaskStatuses } = useTask()
   const [open, setOpen] = useState(false)
   const [statusName, setStatusName] = useState("")
   const [selectedColor, setSelectedColor] = useState("#005BC4")
   const [customColor, setCustomColor] = useState("#87909e")
 
-  const handleSave = async () => {}
+  if (!project) {
+    return <div>Loading...</div>
+  }
+
+  const handleSave = async () => {
+    await createTaskStatus({
+      project_id: project.id,
+      name: statusName,
+      description: "",
+      color: selectedColor,
+    })
+    await FetchTaskStatuses()
+    setOpen(false)
+    setStatusName("")
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -52,7 +71,7 @@ export function AddGroup() {
             placeholder="STATUS NAME"
             value={statusName}
             onChange={(e) => setStatusName(e.target.value)}
-            className="h-auto border-0 p-0 px-2 font-medium shadow-none placeholder:text-muted-foreground focus-visible:ring-0"
+            className="h-auto border-0 bg-background p-0 px-2 font-medium shadow-none placeholder:text-muted-foreground focus-visible:ring-0"
           />
           <Button
             className="h-6 cursor-pointer rounded-md text-xs"
