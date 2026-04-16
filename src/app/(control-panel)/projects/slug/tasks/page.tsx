@@ -11,8 +11,23 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Board } from "@/components/kanban"
-import { fetchPriorities, fetchTaskStatuses, fetchTasks } from "@/api/task"
-import type { Column, ColumnPagination, Task, TaskPriority } from "@/types"
+import {
+  fetchPriorities,
+  fetchTaskStatuses,
+  fetchTasks,
+  reorderStatus,
+  reorderTasks,
+} from "@/api/task"
+import { FetchApiError } from "@/utils/apiFetch"
+import type {
+  Column,
+  ColumnPagination,
+  Task,
+  TaskPriority,
+  DragEndEvent,
+} from "@/types"
+import { arrayMove } from "@dnd-kit/sortable"
+import { toast } from "sonner"
 import TaskContext from "@/context/TaskContext"
 import useProject from "@/hooks/useProject"
 
@@ -196,6 +211,88 @@ function Tasks() {
     }
   }
 
+  const onDragEndColumn = async (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over) return
+
+    const activeId = active.id
+    const overId = over.id
+    const activeIndex = columns.findIndex((col) => col.uuid === activeId)
+    const overIndex = columns.findIndex((col) => col.uuid === overId)
+
+    if (activeIndex === overIndex) return
+
+    const newColumns = arrayMove([...columns], activeIndex, overIndex)
+    const changedColumns = newColumns
+      .map((col, newIdx) => ({
+        id: col.id,
+        newPosition: newIdx + 1,
+        oldPosition: columns.findIndex((c) => c.id === col.id) + 1,
+      }))
+      .filter((item) => item.oldPosition !== item.newPosition)
+
+    try {
+      await reorderStatus({
+        project_id: project.id,
+        updates: changedColumns.map((c) => ({
+          id: c.id,
+          position: c.newPosition,
+        })),
+      })
+    } catch (error) {
+      const description =
+        error instanceof FetchApiError
+          ? "An error occurred while saving the new column order. Please try again."
+          : error instanceof Error
+            ? error.message
+            : "An unexpected error occurred. Please try again."
+
+      toast("Failed to reorder columns", {
+        description,
+      })
+    }
+  }
+
+  const onDragEndItem = async (event: DragEndEvent) => {
+    const { over } = event
+    if (!over) return
+
+    setTasks((currentTasks) => {
+      const updates = currentTasks.map((t) => {
+        // Find tasks within the same column to determine their visual position
+        const tasksInColumn = currentTasks.filter(
+          (item) => item.columnId === t.columnId
+        )
+        const position = tasksInColumn.findIndex((item) => item.id === t.id) + 1
+        return {
+          id: t.id,
+          position: position,
+          status_id: t.columnId,
+        }
+      })
+
+      try {
+        reorderTasks({
+          project_id: project.id,
+          updates,
+        })
+      } catch (error) {
+        FetchTasks(columns) // Revert to original state by re-fetching tasks
+        const description =
+          error instanceof FetchApiError
+            ? "An error occurred while saving the new task order. Please try again."
+            : error instanceof Error
+              ? error.message
+              : "An unexpected error occurred. Please try again."
+
+        toast("Failed to reorder tasks", {
+          description,
+        })
+      }
+      return currentTasks
+    })
+  }
+
   useEffect(() => {
     const initializeTaskBoard = async () => {
       FetchPriorities()
@@ -277,7 +374,10 @@ function Tasks() {
             setColumns,
           }}
         >
-          <Board />
+          <Board
+            onDragEndColumn={onDragEndColumn}
+            onDragEndItem={onDragEndItem}
+          />
         </TaskContext>
       </div>
     </div>

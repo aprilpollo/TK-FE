@@ -27,11 +27,6 @@ export async function fetchTasks(
   )
 }
 
-// ProjectID   int64  `json:"project_id"`
-// Name        string `json:"name"`
-// Description string `json:"description"`
-// Color       string `json:"color"`
-
 export async function createTaskStatus({
   project_id,
   name,
@@ -46,5 +41,32 @@ export async function createTaskStatus({
   return apiFetch("/api/v1/tasks/statuses", {
     method: "POST",
     body: JSON.stringify({ project_id, name, description, color }),
+  })
+}
+
+export async function reorderStatus({
+  project_id,
+  updates,
+}: {
+  project_id: string | number
+  updates: { id: number | string; position: number }[]
+}): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/statuses/reorder/${project_id}`, {
+    method: "PUT",
+    body: JSON.stringify({updates}),
+  })
+}
+
+
+export async function reorderTasks({
+  project_id,
+  updates,
+}: {
+  project_id: string | number
+  updates: { id: number | string; status_id: number | string; position: number }[]
+}): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/reorder/${project_id}`, {
+    method: "PUT",
+    body: JSON.stringify({updates}),
   })
 }

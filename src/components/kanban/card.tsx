@@ -65,11 +65,6 @@ export function KanbanCard({
           </span>
         </div>
          <div className="absolute bottom-0 flex justify-between items-center w-full ">
-          {/* <div className="flex gap-1">
-            <SelectPriority task={task} />
-            <DatePicker dueDate={task.dueDate} />
-          </div> */}
-          
         </div>
        </div>
     </div>
