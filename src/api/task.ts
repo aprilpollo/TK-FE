@@ -9,9 +9,12 @@ export async function fetchPriorities(): Promise<Response> {
 export async function fetchTaskStatuses(
   project_id: string | number
 ): Promise<Response> {
-  return apiFetch(`/api/v1/tasks/statuses/${project_id}?_sort=position&_order=asc`, {
-    method: "GET",
-  })
+  return apiFetch(
+    `/api/v1/tasks/statuses/${project_id}?_sort=position&_order=asc`,
+    {
+      method: "GET",
+    }
+  )
 }
 
 export async function fetchTasks(
@@ -53,10 +56,9 @@ export async function reorderStatus({
 }): Promise<Response> {
   return apiFetch(`/api/v1/tasks/statuses/reorder/${project_id}`, {
     method: "PUT",
-    body: JSON.stringify({updates}),
+    body: JSON.stringify({ updates }),
   })
 }
-
 
 export async function createTask({
   project_id,
@@ -73,9 +75,8 @@ export async function createTask({
   description?: string
   due_date?: Date | string
   priority_id?: string | number
-  assignees?: number []
+  assignees?: number[]
 }): Promise<Response> {
-  
   return apiFetch(`/api/v1/tasks`, {
     method: "POST",
     body: JSON.stringify({
@@ -86,7 +87,6 @@ export async function createTask({
       due_date,
       priority_id,
       assignees_ids: assignees,
-
     }),
   })
 }
@@ -97,7 +97,7 @@ export async function updateTask(
     title?: string
     description?: string
     priority_id?: string | number | null
-    due_date?: string | null
+    due_date?: Date | string | null
     assignees_ids?: number[]
   }
 ): Promise<Response> {
@@ -125,9 +125,7 @@ export async function deleteTaskStatus(
   })
 }
 
-export async function deleteTask(
-  task_id: string | number
-): Promise<Response> {
+export async function deleteTask(task_id: string | number): Promise<Response> {
   return apiFetch(`/api/v1/tasks/${task_id}`, {
     method: "DELETE",
   })
@@ -138,10 +136,14 @@ export async function reorderTasks({
   updates,
 }: {
   project_id: string | number
-  updates: { id: number | string; status_id: number | string; position: number }[]
+  updates: {
+    id: number | string
+    status_id: number | string
+    position: number
+  }[]
 }): Promise<Response> {
   return apiFetch(`/api/v1/tasks/reorder/${project_id}`, {
     method: "PUT",
-    body: JSON.stringify({updates}),
+    body: JSON.stringify({ updates }),
   })
 }

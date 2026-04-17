@@ -45,6 +45,7 @@ interface Props {
 
 export function DropdownMenuColumn({ column, onAddTask }: Props) {
   const { FetchTaskStatuses, setTasks } = useTask()
+  const [open, setOpen] = useState(false)
   const [renameOpen, setRenameOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [nameInput, setNameInput] = useState(column.name)
@@ -97,7 +98,7 @@ export function DropdownMenuColumn({ column, onAddTask }: Props) {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
@@ -132,7 +133,10 @@ export function DropdownMenuColumn({ column, onAddTask }: Props) {
                   {PRESET_COLORS.map((c) => (
                     <button
                       key={c}
-                      onClick={() => handleColorChange(c)}
+                      onClick={() => {
+                        handleColorChange(c)
+                        setOpen(false)
+                      }}
                       className={cn(
                         "h-6 w-6 cursor-pointer rounded-full transition-transform hover:scale-110",
                         column.color === c && "ring-2 ring-offset-1 ring-ring"

@@ -147,7 +147,7 @@ export function DropdownMenuTask({ task }: Props) {
         updates: [
           {
             id: task.id,
-            status_id: targetCol.id,
+            status_id: targetCol.uuid,
             position: tasksInTarget.length + 1,
           },
         ],
