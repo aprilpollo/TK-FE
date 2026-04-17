@@ -27,7 +27,6 @@ const PRESET_COLORS = [
 
 export function AddGroup() {
   const { project } = useProject()
-
   const { FetchTaskStatuses } = useTask()
   const [open, setOpen] = useState(false)
   const [statusName, setStatusName] = useState("")

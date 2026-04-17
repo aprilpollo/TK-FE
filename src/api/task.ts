@@ -58,6 +58,39 @@ export async function reorderStatus({
 }
 
 
+export async function createTask({
+  project_id,
+  status_id,
+  title,
+  description,
+  due_date,
+  priority_id,
+  assignees,
+}: {
+  project_id: string | number
+  status_id: string | number
+  title: string
+  description?: string
+  due_date?: Date | string
+  priority_id?: string | number
+  assignees?: number []
+}): Promise<Response> {
+  
+  return apiFetch(`/api/v1/tasks`, {
+    method: "POST",
+    body: JSON.stringify({
+      project_id,
+      status_id,
+      title,
+      description,
+      due_date,
+      priority_id,
+      assignees_ids: assignees,
+
+    }),
+  })
+}
+
 export async function reorderTasks({
   project_id,
   updates,

@@ -12,22 +12,23 @@ export interface Task {
   columnId: number | string
   title: string
   description?: string
-  project?: string
   priority?: {
-    id: string
+    id: number | string
     name: string
     color: string
   }
   dueDate?: string
   assignees?: {
-    id: string
+    id: number | string
     name: string
     avatar: string
   }[]
   subtasks?: number
-  comments?: number
-  attachments?: number
   tags?: string[]
+  created_at: string
+  comments_count?: number
+  attachments_count?: number
+  updated_at: string
 }
 
 export interface KanbanColumnProps {

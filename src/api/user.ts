@@ -21,3 +21,9 @@ export async function updateAvatar(file: File): Promise<Response> {
     body: formData,
   })
 }
+
+export async function searchUsers(query: string): Promise<Response> {
+  return apiFetch(`/api/v1/users/search?q=${encodeURIComponent(query)}`, {
+    method: "GET",
+  })
+}

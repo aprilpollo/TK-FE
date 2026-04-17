@@ -2,10 +2,30 @@ import type { KanbanCardProps } from "@/types"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { cn } from "@/lib/utils"
-
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-// import { Button } from "@/components/ui/button"
-
+import {
+  CalendarClock,
+  Ellipsis,
+  Flag,
+  MessageCircle,
+  Paperclip,
+} from "lucide-react"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarGroup,
+  AvatarGroupCount,
+  AvatarImage,
+} from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card"
+import { formatDatev2 } from "@/utils/date"
 
 export function KanbanCard({
   task,
@@ -35,38 +55,170 @@ export function KanbanCard({
 
   if (isDragging) {
     return (
-      <div
+      <Card
         ref={setNodeRef}
         style={style}
-        className="h-26.5 rounded-sm border bg-background px-1 pt-1 pb-1 opacity-50"
-      ></div>
+        className="max-h-35.25 gap-0 rounded-sm border py-2 opacity-50 ring-0"
+      >
+        <CardHeader className="px-2">
+          <CardTitle className="flex items-center justify-between text-sm">
+            <span>{task.title}</span>
+          </CardTitle>
+          <CardDescription className="space-y-2 pb-2">
+            <div className="line-clamp-2 max-h-8.25 text-xs">
+              {task.description}
+            </div>
+            <div className="flex items-center gap-1">
+              {task.dueDate && (
+                <Badge
+                  variant={
+                    task.dueDate
+                      ? new Date(task.dueDate) < new Date()
+                        ? "destructive"
+                        : "secondary"
+                      : "secondary"
+                  }
+                  className="rounded-md"
+                >
+                  <CalendarClock className="size-3" />
+                  {formatDatev2(task.dueDate)}
+                </Badge>
+              )}
+              <Badge variant="secondary" className="rounded-md capitalize">
+                <Flag className="size-3" color={task.priority?.color} />
+                {task.priority?.name || "No Priority"}
+              </Badge>
+            </div>
+          </CardDescription>
+        </CardHeader>
+        <CardFooter className="flex items-center justify-between border-none bg-card px-2 py-2">
+          <div className="flex items-center gap-1">
+            <Badge variant="outline" className="text-xs text-muted-foreground">
+              <MessageCircle className="size-3" />
+              {task.comments_count || 0}
+            </Badge>
+            {task.attachments_count !== undefined &&
+              task.attachments_count > 0 && (
+                <Badge
+                  variant="outline"
+                  className="text-xs text-muted-foreground"
+                >
+                  <Paperclip className="size-3" />
+                  {task.attachments_count || 0}
+                </Badge>
+              )}
+          </div>
+          <AvatarGroup>
+            {task.assignees?.slice(0, 3).map((assignee) => (
+              <Avatar key={assignee.id} className="size-5">
+                <AvatarImage src={assignee.avatar} alt={assignee.name} />
+                <AvatarFallback>{assignee.name[0]}</AvatarFallback>
+              </Avatar>
+            ))}
+            <AvatarGroupCount className="size-5 text-xs">
+              {(task.assignees?.length &&
+                task.assignees.length -
+                  (task.assignees?.length
+                    ? Math.min(task.assignees.length, 3)
+                    : 0)) ||
+                0}
+            </AvatarGroupCount>
+          </AvatarGroup>
+        </CardFooter>
+      </Card>
     )
   }
 
   return (
-    <div
+    <Card
       ref={setNodeRef}
       {...attributes}
       {...listeners}
       style={style}
       className={cn(
-        "rounded-sm border bg-background px-1 pt-1 pb-1 transition-all duration-200",
-        isOverlay && "rotate-2 cursor-grabbing",
+        "group max-h-35.25 gap-0 rounded-sm border py-2 ring-0 active:cursor-grabbing",
+        isOverlay && "cursor-grabbing",
         isFaded && "pointer-events-none opacity-40"
       )}
     >
-       <div className="relative flex flex-col h-26.5">
-        <span className="text-sm font-medium pl-1 pb-1 hover:underline w-max">
-          {task.title}
-        </span>
-        <div className="h-full">
-          <span className="text-xs text-neutral-500 line-clamp-3 px-1">
+      <CardHeader className="px-2">
+        <CardTitle className="flex items-center justify-between text-sm">
+          <span>{task.title}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 cursor-pointer rounded-sm opacity-0 transition-opacity group-hover:opacity-100"
+          >
+            <Ellipsis className="h-4 w-4" />
+          </Button>
+        </CardTitle>
+        <CardDescription className="space-y-2 pb-2">
+          <div className="line-clamp-2 max-h-8.25 text-xs">
             {task.description}
-          </span>
+          </div>
+          <div className="flex items-center gap-1">
+            {task.dueDate && (
+              <Badge
+                variant={
+                  task.dueDate
+                    ? new Date(task.dueDate) < new Date()
+                      ? "destructive"
+                      : "secondary"
+                    : "secondary"
+                }
+                className="rounded-md"
+              >
+                <CalendarClock className="size-3" />
+                {formatDatev2(task.dueDate)}
+              </Badge>
+            )}
+            <Badge variant="secondary" className="rounded-md capitalize">
+              <Flag
+                className="size-3"
+                style={{
+                  color: task.priority?.color,
+                  fill: task.priority?.color,
+                }}
+              />
+              {task.priority?.name || "No Priority"}
+            </Badge>
+          </div>
+        </CardDescription>
+      </CardHeader>
+      <CardFooter className="flex items-center justify-between rounded-none border-none bg-card px-2 py-2">
+        <div className="flex items-center gap-1">
+          <Badge variant="outline" className="text-xs text-muted-foreground">
+            <MessageCircle className="size-3" />
+            {task.comments_count || 0}
+          </Badge>
+          {task.attachments_count !== undefined &&
+            task.attachments_count > 0 && (
+              <Badge
+                variant="outline"
+                className="text-xs text-muted-foreground"
+              >
+                <Paperclip className="size-3" />
+                {task.attachments_count || 0}
+              </Badge>
+            )}
         </div>
-         <div className="absolute bottom-0 flex justify-between items-center w-full ">
-        </div>
-       </div>
-    </div>
+        <AvatarGroup>
+          {task.assignees?.slice(0, 3).map((assignee) => (
+            <Avatar key={assignee.id} className="size-5">
+              <AvatarImage src={assignee.avatar} alt={assignee.name} />
+              <AvatarFallback>{assignee.name[0]}</AvatarFallback>
+            </Avatar>
+          ))}
+          <AvatarGroupCount className="size-5 text-xs">
+            {(task.assignees?.length &&
+              task.assignees.length -
+                (task.assignees?.length
+                  ? Math.min(task.assignees.length, 3)
+                  : 0)) ||
+              0}
+          </AvatarGroupCount>
+        </AvatarGroup>
+      </CardFooter>
+    </Card>
   )
 }

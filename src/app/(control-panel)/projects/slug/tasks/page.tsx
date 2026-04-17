@@ -87,8 +87,11 @@ function Tasks() {
   const FetchTasks = async (targetColumns: Column[] = columns) => {
     try {
       const paginationMap: Record<string | number, ColumnPagination> = {}
+      const query = new URLSearchParams()
+      query.append("_sort", "position")
+      query.append("_order", "desc")
       const promises = targetColumns.map(async (col) => {
-        const response = await fetchTasks(project.id, col.id)
+        const response = await fetchTasks(project.id, col.id, query.toString())
         if (!response.ok) {
           throw new Error(`Failed to fetch tasks for status ${col.id}`)
         }
@@ -118,7 +121,10 @@ function Tasks() {
     try {
       const targetColumn = columns.find((c) => c.id === statusId)
       const uuidToFilter = targetColumn ? targetColumn.uuid : statusId
-      const response = await fetchTasks(project.id, statusId)
+      const query = new URLSearchParams()
+      query.append("_sort", "position")
+      query.append("_order", "desc")
+      const response = await fetchTasks(project.id, statusId, query.toString())
       if (!response.ok) {
         throw new Error(`Failed to fetch tasks for status ${statusId}`)
       }
@@ -248,41 +254,38 @@ function Tasks() {
     const { over } = event
     if (!over) return
 
-    // Read current tasks state synchronously via updater form, without changing state
-    let updates: { id: number | string; position: number; status_id: string | number }[] = []
-    setTasks((currentTasks) => {
-      updates = currentTasks.map((t) => {
-        const tasksInColumn = currentTasks.filter(
-          (item) => item.columnId === t.columnId
-        )
-        const position = tasksInColumn.findIndex((item) => item.id === t.id) + 1
-        return {
-          id: t.id,
-          position,
-          status_id: t.columnId,
-        }
-      })
-      return currentTasks
-    })
+    setTimeout(async () => {
+      // Find all tasks that have changed their order or column
+      // To properly handle the new state, we map through all current columns and tasks to get the final positions.
+      // But we can also just send the current `tasks` state after re-render because it reflects the new positions and columnIds.
 
-    try {
-      await reorderTasks({
-        project_id: project.id,
-        updates,
-      })
-    } catch (error) {
-      await FetchTasks(columns) // Revert to original state by re-fetching tasks
-      const description =
-        error instanceof FetchApiError
-          ? "An error occurred while saving the new task order. Please try again."
-          : error instanceof Error
-            ? error.message
-            : "An unexpected error occurred. Please try again."
+      setTasks((currentTasks) => {
+        const updates = currentTasks.map((t) => {
+          // Find tasks within the same column to determine their visual position
+          const tasksInColumn = currentTasks.filter(
+            (item) => item.columnId === t.columnId
+          )
+          const position =
+            tasksInColumn.findIndex((item) => item.id === t.id) + 1
+          return {
+            id: t.id,
+            position: position,
+            status_id: t.columnId,
+          }
+        })
 
-      toast("Failed to reorder tasks", {
-        description,
+        // Fire API call
+        reorderTasks({
+          project_id: project.id,
+          updates,
+        }).catch((err) => {
+          toast.warning("Failed to update task order")
+          FetchTasks(columns) // Revert state by re-fetching
+          console.error(err)
+        })
+        return currentTasks
       })
-    }
+    }, 0)
   }
 
   useEffect(() => {
