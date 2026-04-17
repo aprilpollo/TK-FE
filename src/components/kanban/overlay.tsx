@@ -24,7 +24,7 @@ export function CardOverlay({ task }: { task: Task }) {
         <CardTitle className="flex items-center justify-between text-sm">
           <span>{task.title}</span>
         </CardTitle>
-        <CardDescription className="space-y-2 border-b pb-2">
+        <CardDescription className="space-y-2 pb-2">
           <div className="line-clamp-2 max-h-8.25 text-xs">
             {task.description}
           </div>
@@ -51,7 +51,7 @@ export function CardOverlay({ task }: { task: Task }) {
           </div>
         </CardDescription>
       </CardHeader>
-      <CardFooter className="flex items-center justify-between border-none bg-background px-2 py-2">
+      <CardFooter className="flex items-center justify-between border-none bg-card px-2 py-2">
         <div className="flex items-center gap-1">
           <Badge variant="outline" className="text-xs text-muted-foreground">
             <MessageCircle className="size-3" />
@@ -75,14 +75,11 @@ export function CardOverlay({ task }: { task: Task }) {
               <AvatarFallback>{assignee.name[0]}</AvatarFallback>
             </Avatar>
           ))}
-          <AvatarGroupCount className="size-5 text-xs">
-            {(task.assignees?.length &&
-              task.assignees.length -
-                (task.assignees?.length
-                  ? Math.min(task.assignees.length, 3)
-                  : 0)) ||
-              0}
-          </AvatarGroupCount>
+          {task.assignees && task.assignees.length > 3 && (
+            <AvatarGroupCount className="size-5 text-xs">
+              {task.assignees.length - 3}
+            </AvatarGroupCount>
+          )}
         </AvatarGroup>
       </CardFooter>
     </Card>

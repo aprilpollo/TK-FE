@@ -176,7 +176,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
 
   return (
     <ScrollArea>
-      <div className="flex h-[calc(100svh-160px)] space-x-4 px-4">
+      <div className="flex h-[calc(100svh-160px)] space-x-4 px-1">
         <DndContext
           sensors={sensors}
           collisionDetection={pointerWithin}

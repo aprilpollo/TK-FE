@@ -15,6 +15,7 @@ import { GripVertical, Loader2, MoreHorizontal, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { getContrastColor } from "@/utils/color"
 import { AddTask } from "@/components/kanban/add-task"
+import { DropdownMenuColumn } from "@/components/kanban/dropdown-menu-column"
 import useTask from "@/hooks/useTask"
 
 export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
@@ -60,11 +61,11 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
         ref={setNodeRef}
         style={{
           ...style,
-          backgroundColor: `${column.color}09`,
+          //backgroundColor: `${column.color}09`,
         }}
-        className="relative flex h-fit max-h-[calc(100vh-165px)] w-xs shrink-0 flex-col items-start rounded-sm opacity-50"
+        className="relative flex h-fit max-h-[calc(100vh-165px)] w-66 shrink-0 flex-col items-start rounded-sm border bg-card/50 opacity-50"
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between p-2">
+        <div className="sticky w-full top-0 z-10 flex items-center justify-between p-2">
           <div className="flex items-center gap-2">
             <Button
               style={{ color: column.color }}
@@ -91,7 +92,7 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
                 borderColor: `${column.color}50`,
               }}
             >
-              0{/* {columnPagination[column.id]?.total ?? tasks.length} */}
+              {columnPagination[column.id]?.total ?? tasks.length}
             </Badge>
           </div>
           <div className="flex items-center gap-1">
@@ -99,7 +100,6 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
               variant="ghost"
               size="icon"
               className="h-6 w-6 cursor-pointer rounded-full"
-              style={{ color: column.color }}
             >
               <Plus className="h-4 w-4" />
             </Button>
@@ -107,13 +107,12 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
               variant="ghost"
               size="icon"
               className="h-6 w-6 cursor-pointer rounded-full"
-              style={{ color: column.color }}
             >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </div>
         </div>
-        <div className="space-y-2 py-2 px-2 w-full">
+        <div className="w-full space-y-2 px-2 py-2">
           {tasks.map((task) => (
             <CardOverlay key={task.id} task={task} />
           ))}
@@ -127,22 +126,15 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
       ref={setNodeRef}
       style={{
         ...style,
-        backgroundColor: `${column.color}09`,
+        // backgroundColor: `${column.color}09`,
       }}
-      className="relative h-fit w-xs shrink-0 items-start rounded-sm"
+      className="relative h-fit w-66 shrink-0 items-start rounded-sm border bg-card/50"
     >
       <div className="sticky top-0 z-10 flex w-full items-center justify-between p-2">
         <div className="flex items-center gap-2">
           <Button
             {...attributes}
             {...listeners}
-            style={{ color: column.color }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = `${column.color}20`)
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
             variant="ghost"
             size="icon"
             className="h-6 w-6 cursor-grab rounded-sm active:cursor-grabbing"
@@ -161,10 +153,6 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
           <Badge
             className="h-5 min-w-5 rounded-full px-1 font-mono tabular-nums"
             variant="outline"
-            style={{
-              color: column.color,
-              borderColor: `${column.color}50`,
-            }}
           >
             {columnPagination[column.id]?.total ?? tasks.length}
           </Badge>
@@ -174,18 +162,14 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
             variant="ghost"
             size="icon"
             className="h-6 w-6 cursor-pointer rounded-full"
-            style={{ color: column.color }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = `${column.color}20`)
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
             onClick={() => setAddTaskOpen(!addTaskOpen)}
           >
             <Plus className={cn("h-4 w-4", addTaskOpen && "rotate-45")} />
           </Button>
-          {/* <KanbanDropdownMenu column={column} /> */}
+          <DropdownMenuColumn
+            column={column}
+            onAddTask={() => setAddTaskOpen(true)}
+          />
         </div>
       </div>
 
@@ -205,7 +189,7 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
             items={taskIds}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-2 py-2 px-1">
+            <div className="space-y-2 px-1 py-2">
               {addTaskOpen && (
                 <AddTask columnId={column.id} setAddTaskOpen={setAddTaskOpen} />
               )}

@@ -2,13 +2,7 @@ import type { KanbanCardProps } from "@/types"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { cn } from "@/lib/utils"
-import {
-  CalendarClock,
-  Ellipsis,
-  Flag,
-  MessageCircle,
-  Paperclip,
-} from "lucide-react"
+import { CalendarClock, Flag, MessageCircle, Paperclip } from "lucide-react"
 import {
   Avatar,
   AvatarFallback,
@@ -16,7 +10,6 @@ import {
   AvatarGroupCount,
   AvatarImage,
 } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -25,6 +18,7 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card"
+import { DropdownMenuTask } from "@/components/kanban/dropdown-menu-task"
 import { formatDatev2 } from "@/utils/date"
 
 export function KanbanCard({
@@ -115,14 +109,11 @@ export function KanbanCard({
                 <AvatarFallback>{assignee.name[0]}</AvatarFallback>
               </Avatar>
             ))}
-            <AvatarGroupCount className="size-5 text-xs">
-              {(task.assignees?.length &&
-                task.assignees.length -
-                  (task.assignees?.length
-                    ? Math.min(task.assignees.length, 3)
-                    : 0)) ||
-                0}
-            </AvatarGroupCount>
+            {task.assignees && task.assignees.length > 3 && (
+              <AvatarGroupCount className="size-5 text-xs">
+                {task.assignees.length - 3}
+              </AvatarGroupCount>
+            )}
           </AvatarGroup>
         </CardFooter>
       </Card>
@@ -144,13 +135,7 @@ export function KanbanCard({
       <CardHeader className="px-2">
         <CardTitle className="flex items-center justify-between text-sm">
           <span>{task.title}</span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 cursor-pointer rounded-sm opacity-0 transition-opacity group-hover:opacity-100"
-          >
-            <Ellipsis className="h-4 w-4" />
-          </Button>
+          <DropdownMenuTask task={task} />
         </CardTitle>
         <CardDescription className="space-y-2 pb-2">
           <div className="line-clamp-2 max-h-8.25 text-xs">
@@ -209,14 +194,11 @@ export function KanbanCard({
               <AvatarFallback>{assignee.name[0]}</AvatarFallback>
             </Avatar>
           ))}
-          <AvatarGroupCount className="size-5 text-xs">
-            {(task.assignees?.length &&
-              task.assignees.length -
-                (task.assignees?.length
-                  ? Math.min(task.assignees.length, 3)
-                  : 0)) ||
-              0}
-          </AvatarGroupCount>
+          {task.assignees && task.assignees.length > 3 && (
+            <AvatarGroupCount className="size-5 text-xs">
+              {task.assignees.length - 3}
+            </AvatarGroupCount>
+          )}
         </AvatarGroup>
       </CardFooter>
     </Card>

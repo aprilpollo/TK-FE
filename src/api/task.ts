@@ -91,6 +91,48 @@ export async function createTask({
   })
 }
 
+export async function updateTask(
+  task_id: string | number,
+  payload: {
+    title?: string
+    description?: string
+    priority_id?: string | number | null
+    due_date?: string | null
+    assignees_ids?: number[]
+  }
+): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/${task_id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateTaskStatus(
+  status_id: string | number,
+  payload: { name?: string; color?: string }
+): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/statuses/${status_id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteTaskStatus(
+  status_id: string | number
+): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/statuses/${status_id}`, {
+    method: "DELETE",
+  })
+}
+
+export async function deleteTask(
+  task_id: string | number
+): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/${task_id}`, {
+    method: "DELETE",
+  })
+}
+
 export async function reorderTasks({
   project_id,
   updates,

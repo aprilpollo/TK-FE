@@ -5,6 +5,9 @@ export interface Column {
   uuid: number | string
   name: string
   color?: string
+  created_at: Date
+  updated_at: Date
+  position: number
 }
 
 export interface Task {
@@ -25,10 +28,10 @@ export interface Task {
   }[]
   subtasks?: number
   tags?: string[]
-  created_at: string
+  created_at: Date
   comments_count?: number
   attachments_count?: number
-  updated_at: string
+  updated_at: Date
 }
 
 export interface KanbanColumnProps {
