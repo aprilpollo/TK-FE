@@ -15,12 +15,12 @@ import {
   useSensors,
   PointerSensor,
   pointerWithin,
-  KeyboardSensor,
+  // KeyboardSensor,
 } from "@dnd-kit/core"
 import {
   arrayMove,
   SortableContext,
-  sortableKeyboardCoordinates,
+  // sortableKeyboardCoordinates,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { restrictToHorizontalAxis } from "@dnd-kit/modifiers"
@@ -41,9 +41,9 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
         distance: 3, // Start dragging after 3px movement
       },
     }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    // useSensor(KeyboardSensor, {
+    //   coordinateGetter: sortableKeyboardCoordinates,
+    // })
   )
 
   const columnsId = useMemo(() => columns.map((col) => col.uuid), [columns])
