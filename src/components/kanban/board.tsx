@@ -48,6 +48,17 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
 
   const columnsId = useMemo(() => columns.map((col) => col.uuid), [columns])
 
+  // Pre-compute per-column task lists once instead of re-filtering inside every column render
+  const tasksByColumn = useMemo(() => {
+    const map = new Map<string | number, Task[]>()
+    for (const task of tasks) {
+      const list = map.get(task.columnId) ?? []
+      list.push(task)
+      map.set(task.columnId, list)
+    }
+    return map
+  }, [tasks])
+
   function onDragStart(event: DragStartEvent) {
     if (event.active.data.current?.type === "Column") {
       setActiveColumn(event.active.data.current.column)
@@ -70,10 +81,9 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
     const activeId = active.id
     const overId = over.id
 
-    // if (activeId === overId) return;
-
     const isActiveColumn = active.data.current?.type === "Column"
     if (isActiveColumn) {
+      if (activeId === overId) return // Dropped on itself — nothing to reorder
       setColumns((columns) => {
         const activeIndex = columns.findIndex((col) => col.uuid === activeId)
         const overIndex = columns.findIndex((col) => col.uuid === overId)
@@ -85,13 +95,14 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
 
     const isActiveTask = active.data.current?.type === "Task"
     if (isActiveTask) {
+      if (activeId === overId) return // No position change — skip state update and API call
       setTasks((tasks) => {
         const activeIndex = tasks.findIndex((t) => t.id === activeId)
         const overIndex = tasks.findIndex((t) => t.id === overId)
 
         if (activeIndex === -1 || overIndex === -1) return tasks
 
-        // Only reorder if in the same column
+        // Cross-column moves are already committed in onDragOver; only handle same-column reorder here
         if (tasks[activeIndex].columnId !== tasks[overIndex].columnId) {
           return tasks
         }
@@ -119,12 +130,8 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
       const overIndex = prev.findIndex((t) => t.id === overId)
 
       if (activeIndex === -1) return prev
-      const activeTask = prev[activeIndex]
 
-      // Safety check: activeTask really shouldn't be undefined if index != -1, but good to be safe.
-      if (!activeTask) return prev
-
-      const activeColumnId = activeTask.columnId
+      const activeColumnId = prev[activeIndex].columnId
 
       const isOverColumn = over.data.current?.type === "Column"
       let overColumnId: number | string
@@ -193,7 +200,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
               <KanbanColumn
                 key={col.uuid}
                 column={col}
-                tasks={tasks.filter((task) => task.columnId === col.uuid)}
+                tasks={tasksByColumn.get(col.uuid) ?? []}
               />
             ))}
             <AddGroup />
@@ -205,9 +212,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
                 {activeColumn && (
                   <KanbanColumn
                     column={activeColumn}
-                    tasks={tasks.filter(
-                      (task) => task.columnId === activeColumn.uuid
-                    )}
+                    tasks={tasksByColumn.get(activeColumn.uuid) ?? []}
                   />
                 )}
                 {activeTask && <KanbanCard task={activeTask} isOverlay />}
