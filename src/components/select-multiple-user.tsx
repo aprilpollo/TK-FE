@@ -37,7 +37,7 @@ export function SelectMultipleUser({
   user: UserItem[]
   setUser: (user: UserItem[]) => void
 }) {
-  const [items, setItems] = useState<UserItem[]>(countries)
+  const [items, _setItems] = useState<UserItem[]>(countries)
 
   return (
     <>
