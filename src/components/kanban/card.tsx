@@ -56,7 +56,7 @@ export function KanbanCard({
       >
         <CardHeader className="px-2">
           <CardTitle className="flex items-center justify-between text-sm">
-            <span>{task.title}</span>
+            <span className="line-clamp-1">{task.title}</span>
           </CardTitle>
           <CardDescription className="space-y-2 pb-2">
             <div className="line-clamp-2 max-h-8.25 text-xs">

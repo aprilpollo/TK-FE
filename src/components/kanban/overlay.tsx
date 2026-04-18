@@ -19,10 +19,10 @@ import { CalendarClock, Flag, MessageCircle, Paperclip } from "lucide-react"
 
 export function CardOverlay({ task }: { task: Task }) {
   return (
-    <Card className="max-h-35.25 gap-0 rounded-sm py-2 opacity-50 w-full">
+    <Card className="max-h-35.25 w-full gap-0 rounded-sm py-2 opacity-50">
       <CardHeader className="px-2">
         <CardTitle className="flex items-center justify-between text-sm">
-          <span>{task.title}</span>
+          <span className="line-clamp-1">{task.title}</span>
         </CardTitle>
         <CardDescription className="space-y-2 pb-2">
           <div className="line-clamp-2 max-h-8.25 text-xs">
