@@ -89,7 +89,7 @@ function Tasks() {
       const paginationMap: Record<string | number, ColumnPagination> = {}
       const query = new URLSearchParams()
       query.append("_sort", "position")
-      query.append("_order", "desc")
+      query.append("_order", "asc")
       const promises = targetColumns.map(async (col) => {
         const response = await fetchTasks(project.id, col.id, query.toString())
         if (!response.ok) {
