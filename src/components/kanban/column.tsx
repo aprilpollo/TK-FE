@@ -175,7 +175,7 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
 
       <div ref={scrollContainerRef}>
         <ScrollArea
-          className="max-h-[75vh] px-1 *:data-[slot=scroll-area-viewport]:max-h-[75vh]!"
+          className="max-h-[calc(100vh-220px)] px-1 *:data-[slot=scroll-area-viewport]:max-h-[calc(100vh-220px)]!"
           onScrollCapture={(e) => {
             const target = e.target as HTMLElement
             const bottom =

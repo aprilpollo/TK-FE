@@ -134,7 +134,7 @@ export function KanbanCard({
     >
       <CardHeader className="px-2">
         <CardTitle className="flex items-center justify-between text-sm">
-          <span>{task.title}</span>
+          <span className="line-clamp-1">{task.title}</span>
           <DropdownMenuTask task={task} />
         </CardTitle>
         <CardDescription className="space-y-2 pb-2">
