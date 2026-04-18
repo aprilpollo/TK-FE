@@ -123,7 +123,7 @@ function Tasks() {
       const uuidToFilter = targetColumn ? targetColumn.uuid : statusId
       const query = new URLSearchParams()
       query.append("_sort", "position")
-      query.append("_order", "desc")
+      query.append("_order", "asc")
       const response = await fetchTasks(project.id, statusId, query.toString())
       if (!response.ok) {
         throw new Error(`Failed to fetch tasks for status ${statusId}`)
