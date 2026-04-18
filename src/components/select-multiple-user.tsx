@@ -52,7 +52,10 @@ export function SelectMultipleUser({
     const loadMembers = async () => {
       try {
         const query = new URLSearchParams()
-        if (search) query.append("email_contains", search)
+        if (search) {
+          query.append("_q", search) //_search_fields
+          query.append("_search_fields", "email,first_name,last_name,display_name")
+        }
         const response = await fetchMembers(query.toString())
         const members = (await response.json()) as {
           code: number
@@ -98,6 +101,7 @@ export function SelectMultipleUser({
         items={items}
         value={user}
         onOpenChange={setOpen}
+        filter={() => true}
         onValueChange={(newValue) => {
           const seen = new Set<number>()
           setUser(
