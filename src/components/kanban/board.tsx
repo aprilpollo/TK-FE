@@ -48,20 +48,16 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
     let scrollLeft = 0
 
     const onMouseDown = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (target.closest("[data-slot='kanban-card'], [data-slot='kanban-column-header'], button, input, textarea, [role='button']")) return
       isDown = true
       startX = e.pageX - el.offsetLeft
       scrollLeft = el.scrollLeft
-      el.style.cursor = "grabbing"
     }
-    const onMouseLeave = () => { isDown = false; el.style.cursor = "" }
-    const onMouseUp = () => { isDown = false; el.style.cursor = "" }
+    const onMouseLeave = () => { isDown = false }
+    const onMouseUp = () => { isDown = false }
     const onMouseMove = (e: MouseEvent) => {
       if (!isDown) return
       e.preventDefault()
-      const x = e.pageX - el.offsetLeft
-      el.scrollLeft = scrollLeft - (x - startX)
+      el.scrollLeft = scrollLeft - (e.pageX - el.offsetLeft - startX)
     }
 
     el.addEventListener("mousedown", onMouseDown)
