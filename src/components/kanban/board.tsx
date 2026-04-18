@@ -6,7 +6,7 @@ import type {
   DragEndEvent,
   DragOverEvent,
 } from "@/types"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useRef, useEffect } from "react"
 import { createPortal } from "react-dom"
 import {
   DndContext,
@@ -35,15 +35,53 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
   const [activeColumn, setActiveColumn] = useState<Column | null>(null)
   const [activeTask, setActiveTask] = useState<Task | null>(null)
 
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = scrollAreaRef.current?.querySelector<HTMLElement>(
+      "[data-slot='scroll-area-viewport']"
+    )
+    if (!el) return
+
+    let isDown = false
+    let startX = 0
+    let scrollLeft = 0
+
+    const onMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (target.closest("[data-slot='kanban-card'], [data-slot='kanban-column-header'], button, input, textarea, [role='button']")) return
+      isDown = true
+      startX = e.pageX - el.offsetLeft
+      scrollLeft = el.scrollLeft
+      el.style.cursor = "grabbing"
+    }
+    const onMouseLeave = () => { isDown = false; el.style.cursor = "" }
+    const onMouseUp = () => { isDown = false; el.style.cursor = "" }
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDown) return
+      e.preventDefault()
+      const x = e.pageX - el.offsetLeft
+      el.scrollLeft = scrollLeft - (x - startX)
+    }
+
+    el.addEventListener("mousedown", onMouseDown)
+    el.addEventListener("mouseleave", onMouseLeave)
+    el.addEventListener("mouseup", onMouseUp)
+    el.addEventListener("mousemove", onMouseMove)
+    return () => {
+      el.removeEventListener("mousedown", onMouseDown)
+      el.removeEventListener("mouseleave", onMouseLeave)
+      el.removeEventListener("mouseup", onMouseUp)
+      el.removeEventListener("mousemove", onMouseMove)
+    }
+  }, [])
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 3, // Start dragging after 3px movement
       },
     }),
-    // useSensor(KeyboardSensor, {
-    //   coordinateGetter: sortableKeyboardCoordinates,
-    // })
   )
 
   const columnsId = useMemo(() => columns.map((col) => col.uuid), [columns])
@@ -175,7 +213,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
   }
 
   return (
-    <ScrollArea>
+    <ScrollArea ref={scrollAreaRef}>
       <div className="flex h-[calc(100svh-160px)] space-x-4 px-1">
         <DndContext
           sensors={sensors}
