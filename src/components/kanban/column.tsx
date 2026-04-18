@@ -158,7 +158,8 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
               className="h-5 min-w-5 rounded-full px-1 font-mono tabular-nums"
               variant="outline"
             >
-              {columnPagination[column.id]?.total ?? tasks.length}
+              {/* {columnPagination[column.id]?.total ?? tasks.length} */}
+              {tasks.length}
             </Badge>
           </div>
           <div className="flex items-center gap-1">
