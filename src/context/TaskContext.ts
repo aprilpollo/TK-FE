@@ -9,6 +9,7 @@ export type TaskContextType = {
   columnPagination: Record<string | number, ColumnPagination>
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>
   setColumns: React.Dispatch<React.SetStateAction<Column[]>>
+  setColumnPagination: React.Dispatch<React.SetStateAction<Record<string | number, ColumnPagination>>>
   FetchTaskByStatus: (statusId: string | number) => Promise<void>
   FetchTaskStatuses: () => Promise<Column[]>
   loadMoreTasks: (statusId: string | number) => Promise<void>

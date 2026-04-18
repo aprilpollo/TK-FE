@@ -47,7 +47,7 @@ interface Props {
 
 export function DropdownMenuTask({ task }: Props) {
   const { project } = useProject()
-  const { columns, tasks, priority, setTasks, FetchTaskByStatus } = useTask()
+  const { columns, tasks, priority, setTasks, setColumnPagination, FetchTaskByStatus } = useTask()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [renameOpen, setRenameOpen] = useState(false)
   const [renameInput, setRenameInput] = useState(task.title)
@@ -183,6 +183,14 @@ export function DropdownMenuTask({ task }: Props) {
       const res = await deleteTask(task.id)
       if (!res.ok) throw new Error()
       setTasks((prev) => prev.filter((t) => t.id !== task.id))
+      const col = columns.find((c) => c.uuid === task.columnId)
+      if (col) {
+        setColumnPagination((prev) => {
+          const pag = prev[col.id]
+          if (!pag) return prev
+          return { ...prev, [col.id]: { ...pag, total: Math.max(0, pag.total - 1) } }
+        })
+      }
       setDeleteOpen(false)
     } catch {
       toast.error("Failed to delete task")

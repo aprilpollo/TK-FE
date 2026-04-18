@@ -364,6 +364,7 @@ function Tasks() {
             loadMoreTasks,
             setTasks,
             setColumns,
+            setColumnPagination,
           }}
         >
           <Board

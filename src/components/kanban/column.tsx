@@ -130,7 +130,7 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
       }}
       className="relative h-fit w-66 shrink-0 items-start rounded-sm border bg-card/50"
     >
-      <div className="sticky top-0 z-10 flex w-full items-center justify-between p-2">
+      <div data-slot="kanban-column-header" className="sticky top-0 z-10 flex w-full items-center justify-between p-2">
         <div className="flex items-center gap-2">
           <Button
             {...attributes}

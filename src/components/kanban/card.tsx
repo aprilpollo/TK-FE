@@ -126,6 +126,7 @@ export function KanbanCard({
       {...attributes}
       {...listeners}
       style={style}
+      data-slot="kanban-card"
       className={cn(
         "group max-h-35.25 gap-0 rounded-sm border py-2 ring-0 active:cursor-grabbing",
         isOverlay && "cursor-grabbing",
