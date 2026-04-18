@@ -113,14 +113,13 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
     setActiveTask(null)
 
     const { active, over } = event
-    if (!over) return
 
     const activeId = active.id
-    const overId = over.id
+    const overId = over?.id
 
     const isActiveColumn = active.data.current?.type === "Column"
     if (isActiveColumn) {
-      if (activeId === overId) return // Dropped on itself — nothing to reorder
+      if (!over || activeId === overId) return
       setColumns((columns) => {
         const activeIndex = columns.findIndex((col) => col.uuid === activeId)
         const overIndex = columns.findIndex((col) => col.uuid === overId)
@@ -132,8 +131,9 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
 
     const isActiveTask = active.data.current?.type === "Task"
     if (isActiveTask) {
-      if (activeId === overId) return // No position change — skip state update and API call
+      if (over && activeId === overId) return // Same position, nothing to do
       setTasks((tasks) => {
+        if (!over) return tasks // State already updated by onDragOver, keep as-is
         const activeIndex = tasks.findIndex((t) => t.id === activeId)
         const overIndex = tasks.findIndex((t) => t.id === overId)
 
