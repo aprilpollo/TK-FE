@@ -36,6 +36,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
 
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const isDndDragging = useRef(false)
 
   useEffect(() => {
     const el = scrollAreaRef.current?.querySelector<HTMLElement>(
@@ -48,10 +49,11 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
     let scrollLeft = 0
 
     const onMouseDown = (e: MouseEvent) => {
+      if (isDndDragging.current) return
       const target = e.target as HTMLElement
       if (target.closest("[data-slot='kanban-card'],[data-slot='kanban-column-header'],button,input,textarea,[role='button']")) return
       isDown = true
-      startX = e.pageX - el.offsetLeft
+      startX = e.clientX
       scrollLeft = el.scrollLeft
       el.style.cursor = "grabbing"
     }
@@ -60,7 +62,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
     const onMouseMove = (e: MouseEvent) => {
       if (!isDown) return
       e.preventDefault()
-      el.scrollLeft = scrollLeft - (e.pageX - el.offsetLeft - startX)
+      el.scrollLeft = scrollLeft - (e.clientX - startX)
     }
 
     el.addEventListener("mousedown", onMouseDown)
@@ -97,6 +99,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
   }, [tasks])
 
   function onDragStart(event: DragStartEvent) {
+    isDndDragging.current = true
     if (event.active.data.current?.type === "Column") {
       setActiveColumn(event.active.data.current.column)
       return
@@ -109,11 +112,11 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
   }
 
   function onDragEnd(event: DragEndEvent) {
+    isDndDragging.current = false
     setActiveColumn(null)
     setActiveTask(null)
 
     const { active, over } = event
-
     const activeId = active.id
     const overId = over?.id
 
@@ -130,24 +133,21 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
     }
 
     const isActiveTask = active.data.current?.type === "Task"
-    if (isActiveTask) {
-      if (over && activeId === overId) return // Same position, nothing to do
-      setTasks((tasks) => {
-        if (!over) return tasks // State already updated by onDragOver, keep as-is
-        const activeIndex = tasks.findIndex((t) => t.id === activeId)
-        const overIndex = tasks.findIndex((t) => t.id === overId)
+    if (!isActiveTask) return
 
-        if (activeIndex === -1 || overIndex === -1) return tasks
+    // tasks here is already up-to-date: onDragOver (prev browser event) committed its state
+    // before onDragEnd fires, so the component re-rendered with correct columnIds
+    const activeIndex = tasks.findIndex((t) => t.id === activeId)
+    const overIndex = over ? tasks.findIndex((t) => t.id === overId) : -1
 
-        // Cross-column moves are already committed in onDragOver; only handle same-column reorder here
-        if (tasks[activeIndex].columnId !== tasks[overIndex].columnId) {
-          return tasks
-        }
-
-        return arrayMove(tasks, activeIndex, overIndex)
-      })
-      if (onDragEndItem) onDragEndItem(event)
+    let newTasks = tasks
+    if (activeIndex !== -1 && overIndex !== -1 &&
+        tasks[activeIndex].columnId === tasks[overIndex].columnId) {
+      newTasks = arrayMove(tasks, activeIndex, overIndex)
+      setTasks(newTasks)
     }
+
+    if (onDragEndItem) onDragEndItem(newTasks)
   }
 
   function onDragOver(event: DragOverEvent) {

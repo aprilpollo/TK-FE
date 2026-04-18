@@ -250,35 +250,28 @@ function Tasks() {
     }
   }
 
-  const onDragEndItem = async (_event: DragEndEvent) => {
-    // Read the latest task state via functional updater (receives state after board's own setTasks).
-    // No setTimeout needed — React 18 applies functional updaters in queue order within the same batch.
-    setTasks((currentTasks) => {
-      // Build position map in O(n) by grouping tasks by column first
-      const positionByTask = new Map<string | number, number>()
-      const columnCursor = new Map<string | number, number>()
-      for (const t of currentTasks) {
-        const pos = (columnCursor.get(t.columnId) ?? 0) + 1
-        columnCursor.set(t.columnId, pos)
-        positionByTask.set(t.id, pos)
-      }
+  const onDragEndItem = (currentTasks: Task[]) => {
+    const positionByTask = new Map<string | number, number>()
+    const columnCursor = new Map<string | number, number>()
+    for (const t of currentTasks) {
+      const pos = (columnCursor.get(t.columnId) ?? 0) + 1
+      columnCursor.set(t.columnId, pos)
+      positionByTask.set(t.id, pos)
+    }
 
-      const updates = currentTasks.map((t) => ({
-        id: t.id,
-        position: positionByTask.get(t.id) ?? 1,
-        status_id: t.columnId,
-      }))
+    const updates = currentTasks.map((t) => ({
+      id: t.id,
+      position: positionByTask.get(t.id) ?? 1,
+      status_id: t.columnId,
+    }))
 
-      reorderTasks({
-        project_id: project.id,
-        updates,
-      }).catch((err) => {
-        toast.warning("Failed to update task order")
-        FetchTasks(columns) // Revert state by re-fetching
-        console.error(err)
-      })
-
-      return currentTasks // State unchanged; updater used only to read latest value
+    reorderTasks({
+      project_id: project.id,
+      updates,
+    }).catch((err) => {
+      toast.warning("Failed to update task order")
+      FetchTasks(columns)
+      console.error(err)
     })
   }
 

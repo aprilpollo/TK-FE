@@ -46,12 +46,8 @@ export interface KanbanCardProps {
 }
 
 export interface BoardProps {
-  // columns: Column[]
-  // tasks: Task[]
-  // setColumns: Dispatch<SetStateAction<Column[]>>
-  // setTasks: Dispatch<SetStateAction<Task[]>>
   onDragEndColumn?: (event: DragEndEvent) => void
-  onDragEndItem?: (event: DragEndEvent) => void
+  onDragEndItem?: (tasks: Task[]) => void
 }
 
 export interface ColumnPagination {
