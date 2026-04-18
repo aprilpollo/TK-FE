@@ -250,7 +250,7 @@ function Tasks() {
     }
   }
 
-  const onDragEndItem = async (event: DragEndEvent) => {
+  const onDragEndItem = async (_event: DragEndEvent) => {
     // Read the latest task state via functional updater (receives state after board's own setTasks).
     // No setTimeout needed — React 18 applies functional updaters in queue order within the same batch.
     setTasks((currentTasks) => {
