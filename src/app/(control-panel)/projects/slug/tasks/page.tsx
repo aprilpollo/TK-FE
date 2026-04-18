@@ -259,6 +259,21 @@ function Tasks() {
       positionByTask.set(t.id, pos)
     }
 
+    // Sync column totals from actual task count after drag
+    const countByUuid = new Map<string | number, number>()
+    for (const t of currentTasks) {
+      countByUuid.set(t.columnId, (countByUuid.get(t.columnId) ?? 0) + 1)
+    }
+    setColumnPagination((prev) => {
+      const next = { ...prev }
+      for (const col of columns) {
+        if (next[col.id]) {
+          next[col.id] = { ...next[col.id], total: countByUuid.get(col.uuid) ?? 0 }
+        }
+      }
+      return next
+    })
+
     const updates = currentTasks.map((t) => ({
       id: t.id,
       position: positionByTask.get(t.id) ?? 1,
