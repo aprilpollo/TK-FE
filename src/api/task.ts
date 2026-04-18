@@ -86,7 +86,7 @@ export async function createTask({
       description,
       due_date,
       priority_id,
-      assignees_ids: assignees,
+      assignee_ids: assignees,
     }),
   })
 }

@@ -9,17 +9,16 @@ import {
   Users,
   FolderGit2,
 } from "lucide-react"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-} from "@/components/ui/sidebar"
+import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar"
 import { TeamSwitcher } from "./TeamSwitcher"
 import { NavMenu } from "./NavMenu"
 
 export function AppSidebar() {
   const location = useLocation()
-  const isActive = (href: string) => location.pathname === href
+  const isActive = (href: string) => {
+    let active = location.pathname.split("/")[1]
+    return `/${active}` === href
+  }
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">

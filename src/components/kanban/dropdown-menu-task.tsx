@@ -48,10 +48,10 @@ interface Props {
 export function DropdownMenuTask({ task }: Props) {
   const { project } = useProject()
   const { columns, tasks, priority, setTasks, FetchTaskByStatus } = useTask()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [renameOpen, setRenameOpen] = useState(false)
   const [renameInput, setRenameInput] = useState(task.title)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [dueDateOpen, setDueDateOpen] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [dueDateValue, setDueDateValue] = useState<Date | undefined>(
     task.dueDate ? new Date(task.dueDate) : undefined
@@ -92,9 +92,7 @@ export function DropdownMenuTask({ task }: Props) {
   }
 
   // ── Change Priority ────────────────────────────────────────
-  const handleChangePriority = async (
-    p: (typeof priority)[number] | null
-  ) => {
+  const handleChangePriority = async (p: (typeof priority)[number] | null) => {
     try {
       const res = await updateTask(task.id, {
         priority_id: p?.id ?? null,
@@ -103,9 +101,7 @@ export function DropdownMenuTask({ task }: Props) {
       // Optimistic update
       setTasks((prev) =>
         prev.map((t) =>
-          t.id === task.id
-            ? { ...t, priority: p ?? undefined }
-            : t
+          t.id === task.id ? { ...t, priority: p ?? undefined } : t
         )
       )
     } catch {
@@ -114,24 +110,21 @@ export function DropdownMenuTask({ task }: Props) {
   }
 
   // ── Set Due Date ───────────────────────────────────────────
-  const handleSetDueDate = async () => {
+  const handleSetDueDate = async (date: Date | undefined) => {
     try {
       const res = await updateTask(task.id, {
-        due_date: dueDateValue ? dueDateValue.toISOString() : null,
+        due_date: date ? date.toISOString() : null,
       })
       if (!res.ok) throw new Error()
       setTasks((prev) =>
         prev.map((t) =>
           t.id === task.id
-            ? {
-                ...t,
-                dueDate: dueDateValue ? dueDateValue.toISOString() : undefined,
-              }
+            ? { ...t, dueDate: date ? date.toISOString() : undefined }
             : t
         )
       )
-      setDueDateOpen(false)
-      toast.success(dueDateValue ? "Due date updated" : "Due date cleared")
+      setDropdownOpen(false)
+      toast.success(date ? "Due date updated" : "Due date cleared")
     } catch {
       toast.error("Failed to update due date")
     }
@@ -200,7 +193,7 @@ export function DropdownMenuTask({ task }: Props) {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
@@ -210,7 +203,7 @@ export function DropdownMenuTask({ task }: Props) {
             <Ellipsis className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-48" align="start">
+        <DropdownMenuContent className="w-50" align="start">
           {/* ── Quick actions ── */}
           <DropdownMenuGroup>
             <DropdownMenuItem
@@ -222,16 +215,16 @@ export function DropdownMenuTask({ task }: Props) {
               <Pencil className="h-4 w-4 text-muted-foreground" />
               Rename
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleCopyName}>
-              <Copy className="h-4 w-4 text-muted-foreground" />
-              Copy name
-            </DropdownMenuItem>
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />
 
           {/* ── Edit fields ── */}
           <DropdownMenuGroup>
+            <DropdownMenuItem onClick={handleCopyName}>
+              <Copy className="h-4 w-4 text-muted-foreground" />
+              Copy name
+            </DropdownMenuItem>
             {/* Change Priority */}
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
@@ -239,7 +232,10 @@ export function DropdownMenuTask({ task }: Props) {
                   className="h-4 w-4"
                   style={
                     task.priority
-                      ? { color: task.priority.color, fill: task.priority.color }
+                      ? {
+                          color: task.priority.color,
+                          fill: task.priority.color,
+                        }
                       : undefined
                   }
                 />
@@ -278,25 +274,48 @@ export function DropdownMenuTask({ task }: Props) {
             </DropdownMenuSub>
 
             {/* Set Due Date */}
-            <DropdownMenuItem
-              onClick={() => {
-                setDueDateValue(
-                  task.dueDate ? new Date(task.dueDate) : undefined
-                )
-                setDueDateOpen(true)
-              }}
-            >
-              <CalendarClock className="h-4 w-4 text-muted-foreground" />
-              <span>Due date</span>
-              {task.dueDate && (
-                <Badge
-                  variant="secondary"
-                  className="ml-auto rounded px-1 py-0 text-[10px] font-normal"
-                >
-                  {formatDatev2(task.dueDate)}
-                </Badge>
-              )}
-            </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <CalendarClock className="h-4 w-4 text-muted-foreground" />
+                <span>Due date</span>
+                {task.dueDate && (
+                  <Badge
+                    variant="secondary"
+                    className="rounded px-1 py-0 text-[10px] font-medium"
+                  >
+                    {formatDatev2(task.dueDate)}
+                  </Badge>
+                )}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="p-0">
+                <Calendar
+                  mode="single"
+                  selected={dueDateValue}
+                  onSelect={setDueDateValue}
+                  disabled={{ before: new Date() }}
+                />
+                <div className="flex items-center gap-1 border-t px-3 py-2">
+                  {dueDateValue && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs text-muted-foreground"
+                      onClick={() => handleSetDueDate(undefined)}
+                    >
+                      <X className="h-3 w-3" />
+                      Clear
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    className="ml-auto h-7 text-xs"
+                    onClick={() => handleSetDueDate(dueDateValue)}
+                  >
+                    {dueDateValue ? `Apply ${formatDatev2(dueDateValue)}` : "Apply"}
+                  </Button>
+                </div>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
 
             {/* Move to */}
             {otherColumns.length > 0 && (
@@ -324,8 +343,6 @@ export function DropdownMenuTask({ task }: Props) {
             )}
           </DropdownMenuGroup>
 
-          <DropdownMenuSeparator />
-
           {/* ── Task actions ── */}
           <DropdownMenuGroup>
             <DropdownMenuItem onClick={handleDuplicate}>
@@ -351,7 +368,9 @@ export function DropdownMenuTask({ task }: Props) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Rename Task</DialogTitle>
-            <DialogDescription>Enter a new name for this task.</DialogDescription>
+            <DialogDescription>
+              Enter a new name for this task.
+            </DialogDescription>
           </DialogHeader>
           <Input
             value={renameInput}
@@ -363,44 +382,11 @@ export function DropdownMenuTask({ task }: Props) {
             <Button variant="outline" onClick={() => setRenameOpen(false)}>
               Cancel
             </Button>
-            <Button disabled={renameInput.trim().length < 1} onClick={handleRename}>
+            <Button
+              disabled={renameInput.trim().length < 1}
+              onClick={handleRename}
+            >
               Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Due date dialog */}
-      <Dialog open={dueDateOpen} onOpenChange={setDueDateOpen}>
-        <DialogContent className="w-auto p-0">
-          <DialogHeader className="px-4 pt-4">
-            <DialogTitle>Set Due Date</DialogTitle>
-            <DialogDescription>
-              Pick a due date for "{task.title}".
-            </DialogDescription>
-          </DialogHeader>
-          <Calendar
-            mode="single"
-            selected={dueDateValue}
-            onSelect={setDueDateValue}
-            className="px-2"
-          />
-          <DialogFooter className="px-4 pb-4">
-            {dueDateValue && (
-              <Button
-                variant="ghost"
-                className="mr-auto text-muted-foreground"
-                onClick={() => setDueDateValue(undefined)}
-              >
-                <X className="h-4 w-4" />
-                Clear
-              </Button>
-            )}
-            <Button variant="outline" onClick={() => setDueDateOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSetDueDate}>
-              {dueDateValue ? `Set ${formatDatev2(dueDateValue)}` : "Clear date"}
             </Button>
           </DialogFooter>
         </DialogContent>

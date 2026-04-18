@@ -34,6 +34,7 @@ const taskSchema = z.object({
       z.object({
         id: z.number(),
         name: z.string(),
+        email: z.string(),
         avatar: z.string(),
       })
     )
@@ -49,9 +50,11 @@ const taskSchema = z.object({
 })
 
 type TaskFormValues = z.infer<typeof taskSchema>
+
 type UserItem = {
   id: number
   name: string
+  email: string
   avatar: string
 }
 
