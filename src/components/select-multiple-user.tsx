@@ -16,7 +16,7 @@ import {
   ComboboxList,
   ComboboxTrigger,
 } from "@/components/ui/combobox"
-import { Plus } from "lucide-react"
+import { User } from "lucide-react"
 
 type UserItem = {
   id: number
@@ -130,7 +130,7 @@ export function SelectMultipleUser({
                 </AvatarGroupCount>
               )}
               <AvatarGroupCount className="size-6 cursor-pointer">
-                <Plus />
+                <User />
               </AvatarGroupCount>
             </AvatarGroup>
           }

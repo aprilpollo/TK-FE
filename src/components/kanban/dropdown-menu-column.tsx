@@ -21,6 +21,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { ColorSection } from "@/components/color-section"
 import { MoreHorizontal, Pencil, Palette, Plus, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { updateTaskStatus, deleteTaskStatus } from "@/api/task"
@@ -50,6 +51,7 @@ export function DropdownMenuColumn({ column, onAddTask }: Props) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [nameInput, setNameInput] = useState(column.name)
   const [loading, setLoading] = useState(false)
+  const [selectedColor, setSelectedColor] = useState(column.color || "#005BC4")
 
   const handleRename = async () => {
     const trimmed = nameInput.trim()
@@ -128,23 +130,18 @@ export function DropdownMenuColumn({ column, onAddTask }: Props) {
                 <Palette className="h-4 w-4" />
                 Change Color
               </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <div className="grid grid-cols-4 gap-1 p-1">
-                  {PRESET_COLORS.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => {
-                        handleColorChange(c)
-                        setOpen(false)
-                      }}
-                      className={cn(
-                        "h-6 w-6 cursor-pointer rounded-full transition-transform hover:scale-110",
-                        column.color === c && "ring-2 ring-offset-1 ring-ring"
-                      )}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
+              <DropdownMenuSubContent className="border-none bg-transparent p-1 shadow-none ring-0">
+                <ColorSection
+                  color={selectedColor}
+                  setColor={setSelectedColor}
+                  onCancel={() => setOpen(false)}
+                  onClick={() => {
+                    if (selectedColor !== column.color) {
+                      handleColorChange(selectedColor)
+                    }
+                    setOpen(false)
+                  }}
+                />
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           </DropdownMenuGroup>

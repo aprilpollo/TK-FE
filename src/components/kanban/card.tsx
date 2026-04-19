@@ -55,7 +55,7 @@ export function KanbanCard({
         className="max-h-35.25 gap-0 rounded-sm border py-2 opacity-50 ring-0"
       >
         <CardHeader className="px-2">
-          <CardTitle className="flex items-center justify-between text-sm">
+          <CardTitle className="flex h-6 items-center justify-between text-sm">
             <span className="line-clamp-1">{task.title}</span>
           </CardTitle>
           <CardDescription className="space-y-2 pb-2">
@@ -85,7 +85,7 @@ export function KanbanCard({
             </div>
           </CardDescription>
         </CardHeader>
-        <CardFooter className="flex items-center justify-between border-none bg-card px-2 py-2">
+        <CardFooter className="flex items-center justify-between rounded-none border-none bg-card px-2 py-2">
           <div className="flex items-center gap-1">
             <Badge variant="outline" className="text-xs text-muted-foreground">
               <MessageCircle className="size-3" />
@@ -128,7 +128,7 @@ export function KanbanCard({
       style={style}
       data-slot="kanban-card"
       className={cn(
-        "group max-h-35.25 gap-0 rounded-sm border py-2 ring-0 active:cursor-grabbing",
+        "group max-h-35.25 cursor-pointer gap-0 rounded-sm border py-2 ring-0 active:cursor-grabbing",
         isOverlay && "cursor-grabbing",
         isFaded && "pointer-events-none opacity-40"
       )}

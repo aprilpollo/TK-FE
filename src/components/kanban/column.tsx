@@ -11,9 +11,14 @@ import { CardOverlay } from "@/components/kanban/overlay"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { GripVertical, Loader2, MoreHorizontal, Plus } from "lucide-react"
+import {
+  GitMerge,
+  GripVertical,
+  Loader2,
+  MoreHorizontal,
+  Plus,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
-import { getContrastColor } from "@/utils/color"
 import { AddTask } from "@/components/kanban/add-task"
 import { DropdownMenuColumn } from "@/components/kanban/dropdown-menu-column"
 import useTask from "@/hooks/useTask"
@@ -61,9 +66,9 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
         ref={setNodeRef}
         style={{
           ...style,
-          //backgroundColor: `${column.color}09`,
+          backgroundColor: `${column.color}0d`,
         }}
-        className="relative flex h-fit max-h-[calc(100vh-165px)] w-66 shrink-0 flex-col items-start rounded-sm border bg-card/50 opacity-50"
+        className="relative flex h-fit max-h-[calc(100vh-165px)] w-66 shrink-0 flex-col items-start rounded-sm opacity-50"
       >
         <div className="sticky top-0 z-10 flex w-full items-center justify-between p-2">
           <div className="flex items-center gap-2">
@@ -75,15 +80,16 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
             >
               <GripVertical className="h-4 w-4" />
             </Button>
-            <span
-              className="rounded-[3px] px-1 text-xs font-semibold uppercase"
+            <Badge
+              className="line-clamp-1 flex items-center gap-1 rounded-sm font-bold uppercase"
               style={{
-                backgroundColor: column.color,
-                color: getContrastColor(column.color || "#ffffff"),
+                backgroundColor: `${column.color}1a`,
+                color: column.color,
               }}
             >
+              <GitMerge className="h-3.5 w-3.5" />
               {column.name}
-            </span>
+            </Badge>
             <Badge
               className="h-5 min-w-5 rounded-full px-1 font-mono tabular-nums"
               variant="outline"
@@ -124,13 +130,13 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
   return (
     <div
       ref={setNodeRef}
-      style={{
-        ...style,
-        // backgroundColor: `${column.color}09`,
-      }}
-      className="relative w-66 shrink-0 items-start rounded-sm "
+      style={style}
+      className="relative w-66 shrink-0 items-start rounded-sm"
     >
-      <div className="bg-card/50 rounded-sm">
+      <div
+        className="rounded-sm"
+        style={{ backgroundColor: `${column.color}0d` }}
+      >
         <div
           data-slot="kanban-column-header"
           className="sticky top-0 z-10 flex w-full items-center justify-between p-2"
@@ -145,15 +151,16 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
             >
               <GripVertical className="h-4 w-4" />
             </Button>
-            <span
-              className="rounded-[3px] px-1 text-xs font-semibold uppercase"
+            <Badge
+              className="line-clamp-1 flex items-center gap-1 rounded-sm font-bold uppercase"
               style={{
-                backgroundColor: column.color,
-                color: getContrastColor(column.color || "#A1A1A1"),
+                backgroundColor: `${column.color}1a`,
+                color: column.color,
               }}
             >
+              <GitMerge className="h-3.5 w-3.5" />
               {column.name}
-            </span>
+            </Badge>
             <Badge
               className="h-5 min-w-5 rounded-full px-1 font-mono tabular-nums"
               variant="outline"
@@ -179,7 +186,7 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
 
         <div ref={scrollContainerRef}>
           <ScrollArea
-            className="max-h-[calc(100vh-220px)] px-1 *:data-[slot=scroll-area-viewport]:max-h-[calc(100vh-220px)]!"
+            className="max-h-[calc(100vh-220px)] *:data-[slot=scroll-area-viewport]:max-h-[calc(100vh-220px)]!"
             onScrollCapture={(e) => {
               const target = e.target as HTMLElement
               const bottom =
@@ -194,7 +201,7 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
               items={taskIds}
               strategy={verticalListSortingStrategy}
             >
-              <div className="space-y-2 px-1 py-2">
+              <div className="space-y-2 px-2 py-2">
                 {addTaskOpen && (
                   <AddTask
                     columnId={column.id}

@@ -3,27 +3,14 @@ import { Button } from "@/components/ui/button"
 import {
   Popover,
   PopoverContent,
-  PopoverHeader,
-  PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
 import { CornerDownLeft, Plus } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { createTaskStatus } from "@/api/task"
+import { ColorSectionPopover } from "@/components/color-section"
 import useProject from "@/hooks/useProject"
 import useTask from "@/hooks/useTask"
-
-const PRESET_COLORS = [
-  "#005BC4",
-  "#6020A0",
-  "#12A150",
-  "#C20E4D",
-  "#CC3EA4",
-  "#C4841D",
-  "#06B7DB",
-  "#52525B",
-]
 
 export function AddGroup() {
   const { project } = useProject()
@@ -31,7 +18,6 @@ export function AddGroup() {
   const [open, setOpen] = useState(false)
   const [statusName, setStatusName] = useState("")
   const [selectedColor, setSelectedColor] = useState("#005BC4")
-  const [customColor, setCustomColor] = useState("#87909e")
 
   if (!project) {
     return <div>Loading...</div>
@@ -59,12 +45,7 @@ export function AddGroup() {
       </PopoverTrigger>
       <PopoverContent align="start" className="bg-background p-0 shadow-none">
         <div className="flex items-center p-1">
-          <ColorSection
-            color={selectedColor}
-            setColor={setSelectedColor}
-            customColor={customColor}
-            setCustomColor={setCustomColor}
-          />
+          <ColorSectionPopover color={selectedColor} setColor={setSelectedColor} />
           <Input
             type="text"
             placeholder="STATUS NAME"
@@ -80,53 +61,6 @@ export function AddGroup() {
             Save
             <CornerDownLeft />
           </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-function ColorSection({
-  color,
-  setColor,
-}: {
-  color: string
-  customColor: string
-  setColor: (color: string) => void
-  setCustomColor: (color: string) => void
-}) {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon-sm"
-          className="h-6 w-6 rounded-md shadow-none"
-          style={{ backgroundColor: color }}
-        />
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        sideOffset={10}
-        className="absolute -left-1 space-y-2 bg-background shadow-none"
-      >
-        <PopoverHeader>
-          <PopoverTitle>Color</PopoverTitle>
-        </PopoverHeader>
-        <div className="grid grid-cols-8 gap-1.5">
-          {PRESET_COLORS.map((color) => (
-            <button
-              key={color}
-              onClick={() => {
-                setColor(color)
-              }}
-              className={cn(
-                "h-6 w-6 cursor-pointer rounded-full transition-transform hover:scale-110"
-              )}
-              style={{ backgroundColor: color }}
-              title={color}
-            />
-          ))}
         </div>
       </PopoverContent>
     </Popover>
