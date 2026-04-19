@@ -23,21 +23,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { ColorSection } from "@/components/color-section"
 import { MoreHorizontal, Pencil, Palette, Plus, Trash2 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { updateTaskStatus, deleteTaskStatus } from "@/api/task"
 import useTask from "@/hooks/useTask"
 import { toast } from "sonner"
-
-const PRESET_COLORS = [
-  "#005BC4",
-  "#6020A0",
-  "#12A150",
-  "#C20E4D",
-  "#CC3EA4",
-  "#C4841D",
-  "#06B7DB",
-  "#52525B",
-]
 
 interface Props {
   column: Column
