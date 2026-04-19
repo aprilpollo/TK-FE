@@ -52,7 +52,7 @@ export function KanbanCard({
       <Card
         ref={setNodeRef}
         style={style}
-        className="max-h-35.25 gap-0 rounded-sm border py-2 opacity-50 ring-0"
+        className="max-h-35.25 gap-0 rounded-sm py-2 opacity-50 ring-0"
       >
         <CardHeader className="px-2">
           <CardTitle className="flex h-6 items-center justify-between text-sm">
@@ -128,7 +128,7 @@ export function KanbanCard({
       style={style}
       data-slot="kanban-card"
       className={cn(
-        "group max-h-35.25 cursor-pointer gap-0 rounded-sm border py-2 ring-0 active:cursor-grabbing",
+        "group max-h-35.25 cursor-pointer gap-0 rounded-sm py-2 ring-0 active:cursor-grabbing",
         isOverlay && "cursor-grabbing",
         isFaded && "pointer-events-none opacity-40"
       )}

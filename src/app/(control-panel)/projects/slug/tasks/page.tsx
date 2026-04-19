@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Plus } from "lucide-react"
+import { Search, Plus, Flag, CalendarClock, StickyNote } from "lucide-react"
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -36,10 +37,12 @@ function Tasks() {
   const [columns, setColumns] = useState<Column[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [priority, setPriority] = useState<TaskPriority[]>([])
+  const [selectedPriority, setSelectedPriority] = useState<string>("")
+  const [selectedSort, setSelectedSort] = useState<string>("")
   const [columnPagination, setColumnPagination] = useState<
     Record<string | number, ColumnPagination>
   >({})
-
+  const [search, setSearch] = useState("")
   const [searchInput, setSearchInput] = useState("")
 
   if (!project) {
@@ -88,8 +91,18 @@ function Tasks() {
     try {
       const paginationMap: Record<string | number, ColumnPagination> = {}
       const query = new URLSearchParams()
-      query.append("_sort", "position")
+      if (selectedPriority) {
+        query.append("priority_id", selectedPriority)
+      }
+      if (selectedSort) {
+        query.append("_sort", selectedSort)
+      } else query.append("_sort", "position")
+      if (search) {
+        query.append("_q", search) //_search_fields
+        query.append("_search_fields", "title,description")
+      }
       query.append("_order", "asc")
+
       const promises = targetColumns.map(async (col) => {
         const response = await fetchTasks(project.id, col.id, query.toString())
         if (!response.ok) {
@@ -268,7 +281,10 @@ function Tasks() {
       const next = { ...prev }
       for (const col of columns) {
         if (next[col.id]) {
-          next[col.id] = { ...next[col.id], total: countByUuid.get(col.uuid) ?? 0 }
+          next[col.id] = {
+            ...next[col.id],
+            total: countByUuid.get(col.uuid) ?? 0,
+          }
         }
       }
       return next
@@ -291,6 +307,14 @@ function Tasks() {
   }
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchInput])
+
+  useEffect(() => {
     const initializeTaskBoard = async () => {
       FetchPriorities()
       const statuses = await FetchTaskStatuses()
@@ -299,6 +323,14 @@ function Tasks() {
 
     initializeTaskBoard()
   }, [project.id])
+
+  useEffect(() => {
+    if (columns.length === 0) return
+    const initializeTaskBoard = async () => {
+      await FetchTasks(columns)
+    }
+    initializeTaskBoard()
+  }, [selectedPriority, selectedSort, search])
 
   return (
     <div className="space-y-4 pt-4">
@@ -314,36 +346,48 @@ function Tasks() {
                 onChange={(e) => setSearchInput(e.target.value)}
               />
             </div>
-            <Select>
+            <Select value={selectedSort} onValueChange={setSelectedSort}>
               <SelectTrigger className="w-36 cursor-pointer">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent position="popper">
                 <SelectGroup>
-                  <SelectItem value="name" className="cursor-pointer">
+                  <SelectLabel>Sort by</SelectLabel>
+                  <SelectItem value="title" className="cursor-pointer">
+                    <StickyNote className="size-3.5" />
                     Name
                   </SelectItem>
-                  <SelectItem value="date" className="cursor-pointer">
-                    Date
+                  <SelectItem value="due_date" className="cursor-pointer">
+                    <CalendarClock className="size-3.5" />
+                    Due Date
                   </SelectItem>
-                  <SelectItem value="priority" className="cursor-pointer">
+                  <SelectItem value="priority_id" className="cursor-pointer">
+                    <Flag className="size-3.5" />
                     Priority
                   </SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
-            <Select>
-              <SelectTrigger className="w-36 cursor-pointer">
+            <Select
+              value={selectedPriority}
+              onValueChange={setSelectedPriority}
+            >
+              <SelectTrigger className="w-36 cursor-pointer capitalize">
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
               <SelectContent position="popper">
                 <SelectGroup>
+                  <SelectLabel>Priority</SelectLabel>
                   {priority.map((p) => (
                     <SelectItem
                       key={p.id}
-                      value={p.name}
-                      className="cursor-pointer"
+                      value={p.id.toString()}
+                      className="cursor-pointer space-x-0 capitalize"
                     >
+                      <Flag
+                        className="size-3.5"
+                        style={{ color: p.color, fill: p.color }}
+                      />
                       {p.name}
                     </SelectItem>
                   ))}

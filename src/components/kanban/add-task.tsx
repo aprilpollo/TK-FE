@@ -142,7 +142,7 @@ export function AddTask({
                   <input
                     {...field}
                     autoFocus
-                    placeholder="Title..."
+                    placeholder="Name"
                     className="w-full bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground/60"
                   />
                 </FormControl>
@@ -162,7 +162,7 @@ export function AddTask({
                   <textarea
                     {...field}
                     rows={2}
-                    placeholder="Description..."
+                    placeholder="Description"
                     className="w-full resize-none bg-transparent text-xs text-muted-foreground outline-none placeholder:text-muted-foreground/40"
                   />
                 </FormControl>

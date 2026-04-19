@@ -58,7 +58,7 @@ export interface ColumnPagination {
 }
 
 export type TaskPriority = {
-  id: string
+  id: string | number
   name: string
   color: string
 }
