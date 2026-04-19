@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Plus, Flag, CalendarClock, StickyNote } from "lucide-react"
+import { Search, Plus, Flag, CalendarClock, StickyNote, X } from "lucide-react"
 import {
   Select,
   SelectContent,
@@ -31,6 +31,7 @@ import { arrayMove } from "@dnd-kit/sortable"
 import { toast } from "sonner"
 import TaskContext from "@/context/TaskContext"
 import useProject from "@/hooks/useProject"
+import { Badge } from "@/components/ui/badge"
 
 function Tasks() {
   const { project } = useProject()
@@ -335,7 +336,7 @@ function Tasks() {
   return (
     <div className="space-y-4 pt-4">
       <header className="flex justify-between gap-2">
-        <div className="block">
+        <div className="flex items-center gap-2">
           <div className="flex gap-2">
             <div className="relative">
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -345,10 +346,25 @@ function Tasks() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />
+              {search && (
+                <button
+                  onClick={() => setSearchInput("")}
+                  className="absolute top-1/2 right-1 size-4 -translate-y-1/2 cursor-pointer text-muted-foreground"
+                >
+                  <X className="size-3" />
+                </button>
+              )}
             </div>
             <Select value={selectedSort} onValueChange={setSelectedSort}>
               <SelectTrigger className="w-36 cursor-pointer">
                 <SelectValue placeholder="Sort by" />
+                {/* <Button
+                  size="icon"
+                  variant="ghost"
+                  className="absolute top-1/2 right-5 size-6 -translate-y-1/2"
+                >
+                  <X className="pointer-events-none size-4 text-muted-foreground" />
+                </Button> */}
               </SelectTrigger>
               <SelectContent position="popper">
                 <SelectGroup>
@@ -395,6 +411,30 @@ function Tasks() {
               </SelectContent>
             </Select>
           </div>
+          {selectedPriority && (
+            <Badge className="bg-blue-50 text-blue-700 capitalize dark:bg-blue-950 dark:text-blue-300">
+              {priority.find((p) => p.id.toString() === selectedPriority)?.name}
+              <button
+                onClick={() => setSelectedPriority("")}
+                className="cursor-pointer"
+              >
+                <X className="size-3" />
+              </button>
+            </Badge>
+          )}
+          {selectedSort && (
+            <Badge className="bg-blue-50 text-blue-700 capitalize dark:bg-blue-950 dark:text-blue-300">
+              {selectedSort === "title" && "Name"}
+              {selectedSort === "due_date" && "Due Date"}
+              {selectedSort === "priority_id" && "Priority"}
+              <button
+                onClick={() => setSelectedSort("")}
+                className="cursor-pointer"
+              >
+                <X className="size-3" />
+              </button>
+            </Badge>
+          )}
         </div>
         <Button variant="secondary" className="cursor-pointer">
           <Plus className="size-4" />
