@@ -12,7 +12,8 @@ import {
   SquareKanban,
 } from "lucide-react"
 import Link from "@/shared/Link"
-import ProjectContext, { type Project } from "@/context/ProjectContext"
+import ProjectContext from "@/context/ProjectContext"
+import type { Project } from "@/types"
 
 const tabs = [
   { path: ".", label: "Overview", icon: FolderArchive },
