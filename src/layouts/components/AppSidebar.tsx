@@ -1,17 +1,15 @@
 import { useLocation } from "react-router"
 import {
   CalendarSearch,
-  Hotel,
-  Tags,
   LayoutDashboard,
   Settings,
   Inbox,
-  Users,
   FolderGit2,
 } from "lucide-react"
 import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar"
 import { TeamSwitcher } from "./TeamSwitcher"
 import { NavMenu } from "./NavMenu"
+import { NavTasks } from "./NavTasks"
 
 export function AppSidebar() {
   const location = useLocation()
@@ -48,11 +46,6 @@ export function AppSidebar() {
               url: "/mywork",
               isActive: isActive("/mywork"),
             },
-          ]}
-        />
-        <NavMenu
-          label="Management"
-          items={[
             {
               title: "Projects",
               icon: FolderGit2,
@@ -76,23 +69,22 @@ export function AppSidebar() {
                 },
               ],
             },
+          ]}
+        />
+
+        <NavTasks
+          tasks={[
             {
-              title: "Organizations",
-              icon: Hotel,
-              url: "/organizations",
-              isActive: isActive("/organizations"),
+              name: "Project Alpha",
+              url: "/projects/alpha",
             },
             {
-              title: "Teams",
-              icon: Users,
-              url: "/teams",
-              isActive: isActive("/teams"),
+              name: "Project Beta",
+              url: "/projects/beta",
             },
             {
-              title: "Labels & Tags",
-              icon: Tags,
-              url: "/labels",
-              isActive: isActive("/labels"),
+              name: "Project Gamma",
+              url: "/projects/gamma",
             },
           ]}
         />
