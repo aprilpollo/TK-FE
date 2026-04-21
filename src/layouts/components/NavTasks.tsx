@@ -5,11 +5,8 @@ import {
   Forward,
   MoreHorizontal,
   Search,
-  StickyNote,
   Trash2,
-  type LucideIcon,
 } from "lucide-react"
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,15 +34,16 @@ import {
 } from "@/components/ui/sidebar"
 import Link from "@/shared/Link"
 import { Label } from "@/components/ui/label"
+import type { Project } from "@/types"
 
 export function NavTasks({
   tasks,
+  searchInput,
+  setSearchInput,
 }: {
-  tasks: {
-    name: string
-    url: string
-    icon?: LucideIcon
-  }[]
+  tasks: Project[]
+  searchInput: string
+  setSearchInput: (value: string) => void
 }) {
   const { isMobile } = useSidebar()
 
@@ -72,14 +70,19 @@ export function NavTasks({
                 <Label htmlFor="search" className="sr-only">
                   Search
                 </Label>
-                <SidebarInput className="h-7 pl-8 rounded-sm" placeholder="Search tasks" />
+                <SidebarInput
+                  className="h-7 rounded-sm pl-8"
+                  placeholder="Search tasks"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                />
                 <Search className="pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2 opacity-50 select-none" />
               </div>
               <SidebarMenuSub>
                 {tasks.map((item) => (
                   <SidebarMenuSubItem key={item.name}>
                     <SidebarMenuSubButton asChild>
-                      <Link to={item.url}>
+                      <Link to={`/projects/${item.key}/tasks`}>
                         <span>{item.name}</span>
                       </Link>
                     </SidebarMenuSubButton>
@@ -87,7 +90,7 @@ export function NavTasks({
                       <DropdownMenuTrigger asChild>
                         <SidebarMenuAction
                           showOnHover
-                          className="cursor-pointer"
+                          className="top-1/2 -translate-y-1/2 cursor-pointer"
                         >
                           <MoreHorizontal />
                           <span className="sr-only">More</span>
@@ -98,10 +101,13 @@ export function NavTasks({
                         side={isMobile ? "bottom" : "right"}
                         align={isMobile ? "end" : "start"}
                       >
-                        <DropdownMenuItem>
-                          <Folder className="text-muted-foreground" />
-                          <span>View Project</span>
-                        </DropdownMenuItem>
+                        <Link to={`/projects/${item.key}`}>
+                          <DropdownMenuItem>
+                            <Folder className="text-muted-foreground" />
+                            <span>View Project</span>
+                          </DropdownMenuItem>
+                        </Link>
+
                         <DropdownMenuItem>
                           <Forward className="text-muted-foreground" />
                           <span>Share Project</span>

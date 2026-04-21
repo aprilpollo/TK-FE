@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react"
 import { useLocation } from "react-router"
 import {
   CalendarSearch,
@@ -10,13 +11,43 @@ import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar"
 import { TeamSwitcher } from "./TeamSwitcher"
 import { NavMenu } from "./NavMenu"
 import { NavTasks } from "./NavTasks"
+import { fetchProjects } from "@/api/project"
+import type { Project } from "@/types"
 
 export function AppSidebar() {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [searchInput, setSearchInput] = useState("")
+  const [search, setSearch] = useState("")
+
   const location = useLocation()
   const isActive = (href: string) => {
     let active = location.pathname.split("/")[1]
     return `/${active}` === href
   }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchInput])
+
+  useEffect(() => {
+    const FetchProjects = async () => {
+      const query = new URLSearchParams()
+      if (search) query.append("name_contains", search)
+      const response = await fetchProjects(query.toString())
+      const data = (await response.json()) as {
+        code: number
+        error: string | null
+        message: string
+        payload: Project[]
+      }
+      setProjects(data.payload)
+    }
+    FetchProjects()
+  }, [search])
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -73,20 +104,9 @@ export function AppSidebar() {
         />
 
         <NavTasks
-          tasks={[
-            {
-              name: "Project Alpha",
-              url: "/projects/alpha",
-            },
-            {
-              name: "Project Beta",
-              url: "/projects/beta",
-            },
-            {
-              name: "Project Gamma",
-              url: "/projects/gamma",
-            },
-          ]}
+          tasks={projects}
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
         />
         <div className="mt-auto">
           <NavMenu

@@ -1,5 +1,6 @@
 import { useContext } from "react"
-import ProjectContext, { type ProjectContextType } from "@/context/ProjectContext"
+import ProjectContext from "@/context/ProjectContext"
+import type { ProjectContextType } from "@/types"
 
 function useProject(): ProjectContextType {
   const context = useContext(ProjectContext)
