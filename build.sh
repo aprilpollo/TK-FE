@@ -11,7 +11,7 @@ DEFAULT_TAG="${GIT_SHA}"
 # Environment variables with defaults
 PLATFORM="${PLATFORM:-linux/amd64}" 
 REGISTRY="${DOCKER_REGISTRY:-docker.io/aprilpollo}"
-IMAGE_NAME="${IMAGE_NAME:-tk-fe}"
+IMAGE_NAME="${IMAGE_NAME:-task-manager-web}"
 IMAGE_TAG="${IMAGE_TAG:-$DEFAULT_TAG}"
 
 set -euo pipefail
