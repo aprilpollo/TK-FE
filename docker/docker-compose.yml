@@ -1,0 +1,11 @@
+name: aprilpollo-web
+services:
+  web:
+    container_name: web
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ../public/config.json:/usr/share/nginx/html/config.json

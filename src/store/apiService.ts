@@ -5,7 +5,7 @@ import {
   type FetchBaseQueryError,
   type FetchBaseQueryMeta,
 } from "@reduxjs/toolkit/query";
-import { API_BASE_URL, globalHeaders } from "@/utils/apiFetch";
+import { getApiBaseUrl, globalHeaders } from "@/utils/apiFetch";
 
 const baseQuery: BaseQueryFn<
   string | FetchArgs,
@@ -15,7 +15,7 @@ const baseQuery: BaseQueryFn<
   FetchBaseQueryMeta
 > = async (args, api, extraOptions) => {
   const result = await fetchBaseQuery({
-    baseUrl: API_BASE_URL,
+    baseUrl: getApiBaseUrl(),
     prepareHeaders: (headers) => {
       Object.entries(globalHeaders).forEach(([key, value]) => {
         headers.set(key, value);

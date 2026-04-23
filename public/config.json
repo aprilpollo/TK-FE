@@ -1,0 +1,6 @@
+{
+  "API_BASE_URL": "https://task-api.aprilpollo.com",
+  "GOOGLE_OAUTH_URL": "",
+  "GOOGLE_CLIENT_ID": "",
+  "GOOGLE_REDIRECT_URI": ""
+}

@@ -1,13 +1,12 @@
+export const getApiBaseUrl = () => {
+  const envApiBaseUrl =
+    window.__ENV__?.API_BASE_URL || import.meta.env.API_BASE_URL
+  const apiUrl = new URL((envApiBaseUrl as string) || "http://localhost:3000")
+  const devApiBaseHost = apiUrl.hostname
+  const devApiBaseUrl = `${apiUrl.protocol}//${devApiBaseHost}`
 
-const apiUrl = new URL(
-  (import.meta?.env?.VITE_API_BASE_URL as string) || "http://localhost:3000"
-)
-const devApiBaseHost = apiUrl.hostname
-const devApiBaseUrl = `${apiUrl.protocol}//${devApiBaseHost}`
-
-export const API_BASE_URL = import.meta.env.DEV
-  ? devApiBaseUrl
-  : (import.meta.env.VITE_API_BASE_URL as string) || "/"
+  return import.meta.env.DEV ? devApiBaseUrl : (envApiBaseUrl as string) || "/"
+}
 
 // Define the types for options and configuration
 type FetchOptions = RequestInit
@@ -78,7 +77,7 @@ const apiFetch = async (endpoint: string, options: FetchOptions = {}) => {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config)
+    const response = await fetch(`${getApiBaseUrl()}${endpoint}`, config)
 
     if (!response.ok) {
       throw new FetchApiError(response.status, await response.json())

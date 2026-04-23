@@ -17,5 +17,18 @@ const root = createRoot(container, {
   },
 });
 
-const router = createBrowserRouter(routes);
-root.render(<RouterProvider router={router} />);
+const initApp = async () => {
+  try {
+    const response = await fetch("/config.json");
+    const config = await response.json();
+    window.__ENV__ = config;
+  } catch (error) {
+    console.error("Failed to load config.json", error);
+    window.__ENV__ = {} as any;
+  }
+
+  const router = createBrowserRouter(routes);
+  root.render(<RouterProvider router={router} />);
+};
+
+initApp();

@@ -47,11 +47,13 @@ const defaultValues = {
   remember: true,
 }
 
-const googleOauthUrl = import.meta.env.VITE_GOOGLE_OAUTH_URL
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-const googleRedirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI
-
 function SignInForm() {
+  const googleOauthUrl =
+    window.__ENV__?.GOOGLE_OAUTH_URL || import.meta.env.GOOGLE_OAUTH_URL
+  const googleClientId =
+    window.__ENV__?.GOOGLE_CLIENT_ID || import.meta.env.GOOGLE_CLIENT_ID
+  const googleRedirectUri =
+    window.__ENV__?.GOOGLE_REDIRECT_URI || import.meta.env.GOOGLE_REDIRECT_URI
   const { signIn } = useAuth()
   const [isShowPassword, setIsShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
