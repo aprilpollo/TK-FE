@@ -204,6 +204,120 @@ body #splash-screen {
   --pulse-d: rgba(160, 160, 140, 0.25);
 }
 
+/* FullCalendar — re-skin to match shadcn/ui */
+.fc {
+  --fc-border-color: var(--border);
+  --fc-page-bg-color: var(--background);
+  --fc-neutral-bg-color: var(--muted);
+  --fc-neutral-text-color: var(--foreground);
+  --fc-today-bg-color: color-mix(in oklch, var(--muted) 60%, transparent);
+  --fc-event-bg-color: var(--primary);
+  --fc-event-border-color: var(--primary);
+  --fc-event-text-color: var(--primary-foreground);
+  --fc-event-selected-overlay-color: color-mix(in oklch, var(--primary) 12%, transparent);
+  --fc-list-event-hover-bg-color: var(--muted);
+  --fc-highlight-color: color-mix(in oklch, var(--primary) 15%, transparent);
+  --fc-now-indicator-color: var(--destructive);
+  --fc-non-business-color: color-mix(in oklch, var(--muted) 50%, transparent);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid td,
+.fc .fc-scrollgrid th,
+.fc .fc-scrollgrid-section > * {
+  border-color: var(--border);
+}
+.fc .fc-col-header-cell {
+  background: transparent;
+  padding: 0.5rem 0;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.fc .fc-col-header-cell-cushion {
+  padding: 0;
+  text-decoration: none;
+  color: inherit;
+}
+.fc .fc-daygrid-day-number,
+.fc .fc-list-day-text,
+.fc .fc-list-day-side-text {
+  color: var(--foreground);
+  text-decoration: none;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.5rem;
+}
+.fc .fc-day-today {
+  background: var(--fc-today-bg-color) !important;
+}
+.fc .fc-day-today .fc-daygrid-day-number {
+  color: var(--primary);
+  font-weight: 600;
+}
+.fc .fc-event {
+  border-radius: var(--radius-sm);
+  padding: 1px 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.fc .fc-daygrid-event-dot {
+  border-color: currentColor;
+}
+.fc .fc-list {
+  border-color: var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.fc .fc-list-day-cushion {
+  background: var(--muted);
+}
+.fc .fc-list-event:hover td {
+  background: var(--muted);
+}
+.fc .fc-list-empty {
+  background: transparent;
+  color: var(--muted-foreground);
+}
+.fc .fc-popover {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.08),
+    0 4px 6px -4px rgb(0 0 0 / 0.05);
+}
+.fc .fc-popover-header {
+  background: var(--muted);
+  padding: 0.4rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.fc .fc-timegrid-slot {
+  height: 2.25rem;
+}
+.fc .fc-timegrid-slot-label {
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+}
+.fc .fc-timegrid-now-indicator-line,
+.fc .fc-timegrid-now-indicator-arrow {
+  border-color: var(--destructive);
+}
+.fc .fc-button,
+.fc .fc-toolbar-title {
+  display: none; /* hidden — using a custom shadcn toolbar */
+}
+.fc .fc-toolbar.fc-header-toolbar {
+  margin: 0;
+}
+
 @media (prefers-color-scheme: dark) {
   .moon-loader {
     --loading-text-color: #a0a098;
