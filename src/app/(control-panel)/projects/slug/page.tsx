@@ -57,7 +57,10 @@ function Slug() {
   const basePath = `/projects/${id}`
   const isTabActive = (path: string) => {
     const targetPath = path === "." ? basePath : `${basePath}/${path}`
-    return location.pathname === targetPath
+    if (path === ".") {
+      return location.pathname === targetPath || location.pathname === `${targetPath}/`
+    }
+    return location.pathname === targetPath || location.pathname.startsWith(`${targetPath}/`)
   }
 
   if (isLoading) {

@@ -13,11 +13,13 @@ import { NavMenu } from "./NavMenu"
 import { NavTasks } from "./NavTasks"
 import { fetchProjects } from "@/api/project"
 import type { Project } from "@/types"
+import useUser from "@/auth/hooks/useUser"
 
 export function AppSidebar() {
   const [projects, setProjects] = useState<Project[]>([])
   const [searchInput, setSearchInput] = useState("")
   const [search, setSearch] = useState("")
+  const { data: user } = useUser()
 
   const location = useLocation()
   const isActive = (href: string) => {
@@ -47,7 +49,7 @@ export function AppSidebar() {
       setProjects(data.payload)
     }
     FetchProjects()
-  }, [search])
+  }, [search, user?.permissions.organization_id])
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">

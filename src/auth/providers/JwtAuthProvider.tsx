@@ -25,7 +25,6 @@ import {
 import { removeGlobalHeaders, setGlobalHeaders } from "@/utils/apiFetch"
 import AuthContext, { type AuthContextType } from "../context/JwtAuthContext"
 import useLocalStorage from "@/hooks/useLocalStorage"
-import Storage from "@/utils/storage"
 
 export type SignInPayload = {
   email: string
@@ -279,10 +278,9 @@ const JwtAuthProvider = forwardRef<
             permissions: session.payload,
           } as User,
         }))
-        Storage.set(
-          "organization_id",
-          session.payload.organization_id?.toString() ?? ""
-        )
+        setGlobalHeaders({
+          "Organization-ID": session.payload.organization_id?.toString() ?? "",
+        })
       } catch (error) {
         setAuthState((prev) => ({
           ...prev,

@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useNavigate } from "react-router"
 import { ChevronsUpDown, Plus } from "lucide-react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -25,6 +26,7 @@ export function TeamSwitcher() {
   const { isMobile } = useSidebar()
   const { data: user, refreshPermissions } = useUser()
   const teams = user?.organization || []
+  const navigate = useNavigate()
 
   const [activeTeam, setActiveTeam] = React.useState(() => {
     return (
@@ -40,6 +42,7 @@ export function TeamSwitcher() {
   const handleTeamChange = (team: Organization) => {
     setActiveTeam(team)
     refreshPermissions(team.id)
+    navigate("/")
   }
 
   return (
