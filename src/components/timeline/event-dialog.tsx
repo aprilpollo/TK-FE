@@ -31,6 +31,10 @@ export type TimelineEvent = {
   allDay?: boolean
   category: EventCategory
   description?: string
+  priority?: {
+    name: string
+    color: string
+  }
 }
 
 export const CATEGORY_META: Record<

@@ -19,7 +19,18 @@ import EventDialog, {
   type EventCategory,
   type TimelineEvent,
 } from "@/components/timeline/event-dialog"
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { CalendarClock, FilterIcon, Flag } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { formatDatev2 } from "@/utils/date"
 
 const SAMPLE_EVENTS: TimelineEvent[] = [
   {
@@ -29,6 +40,7 @@ const SAMPLE_EVENTS: TimelineEvent[] = [
     end: addDays(0, 11, 30).toISOString(),
     category: "meeting",
     description: "Plan next sprint backlog and assign owners.",
+    priority: { name: "High", color: "#ef4444" },
   },
   {
     id: "2",
@@ -257,44 +269,101 @@ function Timeline() {
         }
       />
 
-      <div ref={wrapperRef} className="mt-4">
-        <FullCalendar
-          ref={calendarRef}
-          plugins={[
-            dayGridPlugin,
-            timeGridPlugin,
-            listPlugin,
-            interactionPlugin,
-          ]}
-          initialView={view}
-          headerToolbar={false}
-          height="calc(100vh - 230px)"
-          events={filteredEvents}
-          editable
-          selectable
-          dayMaxEvents={3}
-          weekends
-          nowIndicator
-          firstDay={1}
-          eventTimeFormat={{
-            hour: "2-digit",
-            minute: "2-digit",
-            meridiem: false,
-            hour12: false,
-          }}
-          slotLabelFormat={{
-            hour: "2-digit",
-            minute: "2-digit",
-            meridiem: false,
-            hour12: false,
-          }}
-          buttonText={{ today: "Today" }}
-          select={handleSelect}
-          eventClick={handleEventClick}
-          eventChange={handleEventChange}
-          datesSet={syncTitle}
-          eventContent={renderEventContent}
-        />
+      <div ref={wrapperRef} className="mt-4 grid grid-cols-6 gap-1">
+        <div className="col-span-1 space-y-2 px-2">
+          <header className="flex h-[35.5px] items-center justify-between gap-2 border-b">
+            <h2 className="text-lg font-semibold">Tasks</h2>
+            <Button size="icon-sm" variant="ghost">
+              <FilterIcon className="size-4" />
+            </Button>
+          </header>
+          <ScrollArea className="h-[calc(100vh-245px)] *:data-[slot=scroll-area-scrollbar]:hidden">
+            <div className="space-y-3 py-2">
+              {SAMPLE_EVENTS.map((event) => (
+                <Card key={event.id} className="rounded-sm border py-1 gap-0 ring-0">
+                  <CardHeader className="px-2">
+                    <CardTitle className="flex h-6 items-center justify-between text-sm">
+                      <span className="line-clamp-1">{event.title}</span>
+                    </CardTitle>
+                    <CardDescription className="space-y-2 pb-2">
+                      <div className="line-clamp-2 max-h-8.25 text-xs">
+                        {event.description}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {event.end && (
+                          <Badge
+                            variant={
+                              event.end
+                                ? new Date(event.end) < new Date()
+                                  ? "destructive"
+                                  : "secondary"
+                                : "secondary"
+                            }
+                            className="rounded-md"
+                          >
+                            <CalendarClock className="size-3" />
+                            {formatDatev2(event.end)}
+                          </Badge>
+                        )}
+                        {event.priority && (
+                          <Badge variant="secondary" className="rounded-md capitalize">
+                            <Flag
+                              className="size-3"
+                              style={{
+                                color: event.priority.color,
+                                fill: event.priority.color,
+                              }}
+                            />
+                            {event.priority.name}
+                          </Badge>
+                        )}
+                      </div>
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+        <div className="col-span-5">
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[
+              dayGridPlugin,
+              timeGridPlugin,
+              listPlugin,
+              interactionPlugin,
+            ]}
+            initialView={view}
+            headerToolbar={false}
+            height="calc(100vh - 200px)"
+            events={filteredEvents}
+            editable
+            selectable
+            dayMaxEvents={3}
+            weekends
+            nowIndicator
+            firstDay={1}
+            eventTimeFormat={{
+              hour: "2-digit",
+              minute: "2-digit",
+              meridiem: false,
+              hour12: false,
+            }}
+            slotLabelFormat={{
+              hour: "2-digit",
+              minute: "2-digit",
+              meridiem: false,
+              hour12: false,
+            }}
+            buttonText={{ today: "Today" }}
+            select={handleSelect}
+            eventClick={handleEventClick}
+            eventChange={handleEventChange}
+            datesSet={syncTitle}
+            eventContent={renderEventContent}
+          />
+        </div>
       </div>
 
       <EventDialog
@@ -338,9 +407,7 @@ function renderEventContent(arg: EventContentArg) {
   return (
     <div className="flex items-center gap-1.5 truncate">
       {arg.timeText && (
-        <span className="font-mono text-[10px] opacity-80">
-          {arg.timeText}
-        </span>
+        <span className="font-mono text-[10px] opacity-80">{arg.timeText}</span>
       )}
       <span className="truncate">{arg.event.title}</span>
     </div>

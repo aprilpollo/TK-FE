@@ -1,6 +1,13 @@
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export type CalendarView =
   | "dayGridMonth"
@@ -35,7 +42,7 @@ function TimelineToolbar({
   legend?: React.ReactNode
 }) {
   return (
-    <div className="flex flex-col gap-3 border-b py-3 lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex flex-col gap-3 py-3 lg:flex-row lg:items-center lg:justify-between">
       <div className="flex items-center gap-2">
         <Button variant="outline" size="sm" onClick={onToday}>
           Today
@@ -64,31 +71,23 @@ function TimelineToolbar({
       </div>
 
       <div className="flex items-center gap-2">
-        {legend}
+        {/* {legend} */}
         <div
-          role="tablist"
-          className="inline-flex items-center rounded-lg border bg-card p-0.5"
+        // role="tablist"
+        // className="inline-flex items-center rounded-lg border bg-card p-0.5"
         >
-          {VIEWS.map((v) => {
-            const active = view === v.value
-            return (
-              <button
-                key={v.value}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => onViewChange(v.value)}
-                className={cn(
-                  "h-7 cursor-pointer rounded-md px-2.5 text-xs font-medium transition-colors",
-                  active
-                    ? "bg-muted text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {v.label}
-              </button>
-            )
-          })}
+          <Select value={view} onValueChange={onViewChange}>
+            <SelectTrigger className="w-[100px] cursor-pointer" size="sm">
+              <SelectValue placeholder="View" />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              <SelectGroup>
+                {VIEWS.map((v) => (
+                  <SelectItem value={v.value} className="cursor-pointer">{v.label}</SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
         <Button size="sm" onClick={onCreate}>
           <Plus />

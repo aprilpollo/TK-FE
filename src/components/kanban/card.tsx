@@ -79,7 +79,13 @@ export function KanbanCard({
                 </Badge>
               )}
               <Badge variant="secondary" className="rounded-md capitalize">
-                <Flag className="size-3" color={task.priority?.color} />
+                <Flag
+                  className="size-3"
+                  style={{
+                    color: task.priority?.color,
+                    fill: task.priority?.color,
+                  }}
+                />
                 {task.priority?.name || "No Priority"}
               </Badge>
             </div>
