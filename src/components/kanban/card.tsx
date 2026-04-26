@@ -63,11 +63,11 @@ export function KanbanCard({
               {task.description}
             </div>
             <div className="flex items-center gap-1">
-              {task.dueDate && (
+              {task.endDate && (
                 <Badge
                   variant={
-                    task.dueDate
-                      ? new Date(task.dueDate) < new Date()
+                    task.endDate
+                      ? new Date(task.endDate) < new Date()
                         ? "destructive"
                         : "secondary"
                       : "secondary"
@@ -75,7 +75,7 @@ export function KanbanCard({
                   className="rounded-md"
                 >
                   <CalendarClock className="size-3" />
-                  {formatDatev2(task.dueDate)}
+                  {formatDatev2(task.endDate)}
                 </Badge>
               )}
               <Badge variant="secondary" className="rounded-md capitalize">
@@ -149,11 +149,11 @@ export function KanbanCard({
             {task.description}
           </div>
           <div className="flex items-center gap-1">
-            {task.dueDate && (
+            {task.endDate && (
               <Badge
                 variant={
-                  task.dueDate
-                    ? new Date(task.dueDate) < new Date()
+                  task.endDate
+                    ? new Date(task.endDate) < new Date()
                       ? "destructive"
                       : "secondary"
                     : "secondary"
@@ -161,7 +161,7 @@ export function KanbanCard({
                 className="rounded-md"
               >
                 <CalendarClock className="size-3" />
-                {formatDatev2(task.dueDate)}
+                {formatDatev2(task.endDate)}
               </Badge>
             )}
             <Badge variant="secondary" className="rounded-md capitalize">

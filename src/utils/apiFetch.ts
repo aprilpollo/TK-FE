@@ -1,11 +1,5 @@
 export const getApiBaseUrl = () => {
-  const envApiBaseUrl =
-    window.__ENV__?.API_BASE_URL || import.meta.env.API_BASE_URL
-  const apiUrl = new URL((envApiBaseUrl as string) || "http://localhost:3000")
-  const devApiBaseHost = apiUrl.hostname
-  const devApiBaseUrl = `${apiUrl.protocol}//${devApiBaseHost}`
-
-  return import.meta.env.DEV ? devApiBaseUrl : (envApiBaseUrl as string) || "/"
+  return window.__ENV__?.API_BASE_URL || import.meta.env.API_BASE_URL
 }
 
 // Define the types for options and configuration

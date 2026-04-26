@@ -5,7 +5,7 @@ import Projects from "@/app/(control-panel)/projects/page"
 import Slug from "@/app/(control-panel)/projects/slug/page"
 import Overview from "@/app/(control-panel)/projects/slug/overview/page"
 import Tasks from "@/app/(control-panel)/projects/slug/tasks/page"
-import Timeline from "@/app/(control-panel)/projects/slug/timeline/page"
+import Calendar from "@/app/(control-panel)/projects/slug/calendar/page"
 import Files from "@/app/(control-panel)/projects/slug/files/page"
 import Settings from "@/app/(control-panel)/projects/slug/settings/page"
 import GeneralSettings from "@/app/(control-panel)/projects/slug/settings/general/page"
@@ -38,8 +38,8 @@ const ProjectsRoute: RouteItemType = {
           element: <Tasks />,
         },
         {
-          path: "timeline",
-          element: <Timeline />,
+          path: "calendar",
+          element: <Calendar />,
         },
         {
           path: "files",

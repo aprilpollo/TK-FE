@@ -83,24 +83,8 @@ export function AppSidebar() {
               title: "Projects",
               icon: FolderGit2,
               defaultOpen: true,
-              url: "#",
-              items: [
-                {
-                  title: "All Projects",
-                  url: "/projects",
-                  isActive: isActive("/projects"),
-                },
-                {
-                  title: "Archived",
-                  url: "/projects/archived",
-                  isActive: isActive("/projects/archived"),
-                },
-                {
-                  title: "Favorites",
-                  url: "/projects/favorites",
-                  isActive: isActive("/projects/favorites"),
-                },
-              ],
+              url: "/projects",
+              isActive: isActive("/projects"),
             },
           ]}
         />

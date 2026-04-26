@@ -8,12 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-export type CalendarView =
-  | "dayGridMonth"
-  | "timeGridWeek"
-  | "timeGridDay"
-  | "listWeek"
+import type { CalendarView } from "@/types"
 
 const VIEWS: { value: CalendarView; label: string }[] = [
   { value: "dayGridMonth", label: "Month" },
@@ -22,7 +17,7 @@ const VIEWS: { value: CalendarView; label: string }[] = [
   { value: "listWeek", label: "List" },
 ]
 
-function TimelineToolbar({
+function CalendarToolbar({
   title,
   view,
   onViewChange,
@@ -71,24 +66,22 @@ function TimelineToolbar({
       </div>
 
       <div className="flex items-center gap-2">
-        {/* {legend} */}
-        <div
-        // role="tablist"
-        // className="inline-flex items-center rounded-lg border bg-card p-0.5"
-        >
-          <Select value={view} onValueChange={onViewChange}>
-            <SelectTrigger className="w-[100px] cursor-pointer" size="sm">
-              <SelectValue placeholder="View" />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              <SelectGroup>
-                {VIEWS.map((v) => (
-                  <SelectItem value={v.value} className="cursor-pointer">{v.label}</SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+        {legend}
+        <Select value={view} onValueChange={onViewChange}>
+          <SelectTrigger className="w-25 cursor-pointer font-medium capitalize" size="sm">
+            <SelectValue placeholder="View" />
+          </SelectTrigger>
+          <SelectContent position="popper">
+            <SelectGroup>
+              {VIEWS.map((v) => (
+                <SelectItem value={v.value} key={v.value} className="cursor-pointer font-medium capitalize" >
+                  {v.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+
         <Button size="sm" onClick={onCreate}>
           <Plus />
           New event
@@ -98,4 +91,4 @@ function TimelineToolbar({
   )
 }
 
-export default TimelineToolbar
+export default CalendarToolbar

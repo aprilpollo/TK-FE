@@ -20,22 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-
-export type EventCategory = "task" | "milestone" | "meeting" | "deadline"
-
-export type TimelineEvent = {
-  id: string
-  title: string
-  start: string
-  end?: string
-  allDay?: boolean
-  category: EventCategory
-  description?: string
-  priority?: {
-    name: string
-    color: string
-  }
-}
+import type { EventCategory, CalendarEvent } from "@/types"
 
 export const CATEGORY_META: Record<
   EventCategory,
@@ -74,8 +59,8 @@ function EventDialog({
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  initial: Partial<TimelineEvent> | null
-  onSave: (event: TimelineEvent) => void
+  initial: Partial<CalendarEvent> | null
+  onSave: (event: CalendarEvent) => void
   onDelete?: (id: string) => void
 }) {
   const isEdit = Boolean(initial?.id)
@@ -121,7 +106,7 @@ function EventDialog({
           <DialogDescription>
             {isEdit
               ? "Update event details below."
-              : "Schedule a new event on the project timeline."}
+              : "Schedule a new event on the project calendar."}
           </DialogDescription>
         </DialogHeader>
 
@@ -147,9 +132,7 @@ function EventDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(
-                    Object.keys(CATEGORY_META) as EventCategory[]
-                  ).map((c) => (
+                  {(Object.keys(CATEGORY_META) as EventCategory[]).map((c) => (
                     <SelectItem key={c} value={c}>
                       <div className="flex items-center gap-2">
                         <span

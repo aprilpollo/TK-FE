@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
@@ -11,84 +11,56 @@ import type {
 } from "@fullcalendar/core"
 import type { EventChangeArg } from "@fullcalendar/core"
 import { toast } from "sonner"
-import TimelineToolbar, {
-  type CalendarView,
-} from "@/components/timeline/timeline-toolbar"
-import EventDialog, {
-  CATEGORY_META,
-  type EventCategory,
-  type TimelineEvent,
-} from "@/components/timeline/event-dialog"
+import EventDialog, { CATEGORY_META } from "@/components/calendar/event-dialog"
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import CalendarToolbar from "@/components/calendar/calendar-toolbar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { CalendarClock, FilterIcon, Flag } from "lucide-react"
+import { CalendarClock, Flag, Search } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { formatDatev2 } from "@/utils/date"
+import type {
+  EventCategory,
+  CalendarEvent,
+  CalendarView,
+  GroupingOption,
+  CalendarPriority,
+} from "@/types"
+import {
+  fetchCalendarEvents,
+  fetchCalendarEventsPriorities,
+  fetchCalendarEventsStatus,
+} from "@/api/calendar"
+import useProject from "@/hooks/useProject"
 
-const SAMPLE_EVENTS: TimelineEvent[] = [
-  {
-    id: "1",
-    title: "Sprint planning",
-    start: addDays(0, 10, 0).toISOString(),
-    end: addDays(0, 11, 30).toISOString(),
-    category: "meeting",
-    description: "Plan next sprint backlog and assign owners.",
-    priority: { name: "High", color: "#ef4444" },
-  },
-  {
-    id: "2",
-    title: "Auth refactor",
-    start: dateAt(-2),
-    end: dateAt(2),
-    allDay: true,
-    category: "task",
-  },
-  {
-    id: "3",
-    title: "v2.0 release",
-    start: dateAt(8),
-    allDay: true,
-    category: "milestone",
-  },
-  {
-    id: "4",
-    title: "Submit compliance report",
-    start: dateAt(5),
-    allDay: true,
-    category: "deadline",
-  },
-  {
-    id: "5",
-    title: "Design review",
-    start: addDays(2, 14, 0).toISOString(),
-    end: addDays(2, 15, 0).toISOString(),
-    category: "meeting",
-  },
-]
 
-function dateAt(offsetDays: number) {
+
+function startOfToday() {
   const d = new Date()
   d.setHours(0, 0, 0, 0)
-  d.setDate(d.getDate() + offsetDays)
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-}
-
-function addDays(offset: number, hour: number, minute: number) {
-  const d = new Date()
-  d.setDate(d.getDate() + offset)
-  d.setHours(hour, minute, 0, 0)
   return d
 }
 
-function Timeline() {
+function Calendar() {
+  const { project } = useProject()
+  if (!project) {
+    return <div>Loading...</div>
+  }
   const calendarRef = useRef<FullCalendar | null>(null)
   const wrapperRef = useRef<HTMLDivElement | null>(null)
 
@@ -110,35 +82,15 @@ function Timeline() {
     }
   }, [])
 
-  const [events, setEvents] = useState<TimelineEvent[]>(SAMPLE_EVENTS)
+  const [events, setEvents] = useState<CalendarEvent[]>([])
   const [view, setView] = useState<CalendarView>("dayGridMonth")
+  const [group, setGroup] = useState<GroupingOption[]>([])
+  const [priority, setPriority] = useState<CalendarPriority[]>([])
+  const [selectedGroup, setSelectedGroup] = useState("")
+  const [selectedPriority, setSelectedPriority] = useState("")
   const [title, setTitle] = useState("")
-  const [activeFilters, setActiveFilters] = useState<Set<EventCategory>>(
-    new Set(Object.keys(CATEGORY_META) as EventCategory[])
-  )
-
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editing, setEditing] = useState<Partial<TimelineEvent> | null>(null)
-
-  const filteredEvents = useMemo(
-    () =>
-      events
-        .filter((e) => activeFilters.has(e.category))
-        .map((e) => ({
-          id: e.id,
-          title: e.title,
-          start: e.start,
-          end: e.end,
-          allDay: e.allDay,
-          backgroundColor: CATEGORY_META[e.category].color,
-          borderColor: CATEGORY_META[e.category].color,
-          extendedProps: {
-            category: e.category,
-            description: e.description,
-          },
-        })),
-    [events, activeFilters]
-  )
+  const [editing, setEditing] = useState<Partial<CalendarEvent> | null>(null)
 
   const api = () => calendarRef.current?.getApi()
 
@@ -164,16 +116,7 @@ function Timeline() {
     if (t) setTitle(t)
   }
 
-  function toggleFilter(cat: EventCategory) {
-    setActiveFilters((prev) => {
-      const next = new Set(prev)
-      if (next.has(cat)) next.delete(cat)
-      else next.add(cat)
-      return next
-    })
-  }
-
-  function openCreateDialog(initial?: Partial<TimelineEvent>) {
+  function openCreateDialog(initial?: Partial<CalendarEvent>) {
     setEditing(initial ?? { allDay: true, category: "task" })
     setDialogOpen(true)
   }
@@ -211,7 +154,7 @@ function Timeline() {
     toast.success("Event updated")
   }
 
-  function handleSave(evt: TimelineEvent) {
+  function handleSave(evt: CalendarEvent) {
     setEvents((prev) => {
       const exists = prev.some((e) => e.id === evt.id)
       return exists
@@ -228,9 +171,69 @@ function Timeline() {
     toast.success("Event deleted")
   }
 
+  const FetchCalendarEventsPriorities = async () => {
+    try {
+      const response = await fetchCalendarEventsPriorities()
+      if (!response.ok) {
+        throw new Error("Failed to fetch priorities")
+      }
+      const data = (await response.json()) as {
+        code: number
+        error: string | null
+        message: string
+        payload: CalendarPriority[]
+      }
+      setPriority(data.payload)
+    } catch (error) {
+      console.error("Error fetching priorities:", error)
+    }
+  }
+
+  const FetchCalendarEventsStatus = async () => {
+    try {
+      const response = await fetchCalendarEventsStatus(project.id)
+      if (!response.ok) {
+        throw new Error("Failed to fetch statuses")
+      }
+      const data = (await response.json()) as {
+        code: number
+        error: string | null
+        message: string
+        payload: GroupingOption[]
+      }
+      setGroup(data.payload)
+    } catch (error) {
+      console.error("Error fetching statuses:", error)
+    }
+  }
+
+  const FetchCalendarEvents = async () => {
+    try {
+      const response = await fetchCalendarEvents(project.id)
+      if (!response.ok) {
+        throw new Error("Failed to fetch events")
+      }
+      const data = (await response.json()) as {
+        code: number
+        error: string | null
+        message: string
+        payload: CalendarEvent[]
+      }
+      setEvents(data.payload)
+    } catch (error) {
+      console.error("Error fetching events:", error)
+    }
+  }
+
+  useEffect(() => {
+    FetchCalendarEventsPriorities()
+    FetchCalendarEventsStatus()
+    FetchCalendarEvents()
+  }, [project])
+
   return (
     <div className="px-4 py-4">
-      <TimelineToolbar
+      <CalendarToolbar
         title={title || api()?.view.title || ""}
         view={view}
         onViewChange={handleViewChange}
@@ -239,33 +242,66 @@ function Timeline() {
         onToday={handleToday}
         onCreate={() => openCreateDialog()}
         legend={
-          <div className="hidden items-center gap-1 rounded-lg border bg-card p-0.5 md:flex">
-            {(Object.keys(CATEGORY_META) as EventCategory[]).map((cat) => {
-              const active = activeFilters.has(cat)
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => toggleFilter(cat)}
-                  className={cn(
-                    "flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors",
-                    active
-                      ? "text-foreground"
-                      : "text-muted-foreground opacity-60"
-                  )}
-                  aria-pressed={active}
-                >
-                  <span
-                    className={cn(
-                      "size-2 rounded-full",
-                      CATEGORY_META[cat].dotClass
-                    )}
-                  />
-                  {CATEGORY_META[cat].label}
-                </button>
-              )
-            })}
-          </div>
+          <>
+            <Select
+              value={selectedPriority}
+              onValueChange={setSelectedPriority}
+            >
+              <SelectTrigger
+                className="cursor-pointer font-medium capitalize"
+                size="sm"
+              >
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                <SelectGroup>
+                  <SelectLabel className="font-medium">Priority</SelectLabel>
+                  {priority.map((p) => (
+                    <SelectItem
+                      key={p.id}
+                      value={p.id.toString()}
+                      className="cursor-pointer space-x-0 font-medium capitalize"
+                    >
+                      <Flag
+                        className="size-3.5"
+                        style={{ color: p.color, fill: p.color }}
+                      />
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+              <SelectTrigger
+                className="cursor-pointer font-medium capitalize"
+                size="sm"
+              >
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                <SelectGroup>
+                  <SelectLabel className="font-medium">Status</SelectLabel>
+                  {group.map((g) => (
+                    <SelectItem
+                      key={g.id}
+                      value={g.id.toString()}
+                      className="cursor-pointer font-medium capitalize"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn("size-2 rounded-full", g.color)}
+                          style={{ backgroundColor: g.color }}
+                        />
+                        {g.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </>
         }
       />
 
@@ -274,13 +310,16 @@ function Timeline() {
           <header className="flex h-[35.5px] items-center justify-between gap-2 border-b">
             <h2 className="text-lg font-semibold">Tasks</h2>
             <Button size="icon-sm" variant="ghost">
-              <FilterIcon className="size-4" />
+              <Search className="size-4" />
             </Button>
           </header>
           <ScrollArea className="h-[calc(100vh-245px)] *:data-[slot=scroll-area-scrollbar]:hidden">
             <div className="space-y-3 py-2">
-              {SAMPLE_EVENTS.map((event) => (
-                <Card key={event.id} className="rounded-sm border py-1 gap-0 ring-0">
+              {events.map((event) => (
+                <Card
+                  key={event.id}
+                  className="gap-0 rounded-sm border py-1 ring-0"
+                >
                   <CardHeader className="px-2">
                     <CardTitle className="flex h-6 items-center justify-between text-sm">
                       <span className="line-clamp-1">{event.title}</span>
@@ -306,7 +345,10 @@ function Timeline() {
                           </Badge>
                         )}
                         {event.priority && (
-                          <Badge variant="secondary" className="rounded-md capitalize">
+                          <Badge
+                            variant="secondary"
+                            className="rounded-md capitalize"
+                          >
                             <Flag
                               className="size-3"
                               style={{
@@ -337,9 +379,11 @@ function Timeline() {
             initialView={view}
             headerToolbar={false}
             height="calc(100vh - 200px)"
-            events={filteredEvents}
+            events={events}
             editable
             selectable
+            selectAllow={(info) => info.start >= startOfToday()}
+            eventAllow={(dropInfo) => dropInfo.start >= startOfToday()}
             dayMaxEvents={3}
             weekends
             nowIndicator
@@ -396,8 +440,8 @@ function renderEventContent(arg: EventContentArg) {
     return (
       <div className="flex items-center gap-1.5 truncate px-1">
         <span className={cn("size-1.5 shrink-0 rounded-full", dotClass)} />
-        <span className="text-xs text-foreground/90">{arg.timeText}</span>
-        <span className="truncate text-xs font-medium text-foreground">
+        <span className="text-xs">{arg.timeText}</span>
+        <span className="truncate text-xs font-medium">
           {arg.event.title}
         </span>
       </div>
@@ -407,11 +451,11 @@ function renderEventContent(arg: EventContentArg) {
   return (
     <div className="flex items-center gap-1.5 truncate">
       {arg.timeText && (
-        <span className="font-mono text-[10px] opacity-80">{arg.timeText}</span>
+        <span className="font-mono text-[10px]">{arg.timeText}</span>
       )}
       <span className="truncate">{arg.event.title}</span>
     </div>
   )
 }
 
-export default Timeline
+export default Calendar

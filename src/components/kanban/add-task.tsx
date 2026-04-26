@@ -24,6 +24,7 @@ import useProject from "@/hooks/useProject"
 import useTask from "@/hooks/useTask"
 import { createTask } from "@/api/task"
 import { formatDatev2 } from "@/utils/date"
+import { type DateRange } from "react-day-picker"
 import { SelectMultipleUser } from "@/components/select-multiple-user"
 
 const taskSchema = z.object({
@@ -35,11 +36,12 @@ const taskSchema = z.object({
         id: z.number(),
         name: z.string(),
         email: z.string(),
-        avatar: z.string(),
+        //avatar: z.string().optional(),
       })
     )
     .optional(),
-  due_date: z.date().optional(),
+  startDate: z.date().optional(),
+  endDate: z.date().optional(),
   priority: z
     .object({
       id: z.union([z.string(), z.number()]),
@@ -70,6 +72,7 @@ export function AddTask({
   const [priorityOpen, setPriorityOpen] = useState(false)
   const [dateOpen, setDateOpen] = useState(false)
   const [user, setUser] = useState<UserItem[]>([])
+  const [date, setDate] = useState<DateRange | undefined>()
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
@@ -77,7 +80,8 @@ export function AddTask({
       title: "",
       description: "",
       assignees: [],
-      due_date: undefined,
+      startDate: undefined,
+      endDate: undefined,
       priority: undefined,
     },
   })
@@ -85,6 +89,11 @@ export function AddTask({
   useEffect(() => {
     form.setValue("assignees", user)
   }, [user, form])
+
+  useEffect(() => {
+    form.setValue("startDate", date?.from)
+    form.setValue("endDate", date?.to)
+  }, [date, form])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -102,7 +111,8 @@ export function AddTask({
         status_id: columnId,
         title: data.title,
         description: data.description,
-        due_date: data.due_date,
+        start_date: data.startDate,
+        end_date: data.endDate,
         priority_id: data.priority?.id,
         assignees: data.assignees?.map((a) => a.id) || [],
       })
@@ -172,7 +182,7 @@ export function AddTask({
         </div>
 
         {/* Selected metadata chips */}
-        {(form.watch("priority") || form.watch("due_date")) && (
+        {(form.watch("priority") || form.watch("endDate")) && (
           <div className="flex flex-wrap gap-1.5 px-3 pb-2">
             {form.watch("priority") && (
               <Badge variant="secondary" className="rounded-md capitalize">
@@ -195,14 +205,14 @@ export function AddTask({
                 </button>
               </Badge>
             )}
-            {form.watch("due_date") && (
+            {form.watch("endDate") && (
               <Badge variant="secondary" className="rounded-md">
                 <CalendarClock className="size-3" />
-                {formatDatev2(form.watch("due_date"))}
+                {formatDatev2(form.watch("endDate"))}
                 <button
                   type="button"
                   onClick={() => {
-                    form.setValue("due_date", undefined)
+                    form.setValue("endDate", undefined)
                   }}
                   className="ml-0.5 cursor-pointer opacity-60 hover:opacity-100"
                 >
@@ -280,20 +290,16 @@ export function AddTask({
                 className="h-6 cursor-pointer gap-1 rounded px-1.5 text-[11px] text-muted-foreground hover:text-foreground"
               >
                 <CalendarIcon className="size-3" />
-                {form.watch("due_date")
-                  ? formatDatev2(form.getValues("due_date"))
-                  : "Due date"}
+                {date?.to ? formatDatev2(date.to) : "Due date"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
-                mode="single"
-                selected={form.getValues("due_date")}
-                onSelect={(date) => {
-                  form.setValue("due_date", date)
-                  setDateOpen(false)
-                }}
-                disabled={{ before: new Date() }}
+                mode="range"
+                defaultMonth={date?.from}
+                selected={date}
+                onSelect={setDate}
+                numberOfMonths={2}
               />
             </PopoverContent>
           </Popover>

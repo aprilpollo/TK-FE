@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import {
   Archive,
   FolderArchive,
-  FolderClock,
+  CalendarClock,
   SettingsIcon,
   SquareKanban,
 } from "lucide-react"
@@ -18,7 +18,7 @@ import type { Project } from "@/types"
 const tabs = [
   { path: ".", label: "Overview", icon: FolderArchive },
   { path: "tasks", label: "Tasks", icon: SquareKanban },
-  { path: "timeline", label: "Timeline", icon: FolderClock },
+  { path: "calendar", label: "Calendar", icon: CalendarClock },
   { path: "files", label: "Files", icon: Archive },
   { path: "settings", label: "Settings", icon: SettingsIcon },
 ]

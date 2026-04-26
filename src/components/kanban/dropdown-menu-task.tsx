@@ -1,7 +1,7 @@
 import { useState } from "react"
 import type { Task } from "@/types"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { type DateRange } from "react-day-picker"
 import { Calendar } from "@/components/ui/calendar"
 import {
   DropdownMenu,
@@ -47,15 +47,23 @@ interface Props {
 
 export function DropdownMenuTask({ task }: Props) {
   const { project } = useProject()
-  const { columns, tasks, priority, setTasks, setColumnPagination, FetchTaskByStatus } = useTask()
+  const {
+    columns,
+    tasks,
+    priority,
+    setTasks,
+    setColumnPagination,
+    FetchTaskByStatus,
+  } = useTask()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [renameOpen, setRenameOpen] = useState(false)
   const [renameInput, setRenameInput] = useState(task.title)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
-  const [dueDateValue, setDueDateValue] = useState<Date | undefined>(
-    task.dueDate ? new Date(task.dueDate) : undefined
-  )
+  const [dueDateValue, setDueDateValue] = useState<DateRange | undefined>({
+    from: task.startDate ? new Date(task.startDate) : undefined,
+    to: task.endDate ? new Date(task.endDate) : undefined,
+  })
 
   const otherColumns = columns
     .filter((c) => c.uuid !== task.columnId)
@@ -110,16 +118,21 @@ export function DropdownMenuTask({ task }: Props) {
   }
 
   // ── Set Due Date ───────────────────────────────────────────
-  const handleSetDueDate = async (date: Date | undefined) => {
+  const handleSetDueDate = async (date: DateRange | undefined) => {
     try {
       const res = await updateTask(task.id, {
-        due_date: date ? date.toISOString() : null,
+        start_date: date?.from ? date.from : null,
+        end_date: date?.to ? date.to : null,
       })
       if (!res.ok) throw new Error()
       setTasks((prev) =>
         prev.map((t) =>
           t.id === task.id
-            ? { ...t, dueDate: date ? date.toISOString() : undefined }
+            ? {
+                ...t,
+                startDate: date?.from ? date.from : undefined,
+                endDate: date?.to ? date.to : undefined,
+              }
             : t
         )
       )
@@ -164,7 +177,8 @@ export function DropdownMenuTask({ task }: Props) {
         status_id: currentCol.id,
         title: `${task.title} (copy)`,
         description: task.description,
-        due_date: task.dueDate,
+        start_date: task.startDate,
+        end_date: task.endDate,
         priority_id: task.priority?.id,
         assignees: task.assignees?.map((a) => a.id as number),
       })
@@ -188,7 +202,10 @@ export function DropdownMenuTask({ task }: Props) {
         setColumnPagination((prev) => {
           const pag = prev[col.id]
           if (!pag) return prev
-          return { ...prev, [col.id]: { ...pag, total: Math.max(0, pag.total - 1) } }
+          return {
+            ...prev,
+            [col.id]: { ...pag, total: Math.max(0, pag.total - 1) },
+          }
         })
       }
       setDeleteOpen(false)
@@ -286,23 +303,24 @@ export function DropdownMenuTask({ task }: Props) {
               <DropdownMenuSubTrigger>
                 <CalendarClock className="h-4 w-4 text-muted-foreground" />
                 <span>Due date</span>
-                {task.dueDate && (
+                {/* {task.endDate && (
                   <Badge
                     variant="secondary"
                     className="rounded px-1 py-0 text-[10px] font-medium"
                   >
-                    {formatDatev2(task.dueDate)}
+                    {formatDatev2(task.endDate)}
                   </Badge>
-                )}
+                )} */}
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="p-0">
                 <Calendar
-                  mode="single"
+                  mode="range"
+                  defaultMonth={dueDateValue?.from}
                   selected={dueDateValue}
                   onSelect={setDueDateValue}
-                  disabled={{ before: new Date() }}
+                  numberOfMonths={2}
                 />
-                <div className="flex items-center gap-1 border-t px-3 py-2">
+                <div className="flex items-center justify-end gap-1 border-t px-3 py-2">
                   {dueDateValue && (
                     <Button
                       variant="ghost"
@@ -316,10 +334,13 @@ export function DropdownMenuTask({ task }: Props) {
                   )}
                   <Button
                     size="sm"
-                    className="ml-auto h-7 text-xs"
+                    className="h-7 text-xs"
+                    variant="secondary"
                     onClick={() => handleSetDueDate(dueDateValue)}
                   >
-                    {dueDateValue ? `Apply ${formatDatev2(dueDateValue)}` : "Apply"}
+                    {dueDateValue
+                      ? `Apply ${formatDatev2(dueDateValue.from)} - ${formatDatev2(dueDateValue.to)}`
+                      : "Apply"}
                   </Button>
                 </div>
               </DropdownMenuSubContent>

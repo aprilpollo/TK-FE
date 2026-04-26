@@ -20,7 +20,8 @@ export interface Task {
     name: string
     color: string
   }
-  dueDate?: string
+  startDate?: string | Date
+  endDate?: string | Date
   assignees?: {
     id: number | string
     name: string

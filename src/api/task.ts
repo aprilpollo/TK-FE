@@ -65,7 +65,8 @@ export async function createTask({
   status_id,
   title,
   description,
-  due_date,
+  start_date,
+  end_date,
   priority_id,
   assignees,
 }: {
@@ -73,7 +74,8 @@ export async function createTask({
   status_id: string | number
   title: string
   description?: string
-  due_date?: Date | string
+  start_date?: Date | string
+  end_date?: Date | string
   priority_id?: string | number
   assignees?: number[]
 }): Promise<Response> {
@@ -84,7 +86,8 @@ export async function createTask({
       status_id,
       title,
       description,
-      due_date,
+      start_date,
+      end_date,
       priority_id,
       assignee_ids: assignees,
     }),
@@ -97,7 +100,8 @@ export async function updateTask(
     title?: string
     description?: string
     priority_id?: string | number | null
-    due_date?: Date | string | null
+    start_date?: Date | string | null
+    end_date?: Date | string | null
     assignees_ids?: number[]
   }
 ): Promise<Response> {
