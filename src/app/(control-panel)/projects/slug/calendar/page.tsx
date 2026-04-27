@@ -46,7 +46,6 @@ import {
   fetchCalendarEventsPriorities,
   fetchCalendarEventsStatus,
 } from "@/api/calendar"
-import { getContrastColor } from "@/utils/color"
 import useProject from "@/hooks/useProject"
 
 function startOfToday() {
@@ -420,12 +419,20 @@ function Calendar() {
   )
 }
 
+function getSegmentRounded(isStart: boolean, isEnd: boolean) {
+  if (isStart && isEnd) return "rounded-sm"
+  if (isStart) return "rounded-l-sm rounded-r-none"
+  if (isEnd) return "rounded-r-sm rounded-l-none"
+  return "rounded-none"
+}
+
 function renderEventContent(arg: EventContentArg) {
   const cat = arg.event.extendedProps.category as EventCategory | undefined
   const status = arg.event.extendedProps.status as GroupingOption | undefined
   const dotClass = cat ? CATEGORY_META[cat].dotClass : "bg-primary"
   const isList = arg.view.type === "listWeek"
   const isMonth = arg.view.type === "dayGridMonth"
+  const rounded = getSegmentRounded(arg.isStart, arg.isEnd)
 
   if (isList) {
     return (
@@ -440,7 +447,7 @@ function renderEventContent(arg: EventContentArg) {
     return (
       <Badge
         variant="secondary"
-        className="w-full justify-start truncate rounded-sm"
+        className={cn("w-full justify-start truncate", rounded)}
       >
         {arg.timeText && (
           <span className="font-mono text-[10px]">{arg.timeText}</span>
@@ -453,10 +460,10 @@ function renderEventContent(arg: EventContentArg) {
   return (
     <Badge
       variant="secondary"
-      className="w-full justify-start truncate rounded-sm"
+      className={cn("w-full justify-start truncate", rounded)}
       style={
         status?.color
-          ? { backgroundColor: `${status.color}33`, }
+          ? { backgroundColor: `${status.color}50` }
           : undefined
       }
     >
