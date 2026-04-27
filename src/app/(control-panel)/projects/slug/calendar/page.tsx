@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { createContext, useContext, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
@@ -55,6 +55,8 @@ import {
 } from "@/api/calendar"
 import { getContrastColor } from "@/utils/color"
 import useProject from "@/hooks/useProject"
+
+const DraggingContext = createContext(false)
 
 function Calendar() {
   const { project } = useProject()
@@ -369,6 +371,7 @@ function Calendar() {
           </ScrollArea>
         </div>
         <div className="col-span-5">
+          <DraggingContext.Provider value={dragging}>
           <FullCalendar
             ref={calendarRef}
             plugins={[
@@ -419,10 +422,9 @@ function Calendar() {
             eventDragStop={() => setDragging(false)}
             eventResizeStart={() => setDragging(true)}
             eventResizeStop={() => setDragging(false)}
-            eventContent={(arg) => (
-              <CalendarEventContent arg={arg} dragging={dragging} />
-            )}
+            eventContent={(arg) => <CalendarEventContent arg={arg} />}
           />
+          </DraggingContext.Provider>
         </div>
       </div>
 
@@ -445,13 +447,8 @@ function getSegmentRounded(isStart: boolean, isEnd: boolean, isMonth: boolean) {
   return "rounded-none"
 }
 
-function CalendarEventContent({
-  arg,
-  dragging,
-}: {
-  arg: EventContentArg
-  dragging: boolean
-}) {
+function CalendarEventContent({ arg }: { arg: EventContentArg }) {
+  const dragging = useContext(DraggingContext)
   const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
@@ -546,7 +543,9 @@ function CalendarEventContent({
               }
             : undefined
         }
-        onMouseMove={(e) => setCursor({ x: e.clientX, y: e.clientY })}
+        onMouseMove={(e) => {
+          if (!dragging) setCursor({ x: e.clientX, y: e.clientY })
+        }}
         onMouseLeave={() => setCursor(null)}
       >
         <span className="truncate">{arg.event.title}</span>
