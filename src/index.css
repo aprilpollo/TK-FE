@@ -314,6 +314,7 @@ body #splash-screen {
   margin: 0;
 }
 
+
 @media (prefers-color-scheme: dark) {
   .moon-loader {
     --loading-text-color: #a0a098;

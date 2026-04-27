@@ -33,6 +33,11 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { CalendarClock, Flag, Search } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { formatDatev2 } from "@/utils/date"
 import type {
   EventCategory,
@@ -46,6 +51,7 @@ import {
   fetchCalendarEventsPriorities,
   fetchCalendarEventsStatus,
 } from "@/api/calendar"
+import { getContrastColor } from "@/utils/color"
 import useProject from "@/hooks/useProject"
 
 function startOfToday() {
@@ -230,7 +236,7 @@ function Calendar() {
   }, [project])
 
   return (
-    <div className="px-4 py-4">
+    <div className="pt-4 pl-1">
       <CalendarToolbar
         title={title || api()?.view.title || ""}
         view={view}
@@ -303,8 +309,8 @@ function Calendar() {
         }
       />
 
-      <div ref={wrapperRef} className="mt-4 grid grid-cols-6 gap-1">
-        <div className="col-span-1 space-y-2 px-2">
+      <div ref={wrapperRef} className="mt-4 grid grid-cols-6 gap-2">
+        <div className="col-span-1 space-y-2">
           <header className="flex h-[35.5px] items-center justify-between gap-2 border-b">
             <h2 className="text-lg font-semibold">Tasks</h2>
             <Button size="icon-sm" variant="ghost">
@@ -312,7 +318,7 @@ function Calendar() {
             </Button>
           </header>
           <ScrollArea className="h-[calc(100vh-245px)] *:data-[slot=scroll-area-scrollbar]:hidden">
-            <div className="space-y-3 py-2">
+            <div className="space-y-2 py-2">
               {events.map((event) => (
                 <Card
                   key={event.id}
@@ -376,7 +382,7 @@ function Calendar() {
             ]}
             initialView={view}
             headerToolbar={false}
-            height="calc(100vh - 200px)"
+            height="calc(100vh - 190px)"
             events={events}
             editable
             selectable
@@ -458,17 +464,27 @@ function renderEventContent(arg: EventContentArg) {
   }
 
   return (
-    <Badge
-      variant="secondary"
-      className={cn("w-full justify-start truncate", rounded)}
-      style={
-        status?.color
-          ? { backgroundColor: `${status.color}50` }
-          : undefined
-      }
-    >
-      <span className="truncate">{arg.event.title}</span>
-    </Badge>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Badge
+          variant="secondary"
+          className={cn("w-full justify-start truncate", rounded)}
+          style={
+            status?.color
+              ? {
+                  backgroundColor: `${status.color}`,
+                  color: getContrastColor(status.color),
+                }
+              : undefined
+          }
+        >
+          <span className="truncate">{arg.event.title}</span>
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Add to library</p>
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
