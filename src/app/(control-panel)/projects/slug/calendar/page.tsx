@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
@@ -27,17 +28,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemTitle,
+} from "@/components/ui/item"
 import CalendarToolbar from "@/components/calendar/calendar-toolbar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { CalendarClock, Flag, Search } from "lucide-react"
+import { CalendarClock, ClockFading, Dot, Flag, Search } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { formatDatev2 } from "@/utils/date"
 import type {
   EventCategory,
@@ -54,12 +56,6 @@ import {
 import { getContrastColor } from "@/utils/color"
 import useProject from "@/hooks/useProject"
 
-function startOfToday() {
-  const d = new Date()
-  d.setHours(0, 0, 0, 0)
-  return d
-}
-
 function Calendar() {
   const { project } = useProject()
   if (!project) {
@@ -67,6 +63,7 @@ function Calendar() {
   }
   const calendarRef = useRef<FullCalendar | null>(null)
   const wrapperRef = useRef<HTMLDivElement | null>(null)
+  const [dragging, setDragging] = useState(false)
 
   useEffect(() => {
     const el = wrapperRef.current
@@ -383,11 +380,20 @@ function Calendar() {
             initialView={view}
             headerToolbar={false}
             height="calc(100vh - 190px)"
+            timeZone="Asia/Bangkok"
             events={events}
             editable
             selectable
-            selectAllow={(info) => info.start >= startOfToday()}
-            eventAllow={(dropInfo) => dropInfo.start >= startOfToday()}
+            selectAllow={(info) => info.start >= new Date()}
+            eventAllow={(dropInfo, movingEvent) => {
+              const now = new Date()
+              const isResize =
+                movingEvent?.start != null &&
+                dropInfo.start.getTime() === movingEvent.start.getTime()
+              return isResize
+                ? (dropInfo.end ?? dropInfo.start) >= now
+                : dropInfo.start >= now
+            }}
             dayMaxEvents={3}
             weekends
             nowIndicator
@@ -409,7 +415,13 @@ function Calendar() {
             eventClick={handleEventClick}
             eventChange={handleEventChange}
             datesSet={syncTitle}
-            eventContent={renderEventContent}
+            eventDragStart={() => setDragging(true)}
+            eventDragStop={() => setDragging(false)}
+            eventResizeStart={() => setDragging(true)}
+            eventResizeStop={() => setDragging(false)}
+            eventContent={(arg) => (
+              <CalendarEventContent arg={arg} dragging={dragging} />
+            )}
           />
         </div>
       </div>
@@ -425,20 +437,33 @@ function Calendar() {
   )
 }
 
-function getSegmentRounded(isStart: boolean, isEnd: boolean) {
+function getSegmentRounded(isStart: boolean, isEnd: boolean, isMonth: boolean) {
+  if (!isMonth) return "rounded-sm"
   if (isStart && isEnd) return "rounded-sm"
   if (isStart) return "rounded-l-sm rounded-r-none"
   if (isEnd) return "rounded-r-sm rounded-l-none"
   return "rounded-none"
 }
 
-function renderEventContent(arg: EventContentArg) {
+function CalendarEventContent({
+  arg,
+  dragging,
+}: {
+  arg: EventContentArg
+  dragging: boolean
+}) {
+  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null)
+
+  useEffect(() => {
+    if (dragging) setCursor(null)
+  }, [dragging])
+
   const cat = arg.event.extendedProps.category as EventCategory | undefined
   const status = arg.event.extendedProps.status as GroupingOption | undefined
   const dotClass = cat ? CATEGORY_META[cat].dotClass : "bg-primary"
   const isList = arg.view.type === "listWeek"
   const isMonth = arg.view.type === "dayGridMonth"
-  const rounded = getSegmentRounded(arg.isStart, arg.isEnd)
+  const rounded = getSegmentRounded(arg.isStart, arg.isEnd, isMonth)
 
   if (isList) {
     return (
@@ -451,40 +476,112 @@ function renderEventContent(arg: EventContentArg) {
 
   if (isMonth && !arg.event.allDay) {
     return (
-      <Badge
-        variant="secondary"
-        className={cn("w-full justify-start truncate", rounded)}
-      >
-        {arg.timeText && (
-          <span className="font-mono text-[10px]">{arg.timeText}</span>
-        )}
-        <span className="truncate">{arg.event.title}</span>
-      </Badge>
+      <>
+        <Badge
+          variant="secondary"
+          className={cn("w-full justify-start", rounded)}
+          style={
+            status?.color
+              ? {
+                  color: getContrastColor(status.color),
+                  backgroundColor: status.color,
+                }
+              : undefined
+          }
+          onMouseMove={(e) => {
+            if (!dragging) setCursor({ x: e.clientX, y: e.clientY })
+          }}
+          onMouseLeave={() => setCursor(null)}
+        >
+          <span className="flex items-center gap-1">
+            <ClockFading className="size-3" />
+            {arg.timeText}
+          </span>
+          <span className="truncate">{arg.event.title}</span>
+        </Badge>
+        {cursor &&
+          createPortal(
+            <div
+              style={{
+                position: "fixed",
+                left: cursor.x + 12,
+                top: cursor.y - 36,
+                pointerEvents: "none",
+                zIndex: 9999,
+              }}
+            >
+              <Item
+                variant={null}
+                className="rounded-md border-none bg-foreground p-2"
+              >
+                <ItemContent>
+                  <ItemTitle className="gap-0 text-sm text-background">
+                    <Dot strokeWidth={6} color={status?.color} />
+                    <span className="font-medium capitalize">
+                      {arg.event.extendedProps.status.name}
+                    </span>
+                  </ItemTitle>
+                  <ItemDescription className="line-clamp-3 text-xs text-neutral-500">
+                    {arg.event.title} {arg.event.extendedProps.description}
+                  </ItemDescription>
+                </ItemContent>
+              </Item>
+            </div>,
+            document.body
+          )}
+      </>
     )
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Badge
-          variant="secondary"
-          className={cn("w-full justify-start truncate", rounded)}
-          style={
-            status?.color
-              ? {
-                  backgroundColor: `${status.color}`,
-                  color: getContrastColor(status.color),
-                }
-              : undefined
-          }
-        >
-          <span className="truncate">{arg.event.title}</span>
-        </Badge>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>Add to library</p>
-      </TooltipContent>
-    </Tooltip>
+    <>
+      <Badge
+        variant="secondary"
+        className={cn("h-full w-full items-start justify-start", rounded)}
+        style={
+          status?.color
+            ? {
+                color: getContrastColor(status.color),
+                backgroundColor: status.color,
+              }
+            : undefined
+        }
+        onMouseMove={(e) => setCursor({ x: e.clientX, y: e.clientY })}
+        onMouseLeave={() => setCursor(null)}
+      >
+        <span className="truncate">{arg.event.title}</span>
+      </Badge>
+      {cursor &&
+        createPortal(
+          <div
+            style={{
+              position: "fixed",
+              left: cursor.x + 12,
+              top: cursor.y - 36,
+              pointerEvents: "none",
+              zIndex: 9999,
+            }}
+          >
+            <Item
+              variant={null}
+              className="rounded-md border-none bg-foreground p-2"
+            >
+              <ItemContent>
+                <ItemTitle className="gap-0 text-sm text-background">
+                  <Dot strokeWidth={6} color={status?.color} />
+                  <span className="font-medium capitalize">
+                    {arg.event.extendedProps.status.name}
+                  </span>
+                </ItemTitle>
+                <ItemDescription className="line-clamp-3 text-xs text-neutral-500">
+                  {arg.event.title} {arg.event.extendedProps.description}
+                </ItemDescription>
+              </ItemContent>
+            </Item>
+          </div>,
+          document.body
+        )}
+    </>
   )
 }
 

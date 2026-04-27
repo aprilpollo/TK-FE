@@ -259,14 +259,20 @@ body #splash-screen {
   font-weight: 600;
 }
 .fc .fc-event {
-  border: 1px solid transparent;
+  border: none;
+  outline: none;
   cursor: pointer;
+}
+.fc .fc-timegrid-event {
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 .fc .fc-daygrid-event-dot {
   border-color: currentColor;
 }
 .fc .fc-list {
-  border-color: var(--border);
+  border-color: none;
   border-radius: var(--radius-md);
   overflow: hidden;
 }
