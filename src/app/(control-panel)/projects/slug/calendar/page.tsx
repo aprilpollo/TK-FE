@@ -46,9 +46,8 @@ import {
   fetchCalendarEventsPriorities,
   fetchCalendarEventsStatus,
 } from "@/api/calendar"
+import { getContrastColor } from "@/utils/color"
 import useProject from "@/hooks/useProject"
-
-
 
 function startOfToday() {
   const d = new Date()
@@ -423,6 +422,7 @@ function Calendar() {
 
 function renderEventContent(arg: EventContentArg) {
   const cat = arg.event.extendedProps.category as EventCategory | undefined
+  const status = arg.event.extendedProps.status as GroupingOption | undefined
   const dotClass = cat ? CATEGORY_META[cat].dotClass : "bg-primary"
   const isList = arg.view.type === "listWeek"
   const isMonth = arg.view.type === "dayGridMonth"
@@ -438,23 +438,30 @@ function renderEventContent(arg: EventContentArg) {
 
   if (isMonth && !arg.event.allDay) {
     return (
-      <div className="flex items-center gap-1.5 truncate px-1">
-        <span className={cn("size-1.5 shrink-0 rounded-full", dotClass)} />
-        <span className="text-xs">{arg.timeText}</span>
-        <span className="truncate text-xs font-medium">
-          {arg.event.title}
-        </span>
-      </div>
+      <Badge
+        variant="secondary"
+        className="w-full justify-start truncate rounded-sm"
+      >
+        {arg.timeText && (
+          <span className="font-mono text-[10px]">{arg.timeText}</span>
+        )}
+        <span className="truncate">{arg.event.title}</span>
+      </Badge>
     )
   }
 
   return (
-    <div className="flex items-center gap-1.5 truncate">
-      {arg.timeText && (
-        <span className="font-mono text-[10px]">{arg.timeText}</span>
-      )}
+    <Badge
+      variant="secondary"
+      className="w-full justify-start truncate rounded-sm"
+      style={
+        status?.color
+          ? { backgroundColor: `${status.color}33`, }
+          : undefined
+      }
+    >
       <span className="truncate">{arg.event.title}</span>
-    </div>
+    </Badge>
   )
 }
 

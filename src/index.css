@@ -211,7 +211,7 @@ body #splash-screen {
   --fc-neutral-bg-color: var(--muted);
   --fc-neutral-text-color: var(--foreground);
   --fc-today-bg-color: color-mix(in oklch, var(--muted) 60%, transparent);
-  --fc-event-bg-color: var(--primary);
+  --fc-event-bg-color: transparent;
   --fc-event-border-color: var(--primary);
   --fc-event-text-color: var(--primary-foreground);
   --fc-event-selected-overlay-color: color-mix(in oklch, var(--primary) 12%, transparent);
@@ -259,10 +259,6 @@ body #splash-screen {
   font-weight: 600;
 }
 .fc .fc-event {
-  border-radius: var(--radius-sm);
-  padding: 1px 4px;
-  font-size: 0.75rem;
-  font-weight: 500;
   border: 1px solid transparent;
   cursor: pointer;
 }
