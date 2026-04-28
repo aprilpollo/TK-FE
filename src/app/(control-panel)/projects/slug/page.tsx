@@ -108,7 +108,7 @@ function Slug() {
         </ul>
       </nav>
       {/* <ScrollArea className="h-[calc(100vh-95px)]"> */}
-        <main className="px-2">
+        <main className="">
           <ProjectContext value={{ project, setProject, isLoading }}>
             <Outlet />
           </ProjectContext>

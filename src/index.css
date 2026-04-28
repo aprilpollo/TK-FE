@@ -320,6 +320,10 @@ body #splash-screen {
   margin: 0;
 }
 
+.fc .fc-scrollgrid {
+  border-left: none;
+}
+
 
 @media (prefers-color-scheme: dark) {
   .moon-loader {

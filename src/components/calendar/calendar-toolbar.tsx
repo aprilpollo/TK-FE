@@ -37,44 +37,37 @@ function CalendarToolbar({
   legend?: React.ReactNode
 }) {
   return (
-    <div className="flex flex-col gap-3 py-3 lg:flex-row lg:items-center lg:justify-between">
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" onClick={onToday}>
+    <header className="flex items-center justify-between px-2">
+      <div className="flex items-center gap-1">
+        <Button variant="outline" size="xs" onClick={onToday}>
           Today
         </Button>
-        <div className="flex items-center">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={onPrev}
-            aria-label="Previous"
-          >
-            <ChevronLeft />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={onNext}
-            aria-label="Next"
-          >
-            <ChevronRight />
-          </Button>
-        </div>
-        <h2 className="ml-1 text-lg font-semibold tracking-tight text-neutral-800 dark:text-neutral-200">
-          {title}
-        </h2>
+        <Button variant="outline" size="icon-xs" onClick={onPrev}>
+          <ChevronLeft />
+        </Button>
+        <Button variant="outline" size="icon-xs" onClick={onNext}>
+          <ChevronRight />
+        </Button>
+        <h2 className="ml-2 text-lg font-semibold">{title}</h2>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         {legend}
         <Select value={view} onValueChange={onViewChange}>
-          <SelectTrigger className="w-25 cursor-pointer font-medium capitalize" size="sm">
+          <SelectTrigger
+            className="w-25 cursor-pointer font-medium capitalize"
+            size="sm"
+          >
             <SelectValue placeholder="View" />
           </SelectTrigger>
           <SelectContent position="popper">
             <SelectGroup>
               {VIEWS.map((v) => (
-                <SelectItem value={v.value} key={v.value} className="cursor-pointer font-medium capitalize" >
+                <SelectItem
+                  value={v.value}
+                  key={v.value}
+                  className="cursor-pointer font-medium capitalize"
+                >
                   {v.label}
                 </SelectItem>
               ))}
@@ -87,7 +80,7 @@ function CalendarToolbar({
           New event
         </Button>
       </div>
-    </div>
+    </header>
   )
 }
 
