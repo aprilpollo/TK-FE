@@ -20,8 +20,8 @@ export interface Task {
     name: string
     color: string
   }
-  startDate?: string | Date
-  endDate?: string | Date
+  startDate?: number
+  endDate?: number
   allDay?: boolean
   assignees?: {
     id: number | string

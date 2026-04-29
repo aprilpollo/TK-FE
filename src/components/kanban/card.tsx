@@ -19,7 +19,7 @@ import {
   CardFooter,
 } from "@/components/ui/card"
 import { DropdownMenuTask } from "@/components/kanban/dropdown-menu-task"
-import { formatDatev2 } from "@/utils/date"
+import { format } from "date-fns"
 
 export function KanbanCard({
   task,
@@ -63,7 +63,7 @@ export function KanbanCard({
               {task.description}
             </div>
             <div className="flex items-center gap-1">
-              {task.endDate && (
+              {task.startDate && task.endDate && (
                 <Badge
                   variant={
                     task.endDate
@@ -75,7 +75,14 @@ export function KanbanCard({
                   className="rounded-md"
                 >
                   <CalendarClock className="size-3" />
-                  {formatDatev2(task.endDate)}
+                  {task.allDay ? (
+                    <>{format(task.endDate, "PP")}</>
+                  ) : (
+                    <>
+                      {format(task.startDate, "EEEEEE d HH:mm")}
+                      <span>{` - ${format(task.endDate, "HH:mm")}`}</span>
+                    </>
+                  )}
                 </Badge>
               )}
               <Badge variant="secondary" className="rounded-md capitalize">
@@ -149,7 +156,7 @@ export function KanbanCard({
             {task.description}
           </div>
           <div className="flex items-center gap-1">
-            {task.endDate && (
+            {task.startDate && task.endDate && (
               <Badge
                 variant={
                   task.endDate
@@ -161,7 +168,14 @@ export function KanbanCard({
                 className="rounded-md"
               >
                 <CalendarClock className="size-3" />
-                {formatDatev2(task.endDate)}
+                {task.allDay ? (
+                  <>{format(task.endDate, "PP")}</>
+                ) : (
+                  <>
+                    {format(task.startDate, "EEEEEE d HH:mm")}
+                    <span>{` - ${format(task.endDate, "HH:mm")}`}</span>
+                  </>
+                )}
               </Badge>
             )}
             <Badge variant="secondary" className="rounded-md capitalize">
