@@ -40,6 +40,8 @@ import useTask from "@/hooks/useTask"
 import useProject from "@/hooks/useProject"
 import { formatDatev2 } from "@/utils/date"
 import { toast } from "sonner"
+import { PopoverDateTimePicker, type DateTimeValue } from "@/components/date-picker"
+
 
 interface Props {
   task: Task
@@ -303,14 +305,7 @@ export function DropdownMenuTask({ task }: Props) {
               <DropdownMenuSubTrigger>
                 <CalendarClock className="h-4 w-4 text-muted-foreground" />
                 <span>Due date</span>
-                {/* {task.endDate && (
-                  <Badge
-                    variant="secondary"
-                    className="rounded px-1 py-0 text-[10px] font-medium"
-                  >
-                    {formatDatev2(task.endDate)}
-                  </Badge>
-                )} */}
+                
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="p-0">
                 <Calendar

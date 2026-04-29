@@ -133,7 +133,7 @@ function getTimePart(iso?: string, fallback = getNowTimeString()): string {
 
 // ── component ──
 
-export function DateTimePicker({
+export function PopoverDateTimePicker({
   value,
   onChange,
   placeholder = "Pick a date",

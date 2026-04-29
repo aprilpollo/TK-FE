@@ -17,7 +17,7 @@ import useProject from "@/hooks/useProject"
 import useTask from "@/hooks/useTask"
 import { createTask } from "@/api/task"
 import { SelectMultipleUser } from "@/components/select-multiple-user"
-import { DateTimePicker, type DateTimeValue } from "@/components/date-picker"
+import { PopoverDateTimePicker, type DateTimeValue } from "@/components/date-picker"
 import { format, parseISO } from "date-fns"
 
 const taskSchema = z.object({
@@ -107,8 +107,9 @@ export function AddTask({
         status_id: columnId,
         title: data.title,
         description: data.description,
-        start_date: data.startDate,
-        end_date: data.endDate,
+        start_date: data.startDate ? new Date(data.startDate).getTime() : undefined,
+        end_date: data.endDate ? new Date(data.endDate).getTime() : undefined,
+        all_day: data.allDay,
         priority_id: data.priority?.id,
         assignees: data.assignees?.map((a) => a.id) || [],
       })

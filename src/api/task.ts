@@ -75,8 +75,8 @@ export async function createTask({
   status_id: string | number
   title: string
   description?: string
-  start_date?: Date | string
-  end_date?: Date | string
+  start_date?: number
+  end_date?: number
   all_day?: boolean
   priority_id?: string | number
   assignees?: number[]
@@ -88,8 +88,8 @@ export async function createTask({
       status_id,
       title,
       description,
-      start_date: start_date ? new Date(start_date).getTime() : undefined,
-      end_date: end_date ? new Date(end_date).getTime() : undefined,
+      start_date,
+      end_date,
       all_day,
       priority_id,
       assignee_ids: assignees,
@@ -103,21 +103,15 @@ export async function updateTask(
     title?: string
     description?: string
     priority_id?: string | number | null
-    start_date?: Date | string | null
-    end_date?: Date | string | null
+    start_date?: number | null
+    end_date?: number | null
     all_day?: boolean
     assignees_ids?: number[]
   }
 ): Promise<Response> {
   return apiFetch(`/api/v1/tasks/${task_id}`, {
     method: "PUT",
-    body: JSON.stringify({
-      ...payload,
-      start_date: payload.start_date
-        ? new Date(payload.start_date).getTime()
-        : null,
-      end_date: payload.end_date ? new Date(payload.end_date).getTime() : null,
-    }),
+    body: JSON.stringify(payload),
   })
 }
 

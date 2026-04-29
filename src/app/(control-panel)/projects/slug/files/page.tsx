@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { DateTimePicker, type DateTimeValue } from "@/components/date-picker"
+import { PopoverDateTimePicker, type DateTimeValue } from "@/components/date-picker"
 
 function File() {
   const [date, setDate] = useState<DateTimeValue>()
@@ -8,7 +8,7 @@ function File() {
   }, [date])
   return (
     <div className="space-y-4 p-4">
-      <DateTimePicker value={date} onChange={setDate} />
+      <PopoverDateTimePicker value={date} onChange={setDate} />
       {date && (
         <div>
           <p>Start: {date.start}</p>
