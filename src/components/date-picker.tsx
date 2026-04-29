@@ -1,7 +1,11 @@
-import { useState, useRef, useEffect } from "react"
+import {
+  useState,
+  useRef,
+  useEffect,
+  type ComponentPropsWithoutRef,
+} from "react"
 import type { DateRange } from "react-day-picker"
 import { format, parseISO } from "date-fns"
-import { ChevronDownIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import {
@@ -13,7 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
-
+import { CalendarClock, ChevronDownIcon } from "lucide-react"
 // ─── DatePicker ───────────────────────────────────────────────────────────────
 
 type DatePickerProps = {
@@ -76,7 +80,7 @@ export function DatePicker({
 export type DateTimeValue = {
   /** ISO date "YYYY-MM-DD" when allDay, ISO datetime "YYYY-MM-DDTHH:mm:ss" when timed */
   start: string
-  end?: string
+  end: string
   allDay: boolean
 }
 
@@ -84,7 +88,9 @@ type DateTimePickerProps = {
   value?: DateTimeValue
   onChange?: (value: DateTimeValue) => void
   placeholder?: string
-  disabled?: boolean
+  icon?: React.ReactNode
+  popoverProps?: ComponentPropsWithoutRef<typeof Popover>
+  buttonProps?: ComponentPropsWithoutRef<typeof Button>
 }
 
 // ── helpers ──
@@ -98,6 +104,14 @@ function toDateString(date: Date): string {
 
 function toDateTimeString(date: Date, time: string): string {
   return `${toDateString(date)}T${time}:00`
+}
+
+function toStartOfDayDateTimeString(date: Date): string {
+  return `${toDateString(date)}T00:00:00`
+}
+
+function toEndOfDayDateTimeString(date: Date): string {
+  return `${toDateString(date)}T23:59:00`
 }
 
 function getDatePart(iso?: string): Date | undefined {
@@ -123,7 +137,9 @@ export function DateTimePicker({
   value,
   onChange,
   placeholder = "Pick a date",
-  disabled,
+  icon = <CalendarClock />,
+  buttonProps,
+  popoverProps,
 }: DateTimePickerProps = {}) {
   const today = new Date()
   const todayString = toDateString(today)
@@ -138,8 +154,21 @@ export function DateTimePicker({
   )
   const [startTime, setStartTime] = useState(getTimePart(value?.start))
   const [endTime, setEndTime] = useState(getTimePart(value?.end, startTime))
-  const isTodaySelected = singleDate ? toDateString(singleDate) === todayString : false
+  const isTodaySelected = singleDate
+    ? toDateString(singleDate) === todayString
+    : false
   const startMinTime = allDay || !isTodaySelected ? "00:00" : getNowTimeString()
+
+  // Sync internal state when value prop is cleared
+  useEffect(() => {
+    if (!value) {
+      setAllDay(true)
+      setRange({ from: undefined, to: undefined })
+      setSingleDate(undefined)
+      setStartTime(getNowTimeString())
+      setEndTime(getNowTimeString())
+    }
+  }, [value])
 
   // ── emit ──
 
@@ -159,8 +188,14 @@ export function DateTimePicker({
     } = opts
 
     if (isAllDay) {
-      const start = nextRange.from ? toDateString(nextRange.from) : ""
-      const end = nextRange.to ? toDateString(nextRange.to) : undefined
+      const start = nextRange.from
+        ? toStartOfDayDateTimeString(nextRange.from)
+        : ""
+      const end = nextRange.to
+        ? toEndOfDayDateTimeString(nextRange.to)
+        : nextRange.from
+          ? toEndOfDayDateTimeString(nextRange.from)
+          : ""
       if (start) onChange?.({ start, end, allDay: true })
     } else {
       if (!nextSingle) return
@@ -213,24 +248,18 @@ export function DateTimePicker({
   let triggerLabel = placeholder
   if (allDay && range.from) {
     triggerLabel = range.to
-      ? `${format(range.from, "PPP")} – ${format(range.to, "PPP")}`
-      : format(range.from, "PPP")
+      ? `${format(range.to, "PP")}`
+      : format(range.from, "PP")
   } else if (!allDay && singleDate) {
-    triggerLabel = `${format(singleDate, "PPP")}  ${startTime} – ${endTime}`
+    triggerLabel = `${format(singleDate, "EEEEEE d")}  ${startTime} – ${endTime}`
   }
 
   return (
-    <Popover>
+    <Popover {...popoverProps}>
       <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={disabled}
-          data-empty={triggerLabel === placeholder}
-          className="justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
-        >
-          <span>{triggerLabel}</span>
-          <ChevronDownIcon />
+        <Button {...buttonProps} data-empty={triggerLabel === placeholder}>
+          {icon}
+          {triggerLabel}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -319,9 +348,7 @@ function TimeSlotPicker({
   )
 
   const [startHour, setStartHour] = useState(startValue?.slice(0, 2))
-  const [startMinute, setStartMinute] = useState(
-    startValue?.slice(3, 5)
-  )
+  const [startMinute, setStartMinute] = useState(startValue?.slice(3, 5))
   const [endHour, setEndHour] = useState(endValue?.slice(0, 2))
   const [endMinute, setEndMinute] = useState(endValue?.slice(3, 5))
 
@@ -352,6 +379,28 @@ function TimeSlotPicker({
   function isEndMinuteDisabled(m: string): boolean {
     return endHour === minEndHour && m < minEndMinute
   }
+
+  // Reset start time when startValue is cleared
+  useEffect(() => {
+    if (!startValue) {
+      setStartHour(undefined)
+      setStartMinute(undefined)
+    } else {
+      setStartHour(startValue.slice(0, 2))
+      setStartMinute(startValue.slice(3, 5))
+    }
+  }, [startValue])
+
+  // Reset end time when endValue is cleared
+  useEffect(() => {
+    if (!endValue) {
+      setEndHour(undefined)
+      setEndMinute(undefined)
+    } else {
+      setEndHour(endValue.slice(0, 2))
+      setEndMinute(endValue.slice(3, 5))
+    }
+  }, [endValue])
 
   // auto-scroll to selected values when default props change
   useEffect(() => {

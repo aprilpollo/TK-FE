@@ -22,6 +22,7 @@ export interface Task {
   }
   startDate?: string | Date
   endDate?: string | Date
+  allDay?: boolean
   assignees?: {
     id: number | string
     name: string

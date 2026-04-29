@@ -7,25 +7,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import {
-  Calendar as CalendarIcon,
-  Flag,
-  X,
-  CornerDownLeft,
-  CalendarClock,
-} from "lucide-react"
+import { Flag, X, CornerDownLeft, CalendarClock } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import useProject from "@/hooks/useProject"
 import useTask from "@/hooks/useTask"
 import { createTask } from "@/api/task"
-import { formatDatev2 } from "@/utils/date"
-import { type DateRange } from "react-day-picker"
 import { SelectMultipleUser } from "@/components/select-multiple-user"
+import { DateTimePicker, type DateTimeValue } from "@/components/date-picker"
+import { format, parseISO } from "date-fns"
 
 const taskSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -40,8 +33,9 @@ const taskSchema = z.object({
       })
     )
     .optional(),
-  startDate: z.date().optional(),
-  endDate: z.date().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  allDay: z.boolean().optional(),
   priority: z
     .object({
       id: z.union([z.string(), z.number()]),
@@ -72,7 +66,7 @@ export function AddTask({
   const [priorityOpen, setPriorityOpen] = useState(false)
   const [dateOpen, setDateOpen] = useState(false)
   const [user, setUser] = useState<UserItem[]>([])
-  const [date, setDate] = useState<DateRange | undefined>()
+  const [date, setDate] = useState<DateTimeValue>()
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
@@ -82,6 +76,7 @@ export function AddTask({
       assignees: [],
       startDate: undefined,
       endDate: undefined,
+      allDay: undefined,
       priority: undefined,
     },
   })
@@ -91,8 +86,9 @@ export function AddTask({
   }, [user, form])
 
   useEffect(() => {
-    form.setValue("startDate", date?.from)
-    form.setValue("endDate", date?.to)
+    form.setValue("startDate", date?.start)
+    form.setValue("endDate", date?.end)
+    form.setValue("allDay", date?.allDay)
   }, [date, form])
 
   useEffect(() => {
@@ -182,7 +178,7 @@ export function AddTask({
         </div>
 
         {/* Selected metadata chips */}
-        {(form.watch("priority") || form.watch("endDate")) && (
+        {(form.watch("priority") || date) && (
           <div className="flex flex-wrap gap-1.5 px-3 pb-2">
             {form.watch("priority") && (
               <Badge variant="secondary" className="rounded-md capitalize">
@@ -205,14 +201,25 @@ export function AddTask({
                 </button>
               </Badge>
             )}
-            {form.watch("endDate") && (
+            {date && (
               <Badge variant="secondary" className="rounded-md">
                 <CalendarClock className="size-3" />
-                {formatDatev2(form.watch("endDate"))}
+                {date.allDay ? (
+                  <>
+                    {format(parseISO(date.end), "PP")}
+                  </>
+                ) : (
+                  <>
+                    {format(parseISO(date.start), "EEEEEE d HH:mm")}
+                    <span>{` - ${format(parseISO(date.end), "HH:mm")}`}</span>
+                  </>
+                )}
                 <button
                   type="button"
                   onClick={() => {
+                    form.setValue("startDate", undefined)
                     form.setValue("endDate", undefined)
+                    setDate(undefined)
                   }}
                   className="ml-0.5 cursor-pointer opacity-60 hover:opacity-100"
                 >
@@ -281,29 +288,19 @@ export function AddTask({
           </Popover>
 
           {/* Date picker */}
-          <Popover open={dateOpen} onOpenChange={setDateOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-6 cursor-pointer gap-1 rounded px-1.5 text-[11px] text-muted-foreground hover:text-foreground"
-              >
-                <CalendarIcon className="size-3" />
-                {date?.to ? formatDatev2(date.to) : "Due date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="range"
-                defaultMonth={date?.from}
-                selected={date}
-                onSelect={setDate}
-                numberOfMonths={2}
-              />
-            </PopoverContent>
-          </Popover>
-
+          <DateTimePicker
+            popoverProps={{ open: dateOpen, onOpenChange: setDateOpen }}
+            buttonProps={{
+              variant: "ghost",
+              size: "sm",
+              className:
+                "h-6 cursor-pointer gap-1 rounded px-1.5 text-[11px] text-muted-foreground hover:text-foreground",
+            }}
+            placeholder="Due date"
+            icon={<CalendarClock className="size-3" />}
+            value={date}
+            onChange={setDate}
+          />
           <div className="flex-1" />
 
           <SelectMultipleUser user={user} setUser={setUser} />
