@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import type { DateRange } from "react-day-picker"
 import { format, parseISO } from "date-fns"
 import { ChevronDownIcon } from "lucide-react"
@@ -105,7 +105,14 @@ function getDatePart(iso?: string): Date | undefined {
   return parseISO(iso.slice(0, 10))
 }
 
-function getTimePart(iso?: string, fallback = "09:00"): string {
+function getNowTimeString(): string {
+  const now = new Date()
+  return `${String(now.getHours()).padStart(2, "0")}:${String(
+    now.getMinutes()
+  ).padStart(2, "0")}`
+}
+
+function getTimePart(iso?: string, fallback = getNowTimeString()): string {
   if (!iso || !iso.includes("T")) return fallback
   return iso.slice(11, 16)
 }
@@ -119,6 +126,7 @@ export function DateTimePicker({
   disabled,
 }: DateTimePickerProps = {}) {
   const today = new Date()
+  const todayString = toDateString(today)
 
   const [allDay, setAllDay] = useState(value?.allDay ?? true)
   const [range, setRange] = useState<DateRange>({
@@ -128,8 +136,10 @@ export function DateTimePicker({
   const [singleDate, setSingleDate] = useState<Date | undefined>(
     getDatePart(value?.start)
   )
-  const [startTime, setStartTime] = useState(getTimePart(value?.start, "09:00"))
-  const [endTime, setEndTime] = useState(getTimePart(value?.end, "10:00"))
+  const [startTime, setStartTime] = useState(getTimePart(value?.start))
+  const [endTime, setEndTime] = useState(getTimePart(value?.end, startTime))
+  const isTodaySelected = singleDate ? toDateString(singleDate) === todayString : false
+  const startMinTime = allDay || !isTodaySelected ? "00:00" : getNowTimeString()
 
   // ── emit ──
 
@@ -188,7 +198,7 @@ export function DateTimePicker({
     emit({ isAllDay: allDay, nextSingle: date })
   }
 
-  function handleStartTimeChange(time: string) {
+  function handleTimeChange(time: string) {
     setStartTime(time)
     emit({ isAllDay: allDay, nextStartTime: time })
   }
@@ -245,18 +255,18 @@ export function DateTimePicker({
             />
           )}
 
-          <div className={cn("flex", allDay && "hidden")}>
+          <div className={cn("flex pr-2", allDay && "hidden")}>
             <TimeSlotPicker
-              title="Start Time"
-              description="Select the start time"
-              value={startTime}
-              onChange={handleStartTimeChange}
-            />
-            <TimeSlotPicker
-              title="End Time"
-              description="Select the end time"
-              value={endTime}
-              onChange={handleEndTimeChange}
+              startTitle="Start Time"
+              startDescription="Select the start time"
+              startValue={startTime}
+              onStartChange={handleTimeChange}
+              startMinTime={startMinTime}
+              endTitle="End Time"
+              endDescription="Select the end time"
+              endValue={endTime}
+              onEndChange={handleEndTimeChange}
+              endMinTime={startTime}
             />
           </div>
         </div>
@@ -277,68 +287,219 @@ export function DateTimePicker({
 // ─── TimeSlotPicker ───────────────────────────────────────────────────────────
 
 type TimeSlotPickerProps = {
-  title: string
-  description: string
-  value?: string           // "HH:mm"
-  onChange?: (value: string) => void
+  startTitle: string
+  startDescription: string
+  startValue?: string // "HH:mm"
+  onStartChange?: (value: string) => void
+  startMinTime?: string // "HH:mm" - min time for start (e.g., current time)
+  endTitle: string
+  endDescription: string
+  endValue?: string // "HH:mm"
+  onEndChange?: (value: string) => void
+  endMinTime?: string // "HH:mm" - min time for end (e.g., start time)
 }
 
-function TimeSlotPicker({ title, description, value, onChange }: TimeSlotPickerProps) {
-  const [hour, setHour] = useState(value?.slice(0, 2) ?? "09")
-  const [minute, setMinute] = useState(value?.slice(3, 5) ?? "00")
+function TimeSlotPicker({
+  startTitle,
+  startDescription,
+  startValue,
+  onStartChange,
+  startMinTime,
+  endTitle,
+  endDescription,
+  endValue,
+  onEndChange,
+  endMinTime,
+}: TimeSlotPickerProps) {
+  const Hours = Array.from({ length: 24 }, (_, i) =>
+    i.toString().padStart(2, "0")
+  )
+  const Minutes = Array.from({ length: 60 }, (_, i) =>
+    i.toString().padStart(2, "0")
+  )
 
-  const Hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, "0"))
-  const Minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, "0"))
+  const [startHour, setStartHour] = useState(startValue?.slice(0, 2))
+  const [startMinute, setStartMinute] = useState(
+    startValue?.slice(3, 5)
+  )
+  const [endHour, setEndHour] = useState(endValue?.slice(0, 2))
+  const [endMinute, setEndMinute] = useState(endValue?.slice(3, 5))
 
-  function selectHour(h: string) {
-    setHour(h)
-    onChange?.(`${h}:${minute}`)
+  // refs to scroll containers
+  const startHoursRef = useRef<HTMLDivElement | null>(null)
+  const startMinutesRef = useRef<HTMLDivElement | null>(null)
+  const endHoursRef = useRef<HTMLDivElement | null>(null)
+  const endMinutesRef = useRef<HTMLDivElement | null>(null)
+
+  // Parse min times
+  const minStartHour = startMinTime?.slice(0, 2) ?? "00"
+  const minStartMinute = startMinTime?.slice(3, 5) ?? "00"
+  const minEndHour = endMinTime?.slice(0, 2) ?? "00"
+  const minEndMinute = endMinTime?.slice(3, 5) ?? "00"
+
+  // Check if hour/minute is disabled for start
+  function isStartHourDisabled(h: string): boolean {
+    return h < minStartHour
+  }
+  function isStartMinuteDisabled(m: string): boolean {
+    return startHour === minStartHour && m < minStartMinute
   }
 
-  function selectMinute(m: string) {
-    setMinute(m)
-    onChange?.(`${hour}:${m}`)
+  // Check if hour/minute is disabled for end
+  function isEndHourDisabled(h: string): boolean {
+    return h < minEndHour
+  }
+  function isEndMinuteDisabled(m: string): boolean {
+    return endHour === minEndHour && m < minEndMinute
+  }
+
+  // auto-scroll to selected values when default props change
+  useEffect(() => {
+    if (startValue) {
+      const h = startValue.slice(0, 2)
+      const m = startValue.slice(3, 5)
+      const btnH = startHoursRef.current?.querySelector(
+        `button[data-hour="${h}"]`
+      ) as HTMLElement | null
+      const btnM = startMinutesRef.current?.querySelector(
+        `button[data-minute="${m}"]`
+      ) as HTMLElement | null
+      btnH?.scrollIntoView({ block: "nearest", behavior: "auto" })
+      btnM?.scrollIntoView({ block: "nearest", behavior: "auto" })
+    }
+  }, [startValue])
+
+  useEffect(() => {
+    if (endValue) {
+      const h = endValue.slice(0, 2)
+      const m = endValue.slice(3, 5)
+      const btnH = endHoursRef.current?.querySelector(
+        `button[data-hour="${h}"]`
+      ) as HTMLElement | null
+      const btnM = endMinutesRef.current?.querySelector(
+        `button[data-minute="${m}"]`
+      ) as HTMLElement | null
+      btnH?.scrollIntoView({ block: "nearest", behavior: "auto" })
+      btnM?.scrollIntoView({ block: "nearest", behavior: "auto" })
+    }
+  }, [endValue])
+
+  function selectStartHour(h: string) {
+    setStartHour(h)
+    onStartChange?.(`${h}:${startMinute}`)
+  }
+
+  function selectStartMinute(m: string) {
+    setStartMinute(m)
+    onStartChange?.(`${startHour}:${m}`)
+  }
+
+  function selectEndHour(h: string) {
+    setEndHour(h)
+    onEndChange?.(`${h}:${endMinute}`)
+  }
+
+  function selectEndMinute(m: string) {
+    setEndMinute(m)
+    onEndChange?.(`${endHour}:${m}`)
   }
 
   return (
-    <div className="w-36 space-y-4 py-2">
-      <header className="flex h-7 flex-col px-2 font-medium">
-        <span>{title}</span>
-        <span className="text-[10px] text-muted-foreground">{description}</span>
-      </header>
-      <div className="grid grid-cols-2">
-        <div className="col-span-1 mx-auto text-[12px] text-muted-foreground">
-          Hours
-        </div>
-        <div className="col-span-1 mx-auto text-[12px] text-muted-foreground">
-          Minutes
-        </div>
-        <ScrollArea className="col-span-1 h-50 px-2">
-          {Hours.map((h) => (
-            <Button
-              key={h}
-              variant={h === hour ? "default" : "ghost"}
-              size="xs"
-              className="w-full"
-              onClick={() => selectHour(h)}
-            >
-              {h}
-            </Button>
-          ))}
-        </ScrollArea>
-        <ScrollArea className="col-span-1 h-50 px-2">
-          {Minutes.map((m) => (
-            <Button
-              key={m}
-              variant={m === minute ? "default" : "ghost"}
-              size="xs"
-              className="w-full"
-              onClick={() => selectMinute(m)}
-            >
-              {m}
-            </Button>
-          ))}
-        </ScrollArea>
+    <div className="w-[18rem] space-y-4 py-2">
+      <div className="grid grid-cols-2 gap-2">
+        <section className="space-y-4">
+          <header className="flex h-7 flex-col px-2 font-medium">
+            <span>{startTitle}</span>
+            <span className="text-[10px] text-muted-foreground">
+              {startDescription}
+            </span>
+          </header>
+          <div className="grid grid-cols-2">
+            <div className="col-span-1 mx-auto text-[12px] text-muted-foreground">
+              Hours
+            </div>
+            <div className="col-span-1 mx-auto text-[12px] text-muted-foreground">
+              Minutes
+            </div>
+            <ScrollArea ref={startHoursRef} className="col-span-1 h-50 px-2">
+              {Hours.map((h) => (
+                <Button
+                  key={h}
+                  data-hour={h}
+                  variant={h === startHour ? "default" : "ghost"}
+                  size="xs"
+                  className="w-full"
+                  disabled={isStartHourDisabled(h)}
+                  onClick={() => selectStartHour(h)}
+                >
+                  {h}
+                </Button>
+              ))}
+            </ScrollArea>
+            <ScrollArea ref={startMinutesRef} className="col-span-1 h-50 px-2">
+              {Minutes.map((m) => (
+                <Button
+                  key={m}
+                  data-minute={m}
+                  variant={m === startMinute ? "default" : "ghost"}
+                  size="xs"
+                  className="w-full"
+                  disabled={isStartMinuteDisabled(m)}
+                  onClick={() => selectStartMinute(m)}
+                >
+                  {m}
+                </Button>
+              ))}
+            </ScrollArea>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <header className="flex h-7 flex-col px-2 font-medium">
+            <span>{endTitle}</span>
+            <span className="text-[10px] text-muted-foreground">
+              {endDescription}
+            </span>
+          </header>
+          <div className="grid grid-cols-2">
+            <div className="col-span-1 mx-auto text-[12px] text-muted-foreground">
+              Hours
+            </div>
+            <div className="col-span-1 mx-auto text-[12px] text-muted-foreground">
+              Minutes
+            </div>
+            <ScrollArea ref={endHoursRef} className="col-span-1 h-50 px-2">
+              {Hours.map((h) => (
+                <Button
+                  key={h}
+                  data-hour={h}
+                  variant={h === endHour ? "default" : "ghost"}
+                  size="xs"
+                  className="w-full"
+                  disabled={isEndHourDisabled(h)}
+                  onClick={() => selectEndHour(h)}
+                >
+                  {h}
+                </Button>
+              ))}
+            </ScrollArea>
+            <ScrollArea ref={endMinutesRef} className="col-span-1 h-50 px-2">
+              {Minutes.map((m) => (
+                <Button
+                  key={m}
+                  data-minute={m}
+                  variant={m === endMinute ? "default" : "ghost"}
+                  size="xs"
+                  className="w-full"
+                  disabled={isEndMinuteDisabled(m)}
+                  onClick={() => selectEndMinute(m)}
+                >
+                  {m}
+                </Button>
+              ))}
+            </ScrollArea>
+          </div>
+        </section>
       </div>
     </div>
   )
