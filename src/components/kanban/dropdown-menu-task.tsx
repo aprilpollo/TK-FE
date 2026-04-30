@@ -308,43 +308,54 @@ export function DropdownMenuTask({ task }: Props) {
                 <DateTimePicker
                   value={dueDateValue}
                   onChange={setDueDateValue}
+                  footer={
+                    <div className="flex items-center justify-end gap-1">
+                      {dueDateValue.start && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs text-muted-foreground"
+                          onClick={() => {
+                            setDueDateValue({
+                              start: "",
+                              end: "",
+                              allDay: true,
+                            })
+                            handleSetDueDate(undefined)
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                          Clear
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        className="h-7 text-xs"
+                        variant="secondary"
+                        onClick={() => handleSetDueDate(dueDateValue)}
+                      >
+                        {dueDateValue.start ? (
+                          dueDateValue.allDay ? (
+                            <>
+                              Apply {format(parseISO(dueDateValue.end), "PP")}
+                            </>
+                          ) : (
+                            <>
+                              Apply{" "}
+                              {format(
+                                parseISO(dueDateValue.start),
+                                "EEEEEE d HH:mm"
+                              )}
+                              <span>{` - ${format(parseISO(dueDateValue.end), "HH:mm")}`}</span>
+                            </>
+                          )
+                        ) : (
+                          "Apply"
+                        )}
+                      </Button>
+                    </div>
+                  }
                 />
-                <div className="flex items-center justify-end gap-1 border-t px-3 py-2">
-                  {dueDateValue.start && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs text-muted-foreground"
-                      onClick={() => {
-                        setDueDateValue({ start: "", end: "", allDay: true })
-                        handleSetDueDate(undefined)
-                      }}
-                    >
-                      <X className="h-3 w-3" />
-                      Clear
-                    </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    className="h-7 text-xs"
-                    variant="secondary"
-                    onClick={() => handleSetDueDate(dueDateValue)}
-                  >
-                    {dueDateValue.start ? (
-                      dueDateValue.allDay ? (
-                        <>Apply {format(parseISO(dueDateValue.end), "PP")}</>
-                      ) : (
-                        <>
-                          Apply {" "}
-                          {format(parseISO(dueDateValue.start), "EEEEEE d HH:mm")}
-                          <span>{` - ${format(parseISO(dueDateValue.end), "HH:mm")}`}</span>
-                        </>
-                      )
-                    ) : (
-                      "Apply"
-                    )}
-                  </Button>
-                </div>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
 

@@ -91,6 +91,7 @@ type DateTimePickerProps = {
   icon?: React.ReactNode
   popoverProps?: ComponentPropsWithoutRef<typeof Popover>
   buttonProps?: ComponentPropsWithoutRef<typeof Button>
+  footer?: React.ReactNode
 }
 
 // ── helpers ──
@@ -140,6 +141,7 @@ export function PopoverDateTimePicker({
   icon = <CalendarClock />,
   buttonProps,
   popoverProps,
+  footer,
 }: DateTimePickerProps = {}) {
   const today = new Date()
   const todayString = toDateString(today)
@@ -262,7 +264,7 @@ export function PopoverDateTimePicker({
           {triggerLabel}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0 shadow-none" align="start">
         <div className="flex">
           {allDay ? (
             <Calendar
@@ -300,13 +302,17 @@ export function PopoverDateTimePicker({
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 border-t p-2">
-          <Switch
-            id="calendar-mode"
-            checked={allDay}
-            onCheckedChange={handleAllDayChange}
-          />
-          <Label htmlFor="calendar-mode">All Day</Label>
+        <div className="flex items-center justify-between border-t p-2">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="calendar-mode"
+              checked={allDay}
+              onCheckedChange={handleAllDayChange}
+              className="cursor-pointer"
+            />
+            <Label htmlFor="calendar-mode">All Day</Label>
+          </div>
+          {footer}
         </div>
       </PopoverContent>
     </Popover>
@@ -316,10 +322,7 @@ export function PopoverDateTimePicker({
 export function DateTimePicker({
   value,
   onChange,
-  // placeholder = "Pick a date",
-  // icon = <CalendarClock />,
-  // buttonProps,
-  // popoverProps,
+  footer,
 }: DateTimePickerProps = {}) {
   const today = new Date()
   const todayString = toDateString(today)
@@ -423,17 +426,6 @@ export function DateTimePicker({
     emit({ isAllDay: allDay, nextEndTime: time })
   }
 
-  // ── trigger label ──
-
-  // let triggerLabel = placeholder
-  // if (allDay && range.from) {
-  //   triggerLabel = range.to
-  //     ? `${format(range.to, "PP")}`
-  //     : format(range.from, "PP")
-  // } else if (!allDay && singleDate) {
-  //   triggerLabel = `${format(singleDate, "EEEEEE d")}  ${startTime} – ${endTime}`
-  // }
-
   return (
     <>
       <div className="flex">
@@ -473,13 +465,17 @@ export function DateTimePicker({
         </div>
       </div>
 
-      <div className="flex items-center space-x-2 border-t p-2">
-        <Switch
-          id="calendar-mode"
-          checked={allDay}
-          onCheckedChange={handleAllDayChange}
-        />
-        <Label htmlFor="calendar-mode">All Day</Label>
+      <div className="flex items-center justify-between border-t p-2">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="calendar-mode"
+            checked={allDay}
+            onCheckedChange={handleAllDayChange}
+            className="cursor-pointer"
+          />
+          <Label htmlFor="calendar-mode">All Day</Label>
+        </div>
+        {footer}
       </div>
     </>
   )
