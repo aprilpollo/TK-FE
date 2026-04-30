@@ -289,7 +289,7 @@ export function AddTask({
           </Popover>
 
           {/* Date picker */}
-          <DateTimePicker
+          <PopoverDateTimePicker
             popoverProps={{ open: dateOpen, onOpenChange: setDateOpen }}
             buttonProps={{
               variant: "ghost",

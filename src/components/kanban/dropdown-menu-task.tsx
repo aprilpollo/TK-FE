@@ -1,8 +1,6 @@
 import { useState } from "react"
 import type { Task } from "@/types"
 import { Button } from "@/components/ui/button"
-import { type DateRange } from "react-day-picker"
-import { Calendar } from "@/components/ui/calendar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,10 +36,10 @@ import { Input } from "@/components/ui/input"
 import { createTask, deleteTask, reorderTasks, updateTask } from "@/api/task"
 import useTask from "@/hooks/useTask"
 import useProject from "@/hooks/useProject"
-import { formatDatev2 } from "@/utils/date"
+import { toDateTimeStringFromUnixMs } from "@/utils/date"
 import { toast } from "sonner"
-import { PopoverDateTimePicker, type DateTimeValue } from "@/components/date-picker"
-
+import { DateTimePicker, type DateTimeValue } from "@/components/date-picker"
+import { format, parseISO } from "date-fns"
 
 interface Props {
   task: Task
@@ -62,9 +60,10 @@ export function DropdownMenuTask({ task }: Props) {
   const [renameInput, setRenameInput] = useState(task.title)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
-  const [dueDateValue, setDueDateValue] = useState<DateRange | undefined>({
-    from: task.startDate ? new Date(task.startDate) : undefined,
-    to: task.endDate ? new Date(task.endDate) : undefined,
+  const [dueDateValue, setDueDateValue] = useState<DateTimeValue>({
+    start: task.startDate ? toDateTimeStringFromUnixMs(task.startDate) : "",
+    end: task.endDate ? toDateTimeStringFromUnixMs(task.endDate) : "",
+    allDay: task.allDay ?? false,
   })
 
   const otherColumns = columns
@@ -108,7 +107,6 @@ export function DropdownMenuTask({ task }: Props) {
         priority_id: p?.id ?? null,
       })
       if (!res.ok) throw new Error()
-      // Optimistic update
       setTasks((prev) =>
         prev.map((t) =>
           t.id === task.id ? { ...t, priority: p ?? undefined } : t
@@ -120,11 +118,12 @@ export function DropdownMenuTask({ task }: Props) {
   }
 
   // ── Set Due Date ───────────────────────────────────────────
-  const handleSetDueDate = async (date: DateRange | undefined) => {
+  const handleSetDueDate = async (date: DateTimeValue | undefined) => {
     try {
       const res = await updateTask(task.id, {
-        start_date: date?.from ? date.from : null,
-        end_date: date?.to ? date.to : null,
+        start_date: date?.start ? new Date(date.start).getTime() : null,
+        end_date: date?.end ? new Date(date.end).getTime() : null,
+        all_day: date?.allDay,
       })
       if (!res.ok) throw new Error()
       setTasks((prev) =>
@@ -132,8 +131,11 @@ export function DropdownMenuTask({ task }: Props) {
           t.id === task.id
             ? {
                 ...t,
-                startDate: date?.from ? date.from : undefined,
-                endDate: date?.to ? date.to : undefined,
+                startDate: date?.start
+                  ? new Date(date.start).getTime()
+                  : undefined,
+                endDate: date?.end ? new Date(date.end).getTime() : undefined,
+                allDay: date?.allDay,
               }
             : t
         )
@@ -231,7 +233,6 @@ export function DropdownMenuTask({ task }: Props) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-50" align="start">
-          {/* ── Quick actions ── */}
           <DropdownMenuGroup>
             <DropdownMenuItem
               onClick={() => {
@@ -246,13 +247,11 @@ export function DropdownMenuTask({ task }: Props) {
 
           <DropdownMenuSeparator />
 
-          {/* ── Edit fields ── */}
           <DropdownMenuGroup>
             <DropdownMenuItem onClick={handleCopyName}>
               <Copy className="h-4 w-4 text-muted-foreground" />
               Copy name
             </DropdownMenuItem>
-            {/* Change Priority */}
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <Flag
@@ -300,28 +299,26 @@ export function DropdownMenuTask({ task }: Props) {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
 
-            {/* Set Due Date */}
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <CalendarClock className="h-4 w-4 text-muted-foreground" />
                 <span>Due date</span>
-                
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="p-0">
-                <Calendar
-                  mode="range"
-                  defaultMonth={dueDateValue?.from}
-                  selected={dueDateValue}
-                  onSelect={setDueDateValue}
-                  numberOfMonths={2}
+                <DateTimePicker
+                  value={dueDateValue}
+                  onChange={setDueDateValue}
                 />
                 <div className="flex items-center justify-end gap-1 border-t px-3 py-2">
-                  {dueDateValue && (
+                  {dueDateValue.start && (
                     <Button
                       variant="ghost"
                       size="sm"
                       className="h-7 text-xs text-muted-foreground"
-                      onClick={() => handleSetDueDate(undefined)}
+                      onClick={() => {
+                        setDueDateValue({ start: "", end: "", allDay: true })
+                        handleSetDueDate(undefined)
+                      }}
                     >
                       <X className="h-3 w-3" />
                       Clear
@@ -333,15 +330,24 @@ export function DropdownMenuTask({ task }: Props) {
                     variant="secondary"
                     onClick={() => handleSetDueDate(dueDateValue)}
                   >
-                    {dueDateValue
-                      ? `Apply ${formatDatev2(dueDateValue.from)} - ${formatDatev2(dueDateValue.to)}`
-                      : "Apply"}
+                    {dueDateValue.start ? (
+                      dueDateValue.allDay ? (
+                        <>Apply {format(parseISO(dueDateValue.end), "PP")}</>
+                      ) : (
+                        <>
+                          Apply {" "}
+                          {format(parseISO(dueDateValue.start), "EEEEEE d HH:mm")}
+                          <span>{` - ${format(parseISO(dueDateValue.end), "HH:mm")}`}</span>
+                        </>
+                      )
+                    ) : (
+                      "Apply"
+                    )}
                   </Button>
                 </div>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
 
-            {/* Move to */}
             {otherColumns.length > 0 && (
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
@@ -367,7 +373,6 @@ export function DropdownMenuTask({ task }: Props) {
             )}
           </DropdownMenuGroup>
 
-          {/* ── Task actions ── */}
           <DropdownMenuGroup>
             <DropdownMenuItem onClick={handleDuplicate}>
               <Layers className="h-4 w-4 text-muted-foreground" />
@@ -387,7 +392,6 @@ export function DropdownMenuTask({ task }: Props) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Rename dialog */}
       <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
         <DialogContent>
           <DialogHeader>
@@ -416,7 +420,6 @@ export function DropdownMenuTask({ task }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirmation dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
           <DialogHeader>

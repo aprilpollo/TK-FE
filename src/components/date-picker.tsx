@@ -313,6 +313,177 @@ export function PopoverDateTimePicker({
   )
 }
 
+export function DateTimePicker({
+  value,
+  onChange,
+  // placeholder = "Pick a date",
+  // icon = <CalendarClock />,
+  // buttonProps,
+  // popoverProps,
+}: DateTimePickerProps = {}) {
+  const today = new Date()
+  const todayString = toDateString(today)
+
+  const [allDay, setAllDay] = useState(value?.allDay ?? true)
+  const [range, setRange] = useState<DateRange>({
+    from: getDatePart(value?.start),
+    to: getDatePart(value?.end),
+  })
+  const [singleDate, setSingleDate] = useState<Date | undefined>(
+    getDatePart(value?.start)
+  )
+  const [startTime, setStartTime] = useState(getTimePart(value?.start))
+  const [endTime, setEndTime] = useState(getTimePart(value?.end, startTime))
+  const isTodaySelected = singleDate
+    ? toDateString(singleDate) === todayString
+    : false
+  const startMinTime = allDay || !isTodaySelected ? "00:00" : getNowTimeString()
+
+  // Sync internal state when value prop is cleared
+  useEffect(() => {
+    if (!value) {
+      setAllDay(true)
+      setRange({ from: undefined, to: undefined })
+      setSingleDate(undefined)
+      setStartTime(getNowTimeString())
+      setEndTime(getNowTimeString())
+    }
+  }, [value])
+
+  // ── emit ──
+
+  function emit(opts: {
+    isAllDay: boolean
+    nextRange?: DateRange
+    nextSingle?: Date | undefined
+    nextStartTime?: string
+    nextEndTime?: string
+  }) {
+    const {
+      isAllDay,
+      nextRange = range,
+      nextSingle = singleDate,
+      nextStartTime = startTime,
+      nextEndTime = endTime,
+    } = opts
+
+    if (isAllDay) {
+      const start = nextRange.from
+        ? toStartOfDayDateTimeString(nextRange.from)
+        : ""
+      const end = nextRange.to
+        ? toEndOfDayDateTimeString(nextRange.to)
+        : nextRange.from
+          ? toEndOfDayDateTimeString(nextRange.from)
+          : ""
+      if (start) onChange?.({ start, end, allDay: true })
+    } else {
+      if (!nextSingle) return
+      const start = toDateTimeString(nextSingle, nextStartTime)
+      const end = toDateTimeString(nextSingle, nextEndTime)
+      onChange?.({ start, end, allDay: false })
+    }
+  }
+
+  // ── handlers ──
+
+  function handleAllDayChange(checked: boolean) {
+    setAllDay(checked)
+    if (checked) {
+      // timed → allDay: carry singleDate over as range.from
+      const next: DateRange = { from: singleDate, to: undefined }
+      setRange(next)
+      emit({ isAllDay: true, nextRange: next })
+    } else {
+      // allDay → timed: carry range.from over as singleDate
+      const next = range.from
+      setSingleDate(next)
+      emit({ isAllDay: false, nextSingle: next })
+    }
+  }
+
+  function handleRangeSelect(r: DateRange | undefined) {
+    const next: DateRange = r ?? { from: undefined, to: undefined }
+    setRange(next)
+    emit({ isAllDay: allDay, nextRange: next })
+  }
+
+  function handleSingleSelect(date: Date | undefined) {
+    setSingleDate(date)
+    emit({ isAllDay: allDay, nextSingle: date })
+  }
+
+  function handleTimeChange(time: string) {
+    setStartTime(time)
+    emit({ isAllDay: allDay, nextStartTime: time })
+  }
+
+  function handleEndTimeChange(time: string) {
+    setEndTime(time)
+    emit({ isAllDay: allDay, nextEndTime: time })
+  }
+
+  // ── trigger label ──
+
+  // let triggerLabel = placeholder
+  // if (allDay && range.from) {
+  //   triggerLabel = range.to
+  //     ? `${format(range.to, "PP")}`
+  //     : format(range.from, "PP")
+  // } else if (!allDay && singleDate) {
+  //   triggerLabel = `${format(singleDate, "EEEEEE d")}  ${startTime} – ${endTime}`
+  // }
+
+  return (
+    <>
+      <div className="flex">
+        {allDay ? (
+          <Calendar
+            disabled={[{ before: today }]}
+            mode="range"
+            numberOfMonths={2}
+            selected={range}
+            onSelect={handleRangeSelect}
+            defaultMonth={range.from}
+          />
+        ) : (
+          <Calendar
+            disabled={[{ before: today }]}
+            mode="single"
+            numberOfMonths={1}
+            selected={singleDate}
+            onSelect={handleSingleSelect}
+            defaultMonth={singleDate}
+          />
+        )}
+
+        <div className={cn("flex pr-2", allDay && "hidden")}>
+          <TimeSlotPicker
+            startTitle="Start Time"
+            startDescription="Select the start time"
+            startValue={startTime}
+            onStartChange={handleTimeChange}
+            startMinTime={startMinTime}
+            endTitle="End Time"
+            endDescription="Select the end time"
+            endValue={endTime}
+            onEndChange={handleEndTimeChange}
+            endMinTime={startTime}
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-2 border-t p-2">
+        <Switch
+          id="calendar-mode"
+          checked={allDay}
+          onCheckedChange={handleAllDayChange}
+        />
+        <Label htmlFor="calendar-mode">All Day</Label>
+      </div>
+    </>
+  )
+}
 // ─── TimeSlotPicker ───────────────────────────────────────────────────────────
 
 type TimeSlotPickerProps = {
