@@ -2,6 +2,7 @@ import { useLocation } from "react-router"
 import {
   AlertTriangle,
   Bell,
+  CircleDot,
   Plug,
   SlidersHorizontal,
   Tags,
@@ -22,6 +23,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "general", label: "General", icon: SlidersHorizontal },
   { to: "members", label: "Members", icon: Users, group: "access" },
   { to: "tags", label: "Labels & Tags", icon: Tags, group: "workflow" },
+  { to: "status", label: "Statuses", icon: CircleDot, group: "workflow" },
   {
     to: "notifications",
     label: "Notifications",

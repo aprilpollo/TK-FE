@@ -13,6 +13,7 @@ import MembersSettings from "@/app/(control-panel)/projects/slug/settings/member
 import TagsSettings from "@/app/(control-panel)/projects/slug/settings/tags/page"
 import NotificationsSettings from "@/app/(control-panel)/projects/slug/settings/notifications/page"
 import IntegrationsSettings from "@/app/(control-panel)/projects/slug/settings/integrations/page"
+import StatusSettings from "@/app/(control-panel)/projects/slug/settings/status/page"
 import DangerSettings from "@/app/(control-panel)/projects/slug/settings/danger/page"
 
 
@@ -64,6 +65,10 @@ const ProjectsRoute: RouteItemType = {
             {
               path: "tags",
               element: <TagsSettings />,
+            },
+            {
+              path: "status",
+              element: <StatusSettings />,
             },
             {
               path: "notifications",

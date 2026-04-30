@@ -18,7 +18,7 @@ function SettingsSection({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-lg",
+        "rounded-lg",
         tone === "danger" && "border-destructive/40",
         className
       )}
@@ -26,7 +26,7 @@ function SettingsSection({
       {(title || description) && (
         <header
           className={cn(
-            "border-b py-4",
+            "py-4",
             tone === "danger" && "border-destructive/40 bg-destructive/5"
           )}
         >
