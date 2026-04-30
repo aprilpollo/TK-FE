@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { toast } from "sonner"
-import { Plus } from "lucide-react"
 import {
   DndContext,
   PointerSensor,
@@ -17,10 +16,8 @@ import {
   restrictToVerticalAxis,
   restrictToParentElement,
 } from "@dnd-kit/modifiers"
-import { Button } from "@/components/ui/button"
 import SettingsPageHeader from "@/components/project-settings/settings-page-header"
 import SettingsSection from "@/components/project-settings/settings-section"
-import { StatusEditor } from "@/components/project-settings/status/editor"
 import { SortableStatusRow } from "@/components/project-settings/status/sortable-row"
 import { TemplateCard } from "@/components/project-settings/status/template-card"
 import {
@@ -34,7 +31,6 @@ function StatusSettings() {
   const [statuses, setStatuses] = useState<Status[]>(INITIAL_STATUSES)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState<Status | null>(null)
-  const [creating, setCreating] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } })
@@ -58,21 +54,13 @@ function StatusSettings() {
     cancel()
   }
 
-  function startCreate() {
-    setCreating(true)
-    setEditingId(null)
-    setDraft({ id: "new", name: "", color: "#94a3b8" })
-  }
-
   function startEdit(status: Status) {
     setEditingId(status.id)
-    setCreating(false)
     setDraft({ ...status })
   }
 
   function cancel() {
     setEditingId(null)
-    setCreating(false)
     setDraft(null)
   }
 
@@ -81,13 +69,8 @@ function StatusSettings() {
       toast.error("Status name is required")
       return
     }
-    if (creating) {
-      setStatuses((prev) => [...prev, { ...draft, id: String(Date.now()) }])
-      toast.success("Status created")
-    } else {
-      setStatuses((prev) => prev.map((s) => (s.id === draft.id ? draft : s)))
-      toast.success("Status updated")
-    }
+    setStatuses((prev) => prev.map((s) => (s.id === draft.id ? draft : s)))
+    toast.success("Status updated")
     cancel()
   }
 
@@ -101,12 +84,6 @@ function StatusSettings() {
       <SettingsPageHeader
         title="Statuses"
         description="Define task statuses for this project. Use a template to get started quickly."
-        // action={
-        //   <Button size="sm" onClick={startCreate} disabled={creating}>
-        //     <Plus />
-        //     Add status
-        //   </Button>
-        // }
       />
 
       <SettingsSection
@@ -129,16 +106,6 @@ function StatusSettings() {
         description="Click edit to modify a status. Deleting a status removes it from all tasks."
       >
         <ul className="divide-y rounded-lg">
-          {creating && draft && (
-            <li className="px-4 py-3">
-              <StatusEditor
-                draft={draft}
-                setDraft={setDraft}
-                onSave={save}
-                onCancel={cancel}
-              />
-            </li>
-          )}
           <DndContext
             sensors={sensors}
             onDragEnd={handleDragEnd}
@@ -163,7 +130,7 @@ function StatusSettings() {
               ))}
             </SortableContext>
           </DndContext>
-          {statuses.length === 0 && !creating && (
+          {statuses.length === 0 && (
             <li className="px-4 py-8 text-center text-sm italic text-muted-foreground">
               No statuses yet — apply a template or create one manually.
             </li>

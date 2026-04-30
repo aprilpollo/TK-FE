@@ -23,7 +23,7 @@ import {
   // sortableKeyboardCoordinates,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable"
-import { restrictToHorizontalAxis } from "@dnd-kit/modifiers"
+import { restrictToHorizontalAxis, restrictToParentElement } from "@dnd-kit/modifiers"
 import { KanbanColumn } from "@/components/kanban/column"
 import { KanbanCard } from "@/components/kanban/card"
 import { AddGroup } from "@/components/kanban/add-group"
@@ -36,6 +36,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
 
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const boardRef = useRef<HTMLDivElement>(null)
   const isDndDragging = useRef(false)
 
   useEffect(() => {
@@ -213,7 +214,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
 
   return (
     <ScrollArea ref={scrollAreaRef}>
-      <div className="flex h-[calc(100svh-160px)] space-x-4 px-1">
+      <div id="kanban-board" ref={boardRef} className="flex h-[calc(100svh-160px)] space-x-4 px-1">
         <DndContext
           sensors={sensors}
           collisionDetection={pointerWithin}
@@ -223,7 +224,20 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
           modifiers={[
             (args) => {
               if (args.active?.data.current?.type === "Column") {
-                return restrictToHorizontalAxis(args)
+                return restrictToParentElement({
+                  ...args,
+                  transform: restrictToHorizontalAxis(args),
+                })
+              }
+              if (args.active?.data.current?.type === "Task") {
+                if (!boardRef.current || !args.draggingNodeRect) return args.transform
+                const { top, right, bottom, left } = boardRef.current.getBoundingClientRect()
+                const { draggingNodeRect: n, transform: t } = args
+                return {
+                  ...t,
+                  x: Math.min(Math.max(t.x, left - n.left), right - n.right),
+                  y: Math.min(Math.max(t.y, top - n.top), bottom - n.bottom),
+                }
               }
               return args.transform
             },
