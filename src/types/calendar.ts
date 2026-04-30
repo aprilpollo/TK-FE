@@ -15,7 +15,7 @@ export type CalendarEvent = {
   category: EventCategory
   description?: string
   priority?: CalendarPriority
-  status: GroupingOption
+  status?: GroupingOption
 }
 
 export type GroupingOption = {

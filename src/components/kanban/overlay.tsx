@@ -29,19 +29,17 @@ export function CardOverlay({ task }: { task: Task }) {
             {task.description}
           </div>
           <div className="flex items-center gap-1">
-            {task.dueDate && (
+            {task.endDate && (
               <Badge
                 variant={
-                  task.dueDate
-                    ? new Date(task.dueDate) < new Date()
-                      ? "destructive"
-                      : "secondary"
+                  new Date(task.endDate) < new Date()
+                    ? "destructive"
                     : "secondary"
                 }
                 className="rounded-md"
               >
                 <CalendarClock className="size-3" />
-                {formatDatev2(task.dueDate)}
+                {formatDatev2(new Date(task.endDate))}
               </Badge>
             )}
             <Badge variant="secondary" className="rounded-md capitalize">
