@@ -77,7 +77,7 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
   const rounded = getSegmentRounded(arg.isStart, arg.isEnd, isMonth)
 
   const statusStyle = status?.color
-    ? { color: getContrastColor(status.color), backgroundColor: status.color }
+    ? { color: getContrastColor(status.color), backgroundColor: `${status.color}80` }
     : undefined
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -98,7 +98,7 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
     return (
       <>
         <Badge
-          variant="secondary"
+          variant="ghost"
           className={cn("w-full justify-start", rounded)}
           style={statusStyle}
           onMouseMove={handleMouseMove}
@@ -125,7 +125,7 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
   return (
     <>
       <Badge
-        variant="secondary"
+        variant="ghost"
         className={cn("h-full w-full items-start justify-start", rounded)}
         style={statusStyle}
         onMouseMove={handleMouseMove}

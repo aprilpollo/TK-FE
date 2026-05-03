@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -6,7 +7,6 @@ import { Camera, Dot } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
 import {
   Form,
   FormField,
@@ -19,48 +19,74 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
 import { AvatarInput } from "@/components/avatar-input"
-import { DatePicker } from "@/components/date-picker"
+import { fetchProjectStatuses } from "@/api/project"
+import { cn } from "@/lib/utils"
+import { PopoverDateTimePicker } from "@/components/date-picker"
 import SettingsPageHeader from "@/components/project-settings/settings-page-header"
 import SettingsSection from "@/components/project-settings/settings-section"
 import useProject from "@/hooks/useProject"
-import { cn } from "@/lib/utils"
-
-const PROJECT_STATUSES = [
-  { id: 1, name: "Active" },
-  { id: 2, name: "Inactive" },
-  { id: 3, name: "Completed" },
-  { id: 4, name: "Cancelled" },
-] as const
 
 const generalSchema = z.object({
   name: z.string().min(1, "Project name is required").max(60),
   description: z.string().max(280, "Keep it under 280 characters").optional(),
   status_id: z.number().int().min(1).max(4),
-  due_date: z.string().optional(),
+  due_date: z.object({ start: z.string(), end: z.string(), allDay: z.boolean() }).optional(),
 })
+
+type Status = {
+  id: number
+  name: string
+  description?: string
+}
 
 type GeneralFormValues = z.infer<typeof generalSchema>
 
 function GeneralSettings() {
   const { project } = useProject()
+  const [status, setStatus] = useState<Status[]>([])
 
-  const form = useForm<GeneralFormValues>({
+  const loadProjectStatuses = async () => {
+    try {
+      const response = await fetchProjectStatuses()
+      if (response.ok) {
+        const data = (await response.json()) as {
+          code: number
+          error: string | null
+          message: string
+          payload: Status[]
+        }
+        setStatus(data.payload)
+      } else {
+        console.error("Failed to fetch project statuses:", response.statusText)
+      }
+    } catch (error) {
+      console.error("Error fetching project statuses:", error)
+    }
+  }
+
+  useEffect(() => {
+    loadProjectStatuses()
+  }, [])
+
+  const form = useForm<GeneralFormValues, unknown, GeneralFormValues>({
     resolver: zodResolver(generalSchema),
     defaultValues: {
       name: project?.name ?? "",
       description: project?.description ?? "",
       status_id: project?.status?.id ?? 1,
-      due_date: project?.due_date ?? "",
+      due_date: project?.due_date ? { start: project.due_date, end: project.due_date, allDay: true } : undefined,
     },
   })
 
   async function onSubmit(values: GeneralFormValues) {
     try {
+      console.log("Submitting form with values:", values)
       await new Promise((r) => setTimeout(r, 600))
       toast.success("Project updated", { position: "top-center" })
       form.reset(values)
@@ -100,7 +126,7 @@ function GeneralSettings() {
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  // size="sm"
                   onClick={() => form.reset()}
                   disabled={!form.formState.isDirty}
                 >
@@ -108,7 +134,7 @@ function GeneralSettings() {
                 </Button>
                 <Button
                   type="submit"
-                  size="sm"
+                  // size="sm"
                   disabled={
                     form.formState.isSubmitting || !form.formState.isDirty
                   }
@@ -153,23 +179,6 @@ function GeneralSettings() {
                 )}
               />
 
-              <FormItem>
-                <FormLabel>Project key</FormLabel>
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={project?.key ?? ""}
-                    disabled
-                    className="max-w-40 font-mono uppercase"
-                  />
-                  <Badge variant="outline" className="text-xs">
-                    Read only
-                  </Badge>
-                </div>
-                <FormDescription>
-                  Used as a prefix for task IDs. Cannot be changed.
-                </FormDescription>
-              </FormItem>
-
               <FormField
                 control={form.control}
                 name="description"
@@ -190,71 +199,93 @@ function GeneralSettings() {
                   </FormItem>
                 )}
               />
-            </div>
-          </SettingsSection>
-
-          {/* Lifecycle */}
-          <SettingsSection
-            title="Lifecycle"
-            description="Track the project's current phase and target completion."
-          >
-            <div className="flex flex-col gap-4">
-              <FormField
-                control={form.control}
-                name="status_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select
-                      value={String(field.value)}
-                      onValueChange={(v) => field.onChange(Number(v))}
-                    >
+              {/* Lifecycle */}
+              <SettingsSection
+                title="Lifecycle"
+                description="Track the project's current phase and target completion."
+                className="space-y-3"
+              >
+                <FormField
+                  control={form.control}
+                  name="status_id"
+                  render={({ field }) => (
+                    <FormItem className="flex h-16 items-center justify-between rounded-md border px-4">
+                      <div>
+                        <FormLabel>Status</FormLabel>
+                        <FormDescription className="text-xs">
+                          Active, completed, or on hold? This helps keep
+                        </FormDescription>
+                      </div>
+                      <Select
+                        value={String(field.value)}
+                        onValueChange={(v) => field.onChange(Number(v))}
+                      >
+                        <FormControl>
+                          <SelectTrigger
+                            size="sm"
+                            className="cursor-pointer font-medium capitalize"
+                          >
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectGroup>
+                            {status.map((s) => (
+                              <SelectItem
+                                key={s.id}
+                                value={String(s.id)}
+                                className="cursor-pointer font-medium capitalize"
+                              >
+                                <div className="flex items-center gap-1">
+                                  <Dot
+                                    strokeWidth={12}
+                                    className={cn(
+                                      s.id === 1 && "text-green-700",
+                                      s.id === 2 && "text-sky-700",
+                                      s.id === 3 && "text-purple-700",
+                                      s.id === 4 && "text-red-700"
+                                    )}
+                                  />
+                                  {s.name}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="due_date"
+                  render={({ field }) => (
+                    <FormItem className="flex h-16 items-center justify-between rounded-md border px-4">
+                      <div>
+                        <FormLabel>Due date</FormLabel>
+                        <FormDescription className="text-xs">
+                          Set a target completion date to stay on track.
+                        </FormDescription>
+                      </div>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
+                        <PopoverDateTimePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Pick a due date"
+                          align="end"
+                          displayAllDaySwitch={false}
+                          buttonProps={{
+                            size: "sm",
+                            variant: "outline",
+                          }}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        {PROJECT_STATUSES.map((s) => (
-                          <SelectItem key={s.id} value={String(s.id)}>
-                            <div className="flex items-center">
-                              <Dot
-                                strokeWidth={12}
-                                className={cn(
-                                  s.id === 1 && "text-emerald-500",
-                                  s.id === 2 && "text-muted-foreground",
-                                  s.id === 3 && "text-blue-500",
-                                  s.id === 4 && "text-destructive"
-                                )}
-                              />
-                              {s.name}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="due_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Due date</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Pick a due date"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </SettingsSection>
             </div>
           </SettingsSection>
         </form>

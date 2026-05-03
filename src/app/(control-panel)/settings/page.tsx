@@ -65,7 +65,7 @@ function Settings() {
                     })}
                   >
                     {tab.icon && (
-                      <tab.icon className="size-4 text-muted-foreground" />
+                      <tab.icon className="size-4" />
                     )}
                     {tab.title}
                   </Button>

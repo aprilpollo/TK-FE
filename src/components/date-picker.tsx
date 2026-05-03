@@ -92,6 +92,8 @@ type DateTimePickerProps = {
   popoverProps?: ComponentPropsWithoutRef<typeof Popover>
   buttonProps?: ComponentPropsWithoutRef<typeof Button>
   footer?: React.ReactNode
+  align?: "start" | "center" | "end"
+  displayAllDaySwitch?: boolean
 }
 
 // ── helpers ──
@@ -142,6 +144,8 @@ export function PopoverDateTimePicker({
   buttonProps,
   popoverProps,
   footer,
+  align = "start",
+  displayAllDaySwitch = true,
 }: DateTimePickerProps = {}) {
   const today = new Date()
   const todayString = toDateString(today)
@@ -264,7 +268,7 @@ export function PopoverDateTimePicker({
           {triggerLabel}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 shadow-none" align="start">
+      <PopoverContent className="w-auto p-0 shadow-none" align={align}>
         <div className="flex">
           {allDay ? (
             <Calendar
@@ -302,18 +306,20 @@ export function PopoverDateTimePicker({
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t p-2">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="calendar-mode"
-              checked={allDay}
-              onCheckedChange={handleAllDayChange}
-              className="cursor-pointer"
-            />
-            <Label htmlFor="calendar-mode">All Day</Label>
+        {displayAllDaySwitch && (
+          <div className="flex items-center justify-between border-t p-2">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="calendar-mode"
+                checked={allDay}
+                onCheckedChange={handleAllDayChange}
+                className="cursor-pointer"
+              />
+              <Label htmlFor="calendar-mode">All Day</Label>
+            </div>
+            {footer}
           </div>
-          {footer}
-        </div>
+        )}
       </PopoverContent>
     </Popover>
   )

@@ -131,7 +131,7 @@ export function ColorSectionPopover({
         align="start"
         sideOffset={10}
         onOpenAutoFocus={(e) => e.preventDefault()}
-        className="absolute -left-1 shadow-none"
+        className="shadow-none"
       >
         <PopoverHeader className="">
           <PopoverTitle>Color</PopoverTitle>

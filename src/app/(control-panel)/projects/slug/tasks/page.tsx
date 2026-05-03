@@ -32,6 +32,7 @@ import { toast } from "sonner"
 import TaskContext from "@/context/TaskContext"
 import useProject from "@/hooks/useProject"
 import { Badge } from "@/components/ui/badge"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 function Tasks() {
   const { project } = useProject()
@@ -334,114 +335,120 @@ function Tasks() {
   }, [selectedPriority, selectedSort, search])
 
   return (
-    <div className="space-y-4 pt-4 px-2">
-      <header className="flex justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <div className="flex gap-2">
-            <div className="relative">
-              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search projects..."
-                className="w-64 pl-9"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-              />
-              {search && (
-                <button
-                  onClick={() => setSearchInput("")}
-                  className="absolute top-1/2 right-1 size-4 -translate-y-1/2 cursor-pointer text-muted-foreground"
-                >
-                  <X className="size-3" />
-                </button>
-              )}
-            </div>
-            <Select value={selectedSort} onValueChange={setSelectedSort}>
-              <SelectTrigger className="w-36 cursor-pointer">
-                <SelectValue placeholder="Sort by" />
-                {/* <Button
+    <div className="space-y-4">
+      <ScrollArea>
+        <header className="flex justify-between gap-2 px-3 pt-4 pb-1 ">
+          <div className="flex items-center gap-2">
+            <div className="flex gap-2">
+              <div className="relative">
+                <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search projects..."
+                  className="w-64 pl-9"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearchInput("")}
+                    className="absolute top-1/2 right-1 size-4 -translate-y-1/2 cursor-pointer text-muted-foreground"
+                  >
+                    <X className="size-3" />
+                  </button>
+                )}
+              </div>
+              <Select value={selectedSort} onValueChange={setSelectedSort}>
+                <SelectTrigger className="w-36 cursor-pointer">
+                  <SelectValue placeholder="Sort by" />
+                  {/* <Button
                   size="icon"
                   variant="ghost"
                   className="absolute top-1/2 right-5 size-6 -translate-y-1/2"
                 >
                   <X className="pointer-events-none size-4 text-muted-foreground" />
                 </Button> */}
-              </SelectTrigger>
-              <SelectContent position="popper">
-                <SelectGroup>
-                  <SelectLabel>Sort by</SelectLabel>
-                  <SelectItem value="title" className="cursor-pointer">
-                    <StickyNote className="size-3.5" />
-                    Name
-                  </SelectItem>
-                  <SelectItem value="due_date" className="cursor-pointer">
-                    <CalendarClock className="size-3.5" />
-                    Due Date
-                  </SelectItem>
-                  <SelectItem value="priority_id" className="cursor-pointer">
-                    <Flag className="size-3.5" />
-                    Priority
-                  </SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <Select
-              value={selectedPriority}
-              onValueChange={setSelectedPriority}
-            >
-              <SelectTrigger className="w-36 cursor-pointer capitalize">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent position="popper">
-                <SelectGroup>
-                  <SelectLabel>Priority</SelectLabel>
-                  {priority.map((p) => (
-                    <SelectItem
-                      key={p.id}
-                      value={p.id.toString()}
-                      className="cursor-pointer space-x-0 capitalize"
-                    >
-                      <Flag
-                        className="size-3.5"
-                        style={{ color: p.color, fill: p.color }}
-                      />
-                      {p.name}
+                </SelectTrigger>
+                <SelectContent position="popper">
+                  <SelectGroup>
+                    <SelectLabel>Sort by</SelectLabel>
+                    <SelectItem value="title" className="cursor-pointer">
+                      <StickyNote className="size-3.5" />
+                      Name
                     </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+                    <SelectItem value="due_date" className="cursor-pointer">
+                      <CalendarClock className="size-3.5" />
+                      Due Date
+                    </SelectItem>
+                    <SelectItem value="priority_id" className="cursor-pointer">
+                      <Flag className="size-3.5" />
+                      Priority
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Select
+                value={selectedPriority}
+                onValueChange={setSelectedPriority}
+              >
+                <SelectTrigger className="w-36 cursor-pointer capitalize">
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent position="popper">
+                  <SelectGroup>
+                    <SelectLabel>Priority</SelectLabel>
+                    {priority.map((p) => (
+                      <SelectItem
+                        key={p.id}
+                        value={p.id.toString()}
+                        className="cursor-pointer space-x-0 capitalize"
+                      >
+                        <Flag
+                          className="size-3.5"
+                          style={{ color: p.color, fill: p.color }}
+                        />
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedPriority && (
+              <Badge className="bg-blue-50 text-blue-700 capitalize dark:bg-blue-950 dark:text-blue-300">
+                {
+                  priority.find((p) => p.id.toString() === selectedPriority)
+                    ?.name
+                }
+                <button
+                  onClick={() => setSelectedPriority("")}
+                  className="cursor-pointer"
+                >
+                  <X className="size-3" />
+                </button>
+              </Badge>
+            )}
+            {selectedSort && (
+              <Badge className="bg-blue-50 text-blue-700 capitalize dark:bg-blue-950 dark:text-blue-300">
+                {selectedSort === "title" && "Name"}
+                {selectedSort === "due_date" && "Due Date"}
+                {selectedSort === "priority_id" && "Priority"}
+                <button
+                  onClick={() => setSelectedSort("")}
+                  className="cursor-pointer"
+                >
+                  <X className="size-3" />
+                </button>
+              </Badge>
+            )}
           </div>
-          {selectedPriority && (
-            <Badge className="bg-blue-50 text-blue-700 capitalize dark:bg-blue-950 dark:text-blue-300">
-              {priority.find((p) => p.id.toString() === selectedPriority)?.name}
-              <button
-                onClick={() => setSelectedPriority("")}
-                className="cursor-pointer"
-              >
-                <X className="size-3" />
-              </button>
-            </Badge>
-          )}
-          {selectedSort && (
-            <Badge className="bg-blue-50 text-blue-700 capitalize dark:bg-blue-950 dark:text-blue-300">
-              {selectedSort === "title" && "Name"}
-              {selectedSort === "due_date" && "Due Date"}
-              {selectedSort === "priority_id" && "Priority"}
-              <button
-                onClick={() => setSelectedSort("")}
-                className="cursor-pointer"
-              >
-                <X className="size-3" />
-              </button>
-            </Badge>
-          )}
-        </div>
-        <Button variant="secondary" className="cursor-pointer">
-          <Plus className="size-4" />
-          Add Task
-        </Button>
-      </header>
-      <div>
+          <Button variant="secondary" className="cursor-pointer">
+            <Plus className="size-4" />
+            Add Task
+          </Button>
+        </header>
+        <ScrollBar orientation="horizontal" className="hidden" />
+      </ScrollArea>
+      <div id="kanban-container">
         <TaskContext
           value={{
             tasks,

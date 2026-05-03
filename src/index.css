@@ -324,6 +324,9 @@ body #splash-screen {
   border-left: none;
 }
 
+.fc-daygrid-event:hover {
+  background-color: transparent !important;
+}
 
 @media (prefers-color-scheme: dark) {
   .moon-loader {

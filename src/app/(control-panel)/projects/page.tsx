@@ -113,7 +113,7 @@ function Projects() {
   }, [search, status])
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 px-3 py-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
@@ -172,7 +172,12 @@ function Projects() {
             projects.map((project) => (
               <TableRow key={project.id}>
                 <TableCell>
-                  <Link to={`/projects/${project.key}`} className="font-medium hover:underline">{project.name}</Link>
+                  <Link
+                    to={`/projects/${project.key}`}
+                    className="font-medium hover:underline"
+                  >
+                    {project.name}
+                  </Link>
                   <p className="text-sm text-muted-foreground">
                     {project.description}
                   </p>
@@ -184,9 +189,11 @@ function Projects() {
                       project.status.id === 1 &&
                         "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300",
                       project.status.id === 2 &&
-                        "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+                        "bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
                       project.status.id === 3 &&
-                        "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                        "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300",
+                      project.status.id === 4 &&
+                        "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300"
                     )}
                   >
                     <Dot strokeWidth={10} />

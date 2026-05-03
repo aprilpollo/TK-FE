@@ -214,7 +214,8 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
 
   return (
     <ScrollArea ref={scrollAreaRef}>
-      <div id="kanban-board" ref={boardRef} className="flex h-[calc(100svh-160px)] space-x-4 px-1">
+      <div id="kanban-board" ref={boardRef} className="flex h-[calc(100svh-160px)] space-x-3">
+        <div id="kanban-space" />
         <DndContext
           sensors={sensors}
           collisionDetection={pointerWithin}
@@ -254,7 +255,9 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
                 tasks={tasksByColumn.get(col.uuid) ?? []}
               />
             ))}
-            <AddGroup />
+            <div className="h-max w-xs sm:w-xl">
+              <AddGroup />
+            </div>
           </SortableContext>
 
           {typeof document !== "undefined" &&

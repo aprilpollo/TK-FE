@@ -20,7 +20,7 @@ function SettingsSection({
       className={cn(
         "rounded-lg",
         tone === "danger" && "border-destructive/40",
-        className
+        //className
       )}
     >
       {(title || description) && (
@@ -47,9 +47,9 @@ function SettingsSection({
           )}
         </header>
       )}
-      <div className="py-4">{children}</div>
+      <div className={cn("py-4", className)}>{children}</div>
       {footer && (
-        <div className="flex items-center justify-end gap-2 border-t py-3">
+        <div className="flex items-center justify-end gap-2 py-3">
           {footer}
         </div>
       )}

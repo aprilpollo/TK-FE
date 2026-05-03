@@ -11,6 +11,7 @@ import type { Status } from "./types"
 export function SortableStatusRow({
   status,
   isEditing,
+  isDelete,
   draft,
   setDraft,
   onEdit,
@@ -20,6 +21,7 @@ export function SortableStatusRow({
 }: {
   status: Status
   isEditing: boolean
+  isDelete: boolean
   draft: Status | null
   setDraft: (s: Status) => void
   onEdit: () => void
@@ -40,7 +42,11 @@ export function SortableStatusRow({
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
-      className={cn("px-4 py-3", isDragging && "opacity-50")}
+      className={cn(
+        "px-4",
+        isDragging && "opacity-50",
+        isEditing && "bg-secondary/50"
+      )}
     >
       {isEditing && draft ? (
         <StatusEditor
@@ -50,7 +56,7 @@ export function SortableStatusRow({
           onCancel={onCancel}
         />
       ) : (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 py-1">
           <button
             {...attributes}
             {...listeners}
@@ -82,6 +88,7 @@ export function SortableStatusRow({
             variant="ghost"
             size="icon-sm"
             aria-label="Delete status"
+            disabled={isDelete}
             onClick={onRemove}
           >
             <Trash2 className="text-destructive" />

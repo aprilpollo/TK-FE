@@ -11,7 +11,7 @@ function Overview() {
   const { project } = useProject()
 
   return (
-    <div className="container mx-auto max-w-7xl grid grid-cols-4 py-6">
+    <div className="grid grid-cols-4 py-6 px-3">
       <div className="col-span-4 p-4 md:col-span-3 md:p-0 md:pr-10">
         <header>
           <div className="flex items-center gap-2">

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { toast } from "sonner"
 import {
   DndContext,
@@ -19,22 +19,71 @@ import {
 import SettingsPageHeader from "@/components/project-settings/settings-page-header"
 import SettingsSection from "@/components/project-settings/settings-section"
 import { SortableStatusRow } from "@/components/project-settings/status/sortable-row"
-import { TemplateCard } from "@/components/project-settings/status/template-card"
 import {
-  INITIAL_STATUSES,
   STATUS_TEMPLATES,
   type Status,
   type StatusTemplate,
 } from "@/components/project-settings/status/types"
+import { fetchTaskStatuses, createListTaskStatus } from "@/api/task"
+import useProject from "@/hooks/useProject"
+import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 function StatusSettings() {
-  const [statuses, setStatuses] = useState<Status[]>(INITIAL_STATUSES)
+  const { project } = useProject()
+  if (!project) return <div>Loading...</div>
+  const [statuses, setStatuses] = useState<Status[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState<Status | null>(null)
+  const [isAdding, setIsAdding] = useState(false)
+  const [selectedTemplate, setSelectedTemplate] = useState("")
+  const apiStatusesRef = useRef<Status[]>([])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } })
   )
+
+  const FetchTaskStatuses = async () => {
+    try {
+      const response = await fetchTaskStatuses(project.id)
+      if (!response.ok) {
+        throw new Error("Failed to fetch task statuses")
+      }
+      const data = (await response.json()) as {
+        code: number
+        error: string | null
+        message: string
+        payload: {
+          id: number
+          uuid: string
+          name: string
+          color: string
+        }[]
+      }
+      const fetched = data.payload.map((s) => ({
+        id: s.id.toString(),
+        uuid: s.uuid,
+        name: s.name,
+        color: s.color,
+      }))
+      apiStatusesRef.current = fetched
+      setStatuses(fetched)
+    } catch (error) {
+      console.error("Error fetching task statuses:", error)
+    }
+  }
+
+  useEffect(() => {
+    FetchTaskStatuses()
+  }, [project])
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
@@ -47,10 +96,10 @@ function StatusSettings() {
   }
 
   function applyTemplate(template: StatusTemplate) {
-    setStatuses(
-      template.statuses.map((s, i) => ({ ...s, id: String(Date.now() + i) }))
-    )
-    toast.success(`Applied "${template.name}" template`)
+    setStatuses([
+      ...apiStatusesRef.current,
+      ...template.statuses.map((s) => ({ ...s, id: crypto.randomUUID() })),
+    ])
     cancel()
   }
 
@@ -59,7 +108,23 @@ function StatusSettings() {
     setDraft({ ...status })
   }
 
+  function addStatus() {
+    const newStatus: Status = {
+      id: crypto.randomUUID(),
+      name: "",
+      color: "#94a3b8",
+    }
+    setStatuses((prev) => [...prev, newStatus])
+    setEditingId(newStatus.id)
+    setDraft(newStatus)
+    setIsAdding(true)
+  }
+
   function cancel() {
+    if (isAdding && editingId) {
+      setStatuses((prev) => prev.filter((s) => s.id !== editingId))
+    }
+    setIsAdding(false)
     setEditingId(null)
     setDraft(null)
   }
@@ -70,13 +135,28 @@ function StatusSettings() {
       return
     }
     setStatuses((prev) => prev.map((s) => (s.id === draft.id ? draft : s)))
-    toast.success("Status updated")
-    cancel()
+    toast.success(isAdding ? "Status added" : "Status updated")
+    setIsAdding(false)
+    setEditingId(null)
+    setDraft(null)
   }
 
   function remove(id: string) {
     setStatuses((prev) => prev.filter((s) => s.id !== id))
-    toast.success("Status deleted")
+  }
+
+  async function submit() {
+    if (!project) return
+    try {
+      await createListTaskStatus({
+        project_id: project.id,
+        statuses,
+      })
+      toast.success("Statuses saved")
+    } catch (error) {
+      console.error("Error saving statuses:", error)
+      toast.error("Failed to save statuses")
+    }
   }
 
   return (
@@ -87,24 +167,50 @@ function StatusSettings() {
       />
 
       <SettingsSection
-        title="Templates"
-        description="Apply a preset to quickly configure your project statuses. This will replace your existing statuses."
-      >
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {STATUS_TEMPLATES.map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              onApply={() => applyTemplate(template)}
-            />
-          ))}
-        </div>
-      </SettingsSection>
-
-      <SettingsSection
         title={`${statuses.length} status${statuses.length !== 1 ? "es" : ""}`}
         description="Click edit to modify a status. Deleting a status removes it from all tasks."
+        footer={
+          <div className="flex justify-end gap-1 px-2">
+            <Button size="sm" variant="secondary">
+              Cancel
+            </Button>
+            <Button size="sm" onClick={submit}>
+              Save
+            </Button>
+          </div>
+        }
       >
+        <div className="mb-4 flex items-center justify-end gap-2 px-2">
+          <Select
+            value={selectedTemplate}
+            onValueChange={(value) => {
+              setSelectedTemplate(value)
+              const template = STATUS_TEMPLATES.find((t) => t.id === value)
+              if (template) applyTemplate(template)
+            }}
+          >
+            <SelectTrigger className="w-full max-w-48 cursor-pointer" size="sm">
+              <SelectValue placeholder="Template" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Templates</SelectLabel>
+                {STATUS_TEMPLATES.map((template) => (
+                  <SelectItem
+                    key={template.id}
+                    value={template.id}
+                    className="cursor-pointer"
+                  >
+                    {template.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Button size="sm" onClick={addStatus}>
+            Add Status
+          </Button>
+        </div>
         <ul className="divide-y rounded-lg">
           <DndContext
             sensors={sensors}
@@ -120,6 +226,7 @@ function StatusSettings() {
                   key={status.id}
                   status={status}
                   isEditing={editingId === status.id}
+                  isDelete={status.uuid ? true : false}
                   draft={draft}
                   setDraft={setDraft}
                   onEdit={() => startEdit(status)}
@@ -131,7 +238,7 @@ function StatusSettings() {
             </SortableContext>
           </DndContext>
           {statuses.length === 0 && (
-            <li className="px-4 py-8 text-center text-sm italic text-muted-foreground">
+            <li className="px-4 py-8 text-center text-sm text-muted-foreground italic">
               No statuses yet — apply a template or create one manually.
             </li>
           )}

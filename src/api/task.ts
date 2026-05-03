@@ -47,6 +47,24 @@ export async function createTaskStatus({
   })
 }
 
+export async function createListTaskStatus({
+  project_id,
+  statuses,
+}: {
+  project_id: string | number
+  statuses: {
+    uuid?: string
+    name: string
+    description?: string
+    color: string
+  }[]
+}): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/statuses/list/${project_id}`, {
+    method: "POST",
+    body: JSON.stringify(statuses),
+  })
+}
+
 export async function reorderStatus({
   project_id,
   updates,

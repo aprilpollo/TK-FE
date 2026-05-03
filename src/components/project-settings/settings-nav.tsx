@@ -2,13 +2,22 @@ import { useLocation } from "react-router"
 import {
   AlertTriangle,
   Bell,
-  CircleDot,
+  GitMerge,
+  Menu,
   Plug,
   SlidersHorizontal,
-  Tags,
   Users,
   type LucideIcon,
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import Link from "@/shared/Link"
 import { cn } from "@/lib/utils"
 
@@ -22,8 +31,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { to: "general", label: "General", icon: SlidersHorizontal },
   { to: "members", label: "Members", icon: Users, group: "access" },
-  { to: "tags", label: "Labels & Tags", icon: Tags, group: "workflow" },
-  { to: "status", label: "Statuses", icon: CircleDot, group: "workflow" },
+  { to: "status", label: "Statuses", icon: GitMerge, group: "workflow" },
   {
     to: "notifications",
     label: "Notifications",
@@ -40,28 +48,28 @@ const GROUP_LABELS: Record<NonNullable<NavItem["group"]>, string> = {
   danger: "Advanced",
 }
 
-function SettingsNav({ basePath }: { basePath: string }) {
+const Grouped = NAV_ITEMS.reduce<Record<string, NavItem[]>>((acc, item) => {
+  const key = item.group ?? "_"
+  acc[key] ??= []
+  acc[key].push(item)
+  return acc
+}, {})
+
+const Order = ["_", "access", "workflow", "danger"] as const
+
+export function SettingsNav({ basePath }: { basePath: string }) {
   const location = useLocation()
 
-  const grouped = NAV_ITEMS.reduce<Record<string, NavItem[]>>((acc, item) => {
-    const key = item.group ?? "_"
-    acc[key] ??= []
-    acc[key].push(item)
-    return acc
-  }, {})
-
-  const order = ["_", "access", "workflow", "danger"] as const
-
   return (
-    <nav className="sticky top-4 space-y-4 text-sm">
-      {order.map((key) => {
-        const items = grouped[key]
+    <nav className="">
+      {Order.map((key) => {
+        const items = Grouped[key]
         if (!items?.length) return null
 
         return (
           <div key={key}>
             {key !== "_" && (
-              <p className="mb-1 px-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              <p className="mt-2 mb-1 px-3 text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
                 {GROUP_LABELS[key as keyof typeof GROUP_LABELS]}
               </p>
             )}
@@ -73,21 +81,20 @@ function SettingsNav({ basePath }: { basePath: string }) {
 
                 return (
                   <li key={item.to}>
-                    <Link
-                      to={href}
-                      className={cn(
-                        "flex items-center gap-2 rounded-md px-3 py-1.5 transition-colors",
-                        active
-                          ? "bg-muted font-medium text-neutral-900 dark:bg-muted/60 dark:text-neutral-100"
-                          : "text-muted-foreground hover:bg-muted/60 hover:text-neutral-800 dark:hover:text-neutral-200",
-                        isDanger &&
-                          !active &&
-                          "hover:bg-destructive/10 hover:text-destructive",
-                        isDanger && active && "text-destructive"
-                      )}
-                    >
-                      <item.icon className="size-4" />
-                      <span>{item.label}</span>
+                    <Link to={href}>
+                      <Button
+                        variant="ghost"
+                        className={cn("w-full cursor-pointer justify-start", {
+                          "bg-muted dark:bg-muted/50": active,
+                          "bg-destructive/10 dark:bg-destructive/50":
+                            active && isDanger,
+                          "text-destructive hover:bg-destructive/10 hover:text-destructive":
+                            isDanger,
+                        })}
+                      >
+                        {item.icon && <item.icon className="size-4" />}
+                        {item.label}
+                      </Button>
                     </Link>
                   </li>
                 )
@@ -100,4 +107,64 @@ function SettingsNav({ basePath }: { basePath: string }) {
   )
 }
 
-export default SettingsNav
+export function SettingsNavDropdown({ basePath }: { basePath: string }) {
+  let location = useLocation()
+  let currentLabel = NAV_ITEMS.find((item) =>
+    location.pathname.split("/").pop()?.includes(item.to)
+  )
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild className="">
+        <Button variant="ghost">
+          {currentLabel ? (
+            <>
+              {currentLabel.icon && <currentLabel.icon className="size-4" />}
+              {currentLabel.label}
+            </>
+          ) : (
+            <>
+              <Menu className="size-4" />
+            </>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-48">
+        {Order.map((key) => {
+          const items = Grouped[key]
+          if (!items?.length) return null
+
+          return (
+            <DropdownMenuGroup key={key}>
+              {key !== "_" && (
+                <DropdownMenuLabel>
+                  {GROUP_LABELS[key as keyof typeof GROUP_LABELS]}
+                </DropdownMenuLabel>
+              )}
+              {items.map((item) => {
+                const href = `${basePath}/${item.to}`
+                const active = location.pathname === href
+                const isDanger = item.group === "danger"
+                return (
+                  <Link key={item.to} to={href}>
+                    <DropdownMenuItem
+                      variant={isDanger ? "destructive" : "default"}
+                      className={cn({
+                        "bg-muted dark:bg-muted/50": active,
+                        "bg-destructive/10 dark:bg-destructive/50":
+                          active && isDanger,
+                      })}
+                    >
+                      {item.icon && <item.icon className="me-2 size-4" />}
+                      {item.label}
+                    </DropdownMenuItem>
+                  </Link>
+                )
+              })}
+            </DropdownMenuGroup>
+          )
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}

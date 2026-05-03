@@ -38,7 +38,7 @@ export function AddGroup() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="cursor-pointer rounded-sm">
+        <Button variant="ghost" size="sm" className="cursor-pointer rounded-sm w-max">
           <Plus />
           Add Status
         </Button>

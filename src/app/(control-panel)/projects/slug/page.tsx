@@ -3,6 +3,7 @@ import { useLocation, useParams, Outlet, useNavigate } from "react-router"
 import { fetchProjectByKey } from "@/api/project"
 import { Helmet } from "react-helmet-async"
 import { Button } from "@/components/ui/button"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import {
   Archive,
@@ -77,13 +78,13 @@ function Slug() {
           {project?.name ? `${project.name} | Project` : "Project Details"}
         </title>
       </Helmet>
-      <nav className="border-b bg-background px-2 pt-4">
+      <nav className="border-b bg-background sm:px-2 pt-4">
+        <ScrollArea>
         <ul className="flex items-center">
           {tabs.map((tab) => (
             <li key={tab.path}>
               <Link to={tab.path}>
                 <Button
-                  //variant={isTabActive(tab.path) ? "secondary" : "ghost"}
                   variant="ghost"
                   size="sm"
                   className="cursor-pointer rounded-sm"
@@ -106,14 +107,14 @@ function Slug() {
             </li>
           ))}
         </ul>
+        <ScrollBar orientation="horizontal" className="hidden"/>
+        </ScrollArea>
       </nav>
-      {/* <ScrollArea className="h-[calc(100vh-95px)]"> */}
-        <main className="">
+        <main id="project-content">
           <ProjectContext value={{ project, setProject, isLoading }}>
             <Outlet />
           </ProjectContext>
         </main>
-      {/* </ScrollArea> */}
     </>
   )
 }
