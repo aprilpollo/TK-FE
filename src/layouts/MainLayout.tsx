@@ -1,4 +1,4 @@
-import { memo, type ReactNode } from "react"
+import { memo, useMemo, type ReactNode } from "react"
 import { type LayoutConfigDefaultsType } from "@/layouts/configs/LayoutConfig"
 import { Outlet } from "react-router"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
@@ -24,11 +24,24 @@ function MainLayout(props: LayoutProps) {
   const showNavebar = config?.navbar?.display !== false
   const showSidebar = config?.leftSidePanel?.display !== false
   const pageMeta = currentSettings?.page
+  
+  const sidebar_state = useMemo(
+    () =>
+      document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("sidebar_state="))
+        ?.split("=")[1] === "true",
+    []
+  )
 
   return (
     <>
       <Helmet>
-        <title>{pageMeta?.title ? `${pageMeta.title} | Task Manager` : "Task Manager"}</title>
+        <title>
+          {pageMeta?.title
+            ? `${pageMeta.title} | Task Manager`
+            : "Task Manager"}
+        </title>
         {pageMeta?.description && (
           <meta name="description" content={pageMeta.description} />
         )}
@@ -36,16 +49,13 @@ function MainLayout(props: LayoutProps) {
           <meta name="keywords" content={pageMeta.keywords} />
         )}
       </Helmet>
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={sidebar_state ?? false}>
         {showSidebar && <AppSidebar />}
         <SidebarInset>
           {showNavebar && <AppHeader showSidebar={showSidebar} />}
           <main className="@container/main bg-background">
             {children}
             <Outlet />
-            {/* <Suspense fallback={<Loading />}>
-              <Outlet />
-            </Suspense> */}
           </main>
         </SidebarInset>
       </SidebarProvider>

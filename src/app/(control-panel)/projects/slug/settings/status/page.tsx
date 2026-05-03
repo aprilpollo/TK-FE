@@ -37,6 +37,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+const randomId = () =>
+  Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
+
 function StatusSettings() {
   const { project } = useProject()
   if (!project) return <div>Loading...</div>
@@ -96,11 +99,14 @@ function StatusSettings() {
   }
 
   function applyTemplate(template: StatusTemplate) {
-    setStatuses([
+setStatuses([
       ...apiStatusesRef.current,
-      ...template.statuses.map((s) => ({ ...s, id: crypto.randomUUID() })),
+      ...template.statuses.map((s) => ({ ...s, id: randomId() })),
     ])
-    cancel()
+    setSelectedTemplate("")
+    setIsAdding(false)
+    setEditingId(null)
+    setDraft(null)
   }
 
   function startEdit(status: Status) {
@@ -110,7 +116,7 @@ function StatusSettings() {
 
   function addStatus() {
     const newStatus: Status = {
-      id: crypto.randomUUID(),
+      id: randomId(),
       name: "",
       color: "#94a3b8",
     }

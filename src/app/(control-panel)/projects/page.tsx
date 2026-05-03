@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
@@ -19,11 +20,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import Link from "@/shared/Link"
 import { Dot, LoaderCircle, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { formatDate } from "@/utils/date"
+import { format } from "date-fns"
 import { fetchProjects, fetchProjectStatuses } from "@/api/project"
+import Link from "@/shared/Link"
 import NewProjectDialog from "@/components/new-project-dialog"
 
 type Project = {
@@ -32,8 +33,9 @@ type Project = {
   name: string
   description?: string
   status: StatusFilter
-  due_date?: string
-  created_at: string
+  start_date?: number
+  end_date?: number
+  logo_url?: string
 }
 
 type StatusFilter = {
@@ -163,8 +165,8 @@ function Projects() {
           <TableRow className="hover:bg-transparent">
             <TableHead>Name</TableHead>
             <TableHead className="w-44">Status</TableHead>
-            <TableHead className="w-44">Due Date</TableHead>
-            <TableHead className="w-44">Created At</TableHead>
+            <TableHead className="w-44">Start Date</TableHead>
+            <TableHead className="w-44">End Date</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -174,13 +176,23 @@ function Projects() {
                 <TableCell>
                   <Link
                     to={`/projects/${project.key}`}
-                    className="font-medium hover:underline"
+                    className="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
                   >
-                    {project.name}
+                    <Avatar className="h-8 w-8 rounded-lg">
+                      <AvatarImage src={project?.logo_url} />
+                      <AvatarFallback className="rounded-lg">
+                        {project?.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-medium">
+                        {project?.name}
+                      </span>
+                      <span className="truncate text-xs text-muted-foreground">
+                        {project?.description}
+                      </span>
+                    </div>
                   </Link>
-                  <p className="text-sm text-muted-foreground">
-                    {project.description}
-                  </p>
                 </TableCell>
                 <TableCell>
                   <Badge
@@ -200,13 +212,15 @@ function Projects() {
                     {project.status.name}
                   </Badge>
                 </TableCell>
-                <TableCell>
-                  <p className="font-medium">{formatDate(project.due_date)}</p>
+                <TableCell className="font-medium">
+                  {project.start_date
+                    ? format(project.start_date, "PP")
+                    : "--/--/----"}
                 </TableCell>
-                <TableCell>
-                  <p className="font-medium">
-                    {formatDate(project.created_at)}
-                  </p>
+                <TableCell className="font-medium">
+                  {project.end_date
+                    ? format(project.end_date, "PP")
+                    : "--/--/----"}
                 </TableCell>
               </TableRow>
             ))}

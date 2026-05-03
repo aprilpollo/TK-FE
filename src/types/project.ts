@@ -11,8 +11,8 @@ export type Project = {
   description?: string
   logo_url?: string
   status: ProjectStatus
-  due_date?: string
-  created_at: string
+  start_date?: number
+  end_date?: number
 }
 
 export type ProjectContextType = {

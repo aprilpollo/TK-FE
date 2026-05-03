@@ -23,7 +23,7 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form"
-import { DatePicker } from "@/components/date-picker"
+import { PopoverDateTimePicker } from "@/components/date-picker"
 import { createProject } from "@/api/project"
 
 type Props = {
@@ -38,7 +38,9 @@ const schema = z.object({
     .string()
     .max(500, "Description must be 500 characters or less")
     .optional(),
-  due_date: z.string().optional(),
+  due_date: z
+    .object({ start: z.string(), end: z.string(), allDay: z.boolean() })
+    .optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -49,7 +51,6 @@ function NewProjectDialog({ open, onOpenChange, onCreated }: Props) {
     defaultValues: {
       name: "",
       description: "",
-      due_date: "",
     },
   })
 
@@ -58,7 +59,12 @@ function NewProjectDialog({ open, onOpenChange, onCreated }: Props) {
       const res = await createProject({
         name: values.name,
         description: values.description || undefined,
-        due_date: values.due_date ? `${values.due_date}T00:00:00Z` : undefined,
+        start_date: values.due_date
+          ? new Date(values.due_date.start).getTime()
+          : undefined,
+        end_date: values.due_date
+          ? new Date(values.due_date.end).getTime()
+          : undefined,
       })
 
       if (!res.ok) {
@@ -139,21 +145,28 @@ function NewProjectDialog({ open, onOpenChange, onCreated }: Props) {
 
             {/* Status & Due Date */}
             <FormField
-                control={form.control}
-                name="due_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Due Date</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              control={form.control}
+              name="due_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Due Date</FormLabel>
+                  <FormControl>
+                    <PopoverDateTimePicker
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Pick a due date"
+                      displayAllDaySwitch={false}
+                      buttonProps={{
+                        size: "sm",
+                        variant: "outline",
+                        className: "w-max justify-start",
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter className="pt-2">
               <Button

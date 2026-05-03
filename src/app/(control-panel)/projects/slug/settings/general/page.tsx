@@ -25,9 +25,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { AvatarInput } from "@/components/avatar-input"
-import { fetchProjectStatuses } from "@/api/project"
+import { fetchProjectStatuses, updateProject, updateLogo } from "@/api/project"
 import { cn } from "@/lib/utils"
 import { PopoverDateTimePicker } from "@/components/date-picker"
+import { toDateTimeStringFromUnixMs } from "@/utils/date"
 import SettingsPageHeader from "@/components/project-settings/settings-page-header"
 import SettingsSection from "@/components/project-settings/settings-section"
 import useProject from "@/hooks/useProject"
@@ -36,7 +37,9 @@ const generalSchema = z.object({
   name: z.string().min(1, "Project name is required").max(60),
   description: z.string().max(280, "Keep it under 280 characters").optional(),
   status_id: z.number().int().min(1).max(4),
-  due_date: z.object({ start: z.string(), end: z.string(), allDay: z.boolean() }).optional(),
+  due_date: z
+    .object({ start: z.string(), end: z.string(), allDay: z.boolean() })
+    .optional(),
 })
 
 type Status = {
@@ -80,13 +83,32 @@ function GeneralSettings() {
       name: project?.name ?? "",
       description: project?.description ?? "",
       status_id: project?.status?.id ?? 1,
-      due_date: project?.due_date ? { start: project.due_date, end: project.due_date, allDay: true } : undefined,
+      due_date:
+        project?.start_date && project.end_date
+          ? {
+              start: toDateTimeStringFromUnixMs(project.start_date),
+              end: toDateTimeStringFromUnixMs(project.end_date),
+              allDay: true,
+            }
+          : undefined,
     },
   })
 
   async function onSubmit(values: GeneralFormValues) {
+    if (!project) return
     try {
       console.log("Submitting form with values:", values)
+      await updateProject(project?.id, {
+        name: values.name,
+        description: values.description,
+        start_date: values.due_date?.start
+          ? new Date(values.due_date.start).getTime()
+          : undefined,
+        end_date: values.due_date?.end
+          ? new Date(values.due_date.end).getTime()
+          : undefined,
+        status_id: values.status_id,
+      })
       await new Promise((r) => setTimeout(r, 600))
       toast.success("Project updated", { position: "top-center" })
       form.reset(values)
@@ -95,16 +117,19 @@ function GeneralSettings() {
     }
   }
 
-  async function onAvatarChange(_: {
+  async function onAvatarChange(data: {
     blob: Blob
     file: File
     previewUrl: string
   }) {
+     if (!project) return
     try {
-      await new Promise((r) => setTimeout(r, 400))
-      toast.success("Avatar updated")
+      await updateLogo(project?.id, data.file)
+      toast.success("Logo updated successfully", { position: "top-center" })
     } catch {
-      toast.error("Failed to update avatar")
+      toast.error("Failed to update logo. Please try again.", {
+        position: "top-center",
+      })
     }
   }
 
