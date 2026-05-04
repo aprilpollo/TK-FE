@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -12,41 +20,60 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Dot, LoaderCircle, Search } from "lucide-react"
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+import { CalendarClock, Dot, Plus, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { fetchProjects, fetchProjectStatuses } from "@/api/project"
+import { SkeletonProject } from "@/components/project/skeleton"
+import { EmptyProject } from "@/components/project/empty"
+import { getPageNumbers } from "@/utils/pagination"
+import type { Project, Pagination as PaginationType, ProjectStatus } from "@/types"
 import Link from "@/shared/Link"
 import NewProjectDialog from "@/components/new-project-dialog"
 
-type Project = {
-  id: number
-  key: string
-  name: string
-  description?: string
-  status: StatusFilter
-  start_date?: number
-  end_date?: number
-  logo_url?: string
+function mockSparkData(seed: number, count = 14): number[] {
+  let s = seed
+  return Array.from({ length: count }, () => {
+    s = (s * 1664525 + 1013904223) & 0x7fffffff
+    return s % 100
+  })
 }
 
-type StatusFilter = {
-  id: number
-  name: string
-  description?: string
+function Sparkline({ data, color }: { data: number[]; color: string }) {
+  const w = 120
+  const h = 40
+  const max = Math.max(...data)
+  const min = Math.min(...data)
+  const range = max - min || 1
+  const step = w / (data.length - 1)
+  const pts = data.map((v, i) => `${i * step},${h - ((v - min) / range) * (h - 4) - 2}`).join(" ")
+  return (
+    <svg width={w} height={h} className="shrink-0">
+      <polyline fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" points={pts} />
+    </svg>
+  )
+}
+
+const STATUS_COLOR: Record<number, string> = {
+  1: "#15803d",
+  2: "#0369a1",
+  3: "#7e22ce",
+  4: "#b91c1c",
 }
 
 function Projects() {
-  const [statusFilter, setStatusFilter] = useState<StatusFilter[]>([])
+  const [statusFilter, setStatusFilter] = useState<ProjectStatus[]>([])
   const [projects, setProjects] = useState<Project[]>([])
+  const [pagination, setPagination] = useState<PaginationType | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
   const [searchInput, setSearchInput] = useState("")
   const [search, setSearch] = useState("")
   const [status, setStatus] = useState("")
@@ -61,7 +88,7 @@ function Projects() {
           code: number
           error: string | null
           message: string
-          payload: StatusFilter[]
+          payload: ProjectStatus[]
         }
         setStatusFilter(data.payload)
       } else {
@@ -72,22 +99,25 @@ function Projects() {
     }
   }
 
-  const loadProjects = async () => {
+  const loadProjects = async (page = 1) => {
     try {
       setLoading(true)
       const query = new URLSearchParams()
       if (search) query.append("name_contains", search)
       if (status) query.append("status_id", status)
+      query.append("_page", page.toString())
 
-      const response = await fetchProjects(query.toString()) // Example query to fetch active projects
+      const response = await fetchProjects(query.toString())
       if (response.ok) {
         const data = (await response.json()) as {
           code: number
           error: string | null
           message: string
+          pagination: PaginationType
           payload: Project[]
         }
         setProjects(data.payload)
+        setPagination(data.pagination)
       } else {
         console.error("Failed to fetch projects:", response.statusText)
       }
@@ -96,6 +126,12 @@ function Projects() {
     } finally {
       setTimeout(() => setLoading(false), 300)
     }
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    loadProjects(page)
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   useEffect(() => {
@@ -111,38 +147,34 @@ function Projects() {
   }, [])
 
   useEffect(() => {
-    loadProjects()
+    setCurrentPage(1)
+    loadProjects(1)
   }, [search, status])
 
   return (
     <div className="flex flex-col gap-6 px-3 py-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            {projects.length} projects total
+            {pagination?.total ?? projects.length} projects total
           </p>
         </div>
-        <NewProjectDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          onCreated={loadProjects}
-        />
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative">
+      <div className="sticky top-2 z-10 flex items-center gap-2 bg-background">
+        <div className="relative w-full">
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search projects..."
-            className="w-64 pl-9"
+            className="pl-9"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
         <Select onValueChange={setStatus}>
-          <SelectTrigger className="w-full max-w-48 cursor-pointer capitalize">
-            <SelectValue placeholder="Filter by status" />
+          <SelectTrigger className="w-44 cursor-pointer capitalize">
+            <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent position="popper">
             <SelectGroup>
@@ -153,92 +185,194 @@ function Projects() {
                   value={status.id.toString()}
                   className="cursor-pointer capitalize"
                 >
+                  <Dot
+                    strokeWidth={12}
+                    className={cn(
+                      status.id === 1 && "text-green-700",
+                      status.id === 2 && "text-sky-700",
+                      status.id === 3 && "text-purple-700",
+                      status.id === 4 && "text-red-700"
+                    )}
+                  />
                   {status.name}
                 </SelectItem>
               ))}
             </SelectGroup>
           </SelectContent>
         </Select>
+        <Select>
+          <SelectTrigger className="w-44 cursor-pointer capitalize">
+            <SelectValue placeholder="Sort" />
+          </SelectTrigger>
+          <SelectContent position="popper">
+            <SelectGroup>
+              <SelectLabel>Sort</SelectLabel>
+              <SelectItem value="name" className="cursor-pointer capitalize">
+                Name
+              </SelectItem>
+              <SelectItem
+                value="recently_updated"
+                className="cursor-pointer capitalize"
+              >
+                Recently updated
+              </SelectItem>
+              <SelectItem
+                value="due_date"
+                className="cursor-pointer capitalize"
+              >
+                Due date
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <NewProjectDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          onCreated={loadProjects}
+        />
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead>Name</TableHead>
-            <TableHead className="w-44">Status</TableHead>
-            <TableHead className="w-44">Start Date</TableHead>
-            <TableHead className="w-44">End Date</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {!loading &&
-            projects.map((project) => (
-              <TableRow key={project.id}>
-                <TableCell>
-                  <Link
-                    to={`/projects/${project.key}`}
-                    className="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
-                  >
-                    <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src={project?.logo_url} />
-                      <AvatarFallback className="rounded-lg">
-                        {project?.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-medium">
-                        {project?.name}
-                      </span>
-                      <span className="truncate text-xs text-muted-foreground">
-                        {project?.description}
-                      </span>
-                    </div>
-                  </Link>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    className={cn(
-                      "rounded-sm capitalize",
-                      project.status.id === 1 &&
-                        "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300",
-                      project.status.id === 2 &&
-                        "bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
-                      project.status.id === 3 &&
-                        "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300",
-                      project.status.id === 4 &&
-                        "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300"
-                    )}
-                  >
-                    <Dot strokeWidth={10} />
-                    {project.status.name}
-                  </Badge>
-                </TableCell>
-                <TableCell className="font-medium">
-                  {project.start_date
-                    ? format(project.start_date, "PP")
-                    : "--/--/----"}
-                </TableCell>
-                <TableCell className="font-medium">
-                  {project.end_date
-                    ? format(project.end_date, "PP")
-                    : "--/--/----"}
-                </TableCell>
-              </TableRow>
+
+      <main id="projects-list">
+        {loading ? (
+          <div className="space-y-4">
+            {Array.from({ length: 10 }).map((_, index) => (
+              <SkeletonProject key={index} />
             ))}
-        </TableBody>
-        <TableCaption>
-          {loading && (
-            <div className="flex items-center justify-center gap-1 text-muted-foreground">
-              <LoaderCircle className="size-4 animate-spin" />
-              Loading projects...
-            </div>
-          )}
-          {!loading && projects.length === 0 && (
-            <div className="flex items-center justify-center gap-1 text-muted-foreground">
-              No projects found. Try adjusting your search or filter.
-            </div>
-          )}
-        </TableCaption>
-      </Table>
+          </div>
+        ) : (
+          projects.map((project) => (
+            <Link key={project.key} to={`/projects/${project.key}`}>
+              <Card className="rounded-none border-b bg-background ring-0">
+                <div className="flex items-center gap-4 px-6 py-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 font-semibold">
+                      <Avatar className="size-6">
+                        <AvatarImage src={project.logo_url} />
+                        <AvatarFallback>
+                          {project.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      {project.name}
+                      <Badge variant="outline" className="font-medium capitalize">
+                        <Dot
+                          strokeWidth={12}
+                          className={cn(
+                            project.status.id === 1 && "text-green-700",
+                            project.status.id === 2 && "text-sky-700",
+                            project.status.id === 3 && "text-purple-700",
+                            project.status.id === 4 && "text-red-700"
+                          )}
+                        />
+                        {project.status.name}
+                      </Badge>
+                    </div>
+                    {project.description && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {project.description}
+                      </p>
+                    )}
+                    {project.start_date && project.end_date && (
+                      <span className="mt-1 flex gap-1 text-xs text-muted-foreground">
+                        <CalendarClock className="size-3.5" />
+                        {format(project.start_date, "PP")} -{" "}
+                        {format(project.end_date, "PP")}
+                      </span>
+                    )}
+                  </div>
+                  <Sparkline
+                    data={mockSparkData(project.id)}
+                    color={STATUS_COLOR[project.status.id] ?? "#15803d"}
+                  />
+                </div>
+              </Card>
+            </Link>
+          ))
+        )}
+        {projects.length === 0 && !loading && (
+          <EmptyProject
+            message={(() => {
+              if (status || search) {
+                let msg = "No projects"
+                if (status) {
+                  const statusName =
+                    statusFilter.find((s) => s.id.toString() === status)?.name ?? ""
+                  msg += ` with status "${statusName.replace(/^\w/, (c) => c.toUpperCase())}"`
+                }
+                if (search) {
+                  msg += status ? " and" : ""
+                  msg += ` matching "${search}"`
+                }
+                msg += " found."
+                return msg
+              }
+              return undefined
+            })()}
+            onAction={
+              !status &&
+              !search && (
+                <Button onClick={() => setDialogOpen(true)} size="sm">
+                  <Plus className="size-3" />
+                  New Project
+                </Button>
+              )
+            }
+          />
+        )}
+        {pagination && pagination.total > pagination.limit && (
+          <Pagination className="pt-6">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handlePageChange(currentPage - 1)
+                  }}
+                  className={cn(
+                    "cursor-pointer",
+                    currentPage === 1 && "pointer-events-none opacity-50"
+                  )}
+                />
+              </PaginationItem>
+              {getPageNumbers(
+                currentPage,
+                Math.ceil(pagination.total / pagination.limit)
+              ).map((page, i) =>
+                page === null ? (
+                  <PaginationItem key={`ellipsis-${i}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={page} className="cursor-pointer">
+                    <PaginationLink
+                      isActive={page === currentPage}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handlePageChange(page)
+                      }}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              )}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handlePageChange(currentPage + 1)
+                  }}
+                  className={cn(
+                    "cursor-pointer",
+                    currentPage ===
+                      Math.ceil(pagination.total / pagination.limit) &&
+                      "pointer-events-none opacity-50"
+                  )}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
+      </main>
     </div>
   )
 }

@@ -3,8 +3,8 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import SettingsPageHeader from "@/components/project-settings/settings-page-header"
-import SettingsSection from "@/components/project-settings/settings-section"
+import SettingsPageHeader from "@/components/project/settings-page-header"
+import SettingsSection from "@/components/project/settings-section"
 
 type Channel = "email" | "inApp"
 

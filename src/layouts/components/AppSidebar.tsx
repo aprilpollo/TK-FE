@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useLocation } from "react-router"
 import {
   CalendarSearch,
@@ -15,10 +15,15 @@ import { fetchProjects } from "@/api/project"
 import type { Project } from "@/types"
 import useUser from "@/auth/hooks/useUser"
 
+const PAGE_LIMIT = 20
+
 export function AppSidebar() {
   const [projects, setProjects] = useState<Project[]>([])
   const [searchInput, setSearchInput] = useState("")
   const [search, setSearch] = useState("")
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
   const { data: user } = useUser()
 
   const location = useLocation()
@@ -36,20 +41,50 @@ export function AppSidebar() {
   }, [searchInput])
 
   useEffect(() => {
-    const FetchProjects = async () => {
+    const fetchInitial = async () => {
       const query = new URLSearchParams()
       if (search) query.append("name_contains", search)
+      query.append("_page", "1")
+      query.append("_limit", String(PAGE_LIMIT))
       const response = await fetchProjects(query.toString())
       const data = (await response.json()) as {
         code: number
         error: string | null
         message: string
         payload: Project[]
+        pagination: { total: number; page: number; limit: number }
       }
-      setProjects(data.payload)
+      setProjects(data.payload ?? [])
+      setTotal(data.pagination?.total ?? 0)
+      setPage(1)
     }
-    FetchProjects()
+    fetchInitial()
   }, [search, user?.permissions.organization_id])
+
+  const loadMoreProjects = useCallback(async () => {
+    if (loadingMore || projects.length >= total) return
+    setLoadingMore(true)
+    try {
+      const nextPage = page + 1
+      const query = new URLSearchParams()
+      if (search) query.append("name_contains", search)
+      query.append("_page", String(nextPage))
+      query.append("_limit", String(PAGE_LIMIT))
+      const response = await fetchProjects(query.toString())
+      const data = (await response.json()) as {
+        code: number
+        error: string | null
+        message: string
+        payload: Project[]
+        pagination: { total: number; page: number; limit: number }
+      }
+      setProjects((prev) => [...prev, ...(data.payload ?? [])])
+      setTotal(data.pagination?.total ?? total)
+      setPage(nextPage)
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [loadingMore, page, projects.length, search, total])
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -93,6 +128,9 @@ export function AppSidebar() {
           tasks={projects}
           searchInput={searchInput}
           setSearchInput={setSearchInput}
+          hasMore={projects.length < total}
+          loadingMore={loadingMore}
+          onLoadMore={loadMoreProjects}
         />
         <div className="mt-auto">
           <NavMenu

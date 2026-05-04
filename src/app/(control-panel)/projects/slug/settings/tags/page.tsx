@@ -3,8 +3,8 @@ import { toast } from "sonner"
 import { Check, Pencil, Plus, Trash2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import SettingsPageHeader from "@/components/project-settings/settings-page-header"
-import SettingsSection from "@/components/project-settings/settings-section"
+import SettingsPageHeader from "@/components/project/settings-page-header"
+import SettingsSection from "@/components/project/settings-section"
 import { cn } from "@/lib/utils"
 
 type Tag = {

@@ -32,6 +32,7 @@ import {
   SidebarInput,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import Link from "@/shared/Link"
 import { Label } from "@/components/ui/label"
 import type { Project } from "@/types"
@@ -40,12 +41,25 @@ export function NavTasks({
   tasks,
   searchInput,
   setSearchInput,
+  hasMore,
+  loadingMore,
+  onLoadMore,
 }: {
   tasks: Project[]
   searchInput: string
   setSearchInput: (value: string) => void
+  hasMore: boolean
+  loadingMore: boolean
+  onLoadMore: () => void
 }) {
   const { isMobile } = useSidebar()
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
+    if (scrollHeight - scrollTop - clientHeight < 80 && hasMore && !loadingMore) {
+      onLoadMore()
+    }
+  }
 
   return (
     <SidebarGroup>
@@ -66,7 +80,7 @@ export function NavTasks({
               </SidebarMenuButton>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="relative mb-1 ml-3.5 w-[203px] group-data-[collapsible=icon]:hidden">
+              <div className="relative mb-1 ml-3.5 w-50.75 group-data-[collapsible=icon]:hidden">
                 <Label htmlFor="search" className="sr-only">
                   Search
                 </Label>
@@ -79,48 +93,61 @@ export function NavTasks({
                 <Search className="pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2 opacity-50 select-none" />
               </div>
               <SidebarMenuSub>
-                {tasks.map((item) => (
-                  <SidebarMenuSubItem key={item.name}>
-                    <SidebarMenuSubButton asChild>
-                      <Link to={`/projects/${item.key}/tasks`}>
-                        <span>{item.name}</span>
-                      </Link>
-                    </SidebarMenuSubButton>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <SidebarMenuAction
-                          showOnHover
-                          className="top-1/2 -translate-y-1/2 cursor-pointer"
-                        >
-                          <MoreHorizontal />
-                          <span className="sr-only">More</span>
-                        </SidebarMenuAction>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        className="w-48 rounded-lg"
-                        side={isMobile ? "bottom" : "right"}
-                        align={isMobile ? "end" : "start"}
-                      >
-                        <Link to={`/projects/${item.key}`}>
-                          <DropdownMenuItem>
-                            <Folder className="text-muted-foreground" />
-                            <span>View Project</span>
-                          </DropdownMenuItem>
+                <ScrollArea
+                  className="h-[calc(100vh-435px)]"
+                  ScrollBarProps={{ className: "hidden" }}
+                  onViewportScroll={handleScroll}
+                >
+                  {tasks.map((item) => (
+                    <SidebarMenuSubItem key={item.name}>
+                      <SidebarMenuSubButton asChild>
+                        <Link to={`/projects/${item.key}/tasks`}>
+                          <span>{item.name}</span>
                         </Link>
+                      </SidebarMenuSubButton>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <SidebarMenuAction
+                            showOnHover
+                            className="top-1/2 -translate-y-1/2 cursor-pointer"
+                          >
+                            <MoreHorizontal />
+                            <span className="sr-only">More</span>
+                          </SidebarMenuAction>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          className="w-48 rounded-lg"
+                          side={isMobile ? "bottom" : "right"}
+                          align={isMobile ? "end" : "start"}
+                        >
+                          <Link to={`/projects/${item.key}`}>
+                            <DropdownMenuItem>
+                              <Folder className="text-muted-foreground" />
+                              <span>View Project</span>
+                            </DropdownMenuItem>
+                          </Link>
 
-                        <DropdownMenuItem>
-                          <Forward className="text-muted-foreground" />
-                          <span>Share Project</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <Trash2 className="text-muted-foreground" />
-                          <span>Delete Project</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </SidebarMenuSubItem>
-                ))}
+                          <DropdownMenuItem>
+                            <Forward className="text-muted-foreground" />
+                            <span>Share Project</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem>
+                            <Trash2 className="text-muted-foreground" />
+                            <span>Delete Project</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </SidebarMenuSubItem>
+                  ))}
+                  <div className="py-0.5">
+                    {loadingMore && (
+                      <span className="text-muted-foreground block px-3 py-1 text-xs">
+                        Loading...
+                      </span>
+                    )}
+                  </div>
+                </ScrollArea>
               </SidebarMenuSub>
             </CollapsibleContent>
           </SidebarMenuItem>

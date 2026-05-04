@@ -29,8 +29,8 @@ import { fetchProjectStatuses, updateProject, updateLogo } from "@/api/project"
 import { cn } from "@/lib/utils"
 import { PopoverDateTimePicker } from "@/components/date-picker"
 import { toDateTimeStringFromUnixMs } from "@/utils/date"
-import SettingsPageHeader from "@/components/project-settings/settings-page-header"
-import SettingsSection from "@/components/project-settings/settings-section"
+import SettingsPageHeader from "@/components/project/settings-page-header"
+import SettingsSection from "@/components/project/settings-section"
 import useProject from "@/hooks/useProject"
 
 const generalSchema = z.object({

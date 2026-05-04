@@ -12,8 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import SettingsPageHeader from "@/components/project-settings/settings-page-header"
-import DangerAction from "@/components/project-settings/danger-action"
+import SettingsPageHeader from "@/components/project/settings-page-header"
+import DangerAction from "@/components/project/danger-action"
 import useProject from "@/hooks/useProject"
 
 function DangerSettings() {

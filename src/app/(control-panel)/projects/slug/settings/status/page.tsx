@@ -16,14 +16,14 @@ import {
   restrictToVerticalAxis,
   restrictToParentElement,
 } from "@dnd-kit/modifiers"
-import SettingsPageHeader from "@/components/project-settings/settings-page-header"
-import SettingsSection from "@/components/project-settings/settings-section"
-import { SortableStatusRow } from "@/components/project-settings/status/sortable-row"
+import SettingsPageHeader from "@/components/project/settings-page-header"
+import SettingsSection from "@/components/project/settings-section"
+import { SortableStatusRow } from "@/components/project/status/sortable-row"
 import {
   STATUS_TEMPLATES,
   type Status,
   type StatusTemplate,
-} from "@/components/project-settings/status/types"
+} from "@/components/project/status/types"
 import { fetchTaskStatuses, createListTaskStatus } from "@/api/task"
 import useProject from "@/hooks/useProject"
 import { Button } from "@/components/ui/button"

@@ -2,7 +2,7 @@ import { Outlet, useParams } from "react-router"
 import {
   SettingsNav,
   SettingsNavDropdown,
-} from "@/components/project-settings/settings-nav"
+} from "@/components/project/settings-nav"
 
 function Setting() {
   const { id } = useParams()

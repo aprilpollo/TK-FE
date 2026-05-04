@@ -19,8 +19,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import SettingsPageHeader from "@/components/project-settings/settings-page-header"
-import SettingsSection from "@/components/project-settings/settings-section"
+import SettingsPageHeader from "@/components/project/settings-page-header"
+import SettingsSection from "@/components/project/settings-section"
 
 type Role = "owner" | "admin" | "member" | "viewer"
 
