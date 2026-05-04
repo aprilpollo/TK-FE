@@ -52,11 +52,15 @@ export function NavTasks({
   loadingMore: boolean
   onLoadMore: () => void
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile, toggleSidebar } = useSidebar()
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
-    if (scrollHeight - scrollTop - clientHeight < 80 && hasMore && !loadingMore) {
+    if (
+      scrollHeight - scrollTop - clientHeight < 80 &&
+      hasMore &&
+      !loadingMore
+    ) {
       onLoadMore()
     }
   }
@@ -100,7 +104,12 @@ export function NavTasks({
                 >
                   {tasks.map((item) => (
                     <SidebarMenuSubItem key={item.name}>
-                      <SidebarMenuSubButton asChild>
+                      <SidebarMenuSubButton
+                        asChild
+                        onClick={() => {
+                          if (isMobile) toggleSidebar()
+                        }}
+                      >
                         <Link to={`/projects/${item.key}/tasks`}>
                           <span>{item.name}</span>
                         </Link>
@@ -142,7 +151,7 @@ export function NavTasks({
                   ))}
                   <div className="py-0.5">
                     {loadingMore && (
-                      <span className="text-muted-foreground block px-3 py-1 text-xs">
+                      <span className="block px-3 py-1 text-xs text-muted-foreground">
                         Loading...
                       </span>
                     )}

@@ -63,6 +63,7 @@ export function SelectMultipleUser({
           message: string
           payload: {
             id: number
+            user_id: number
             email: string
             first_name: string
             last_name: string
@@ -72,10 +73,10 @@ export function SelectMultipleUser({
         }
         const selectedById = new Map(userRef.current.map((u) => [u.id, u]))
         const users = members.payload.map((member) => {
-          const existing = selectedById.get(member.id)
+          const existing = selectedById.get(member.user_id)
           return (
             existing ?? {
-              id: member.id,
+              id: member.user_id,
               name:
                 member.display_name ||
                 `${member.first_name} ${member.last_name}`,

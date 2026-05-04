@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BarChart3, Dot, ListTodo, Plus, UserPlus } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { formatDate } from "@/utils/date"
+import { format } from "date-fns"
 
 import useProject from "@/hooks/useProject"
 
@@ -11,7 +11,7 @@ function Overview() {
   const { project } = useProject()
 
   return (
-    <div className="grid grid-cols-4 py-6 px-3">
+    <div className="grid grid-cols-4 px-3 py-6">
       <div className="col-span-4 p-4 md:col-span-3 md:p-0 md:pr-10">
         <header>
           <div className="flex items-center gap-2">
@@ -152,21 +152,25 @@ function Overview() {
           </div>
         </div>
 
-        <div className="border-b" />
-        <div id="due-date" className="">
-          <h1 className="text-lg font-bold text-neutral-800 dark:text-neutral-200">
-            Due Date
-          </h1>
-          <div className="flex items-center gap-2">
-            <p className="text-xs text-muted-foreground">
-              {formatDate(project?.created_at)}
-            </p>
-            <p className="text-xs text-muted-foreground">-</p>
-            <p className="text-xs text-muted-foreground">
-              {formatDate(project?.due_date)}
-            </p>
-          </div>
-        </div>
+        {project?.start_date && project?.end_date && (
+          <>
+            <div className="border-b" />
+            <div id="due-date" className="">
+              <h1 className="text-lg font-bold text-neutral-800 dark:text-neutral-200">
+                Due Date
+              </h1>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-muted-foreground">
+                  {format(project?.start_date, "PP")}
+                </p>
+                <p className="text-xs text-muted-foreground">-</p>
+                <p className="text-xs text-muted-foreground">
+                  {format(project?.end_date, "PP")}
+                </p>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

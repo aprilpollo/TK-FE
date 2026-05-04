@@ -13,6 +13,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import Link from "@/shared/Link"
 
@@ -34,6 +35,7 @@ export function NavMenu({
     }[]
   }[]
 }) {
+  const { isMobile, toggleSidebar } = useSidebar()
   return (
     <SidebarGroup>
       {label && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
@@ -65,6 +67,9 @@ export function NavMenu({
                   tooltip={item.title}
                   className="cursor-pointer"
                   isActive={item.isActive}
+                  onClick={() => {
+                    if (isMobile) toggleSidebar()
+                  }}
                 >
                   <Link
                     to={item.url}
@@ -80,7 +85,13 @@ export function NavMenu({
                 <SidebarMenuSub>
                   {item.items?.map((subItem) => (
                     <SidebarMenuSubItem key={subItem.title}>
-                      <SidebarMenuSubButton asChild isActive={subItem.isActive}>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={subItem.isActive}
+                        onClick={() => {
+                          if (isMobile) toggleSidebar()
+                        }}
+                      >
                         <Link to={subItem.url}>
                           <span>{subItem.title}</span>
                         </Link>

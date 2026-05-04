@@ -1,14 +1,8 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useId } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -37,36 +31,37 @@ import { EmptyProject } from "@/components/project/empty"
 import { getPageNumbers } from "@/utils/pagination"
 import type { Project, Pagination as PaginationType, ProjectStatus } from "@/types"
 import Link from "@/shared/Link"
+import { AreaChart, Area, ResponsiveContainer } from "recharts"
 import NewProjectDialog from "@/components/new-project-dialog"
 
-function mockSparkData(seed: number, count = 14): number[] {
-  let s = seed
-  return Array.from({ length: count }, () => {
-    s = (s * 1664525 + 1013904223) & 0x7fffffff
-    return s % 100
-  })
-}
+const SPARK_COLOR = "var(--chart-1)"
 
-function Sparkline({ data, color }: { data: number[]; color: string }) {
-  const w = 120
-  const h = 40
-  const max = Math.max(...data)
-  const min = Math.min(...data)
-  const range = max - min || 1
-  const step = w / (data.length - 1)
-  const pts = data.map((v, i) => `${i * step},${h - ((v - min) / range) * (h - 4) - 2}`).join(" ")
+function Sparkline({ data }: { data: number[] }) {
+  const uid = useId().replace(/:/g, "")
+  const chartData = data.map((v, i) => ({ i, v }))
   return (
-    <svg width={w} height={h} className="shrink-0">
-      <polyline fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" points={pts} />
-    </svg>
+    <div className="h-10 w-30 md:w-48 shrink-0">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={chartData} margin={{ top: 2, right: 0, bottom: 2, left: 0 }}>
+          <defs>
+            <linearGradient id={`sg-${uid}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={SPARK_COLOR} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={SPARK_COLOR} stopOpacity={0.05} />
+            </linearGradient>
+          </defs>
+          <Area
+            type="monotone"
+            dataKey="v"
+            stroke={SPARK_COLOR}
+            strokeWidth={1.5}
+            fill={`url(#sg-${uid})`}
+            dot={false}
+            isAnimationActive={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   )
-}
-
-const STATUS_COLOR: Record<number, string> = {
-  1: "#15803d",
-  2: "#0369a1",
-  3: "#7e22ce",
-  4: "#b91c1c",
 }
 
 function Projects() {
@@ -243,7 +238,7 @@ function Projects() {
           projects.map((project) => (
             <Link key={project.key} to={`/projects/${project.key}`}>
               <Card className="rounded-none border-b bg-background ring-0">
-                <div className="flex items-center gap-4 px-6 py-4">
+                <div className="flex items-center gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 font-semibold">
                       <Avatar className="size-6">
@@ -279,10 +274,7 @@ function Projects() {
                       </span>
                     )}
                   </div>
-                  <Sparkline
-                    data={mockSparkData(project.id)}
-                    color={STATUS_COLOR[project.status.id] ?? "#15803d"}
-                  />
+                  <Sparkline data={[0, 0, 50, 40, 100, 0, 70]} />
                 </div>
               </Card>
             </Link>
