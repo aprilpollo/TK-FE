@@ -32,7 +32,7 @@ import { getPageNumbers } from "@/utils/pagination"
 import type { Project, Pagination as PaginationType, ProjectStatus } from "@/types"
 import Link from "@/shared/Link"
 import { AreaChart, Area, ResponsiveContainer } from "recharts"
-import NewProjectDialog from "@/components/new-project-dialog"
+import NewProjectDialog from "@/components/project/new-project-dialog"
 
 const SPARK_COLOR = "var(--chart-1)"
 

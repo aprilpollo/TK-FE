@@ -96,9 +96,9 @@ export function NavTasks({
                 />
                 <Search className="pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2 opacity-50 select-none" />
               </div>
-              <SidebarMenuSub>
+              <SidebarMenuSub className="">
                 <ScrollArea
-                  className="h-[calc(100vh-435px)]"
+                  className="max-h-[calc(100vh-435px)] *:data-[slot=scroll-area-viewport]:max-h-[calc(100vh-435px)]!"
                   ScrollBarProps={{ className: "hidden" }}
                   onViewportScroll={handleScroll}
                 >

@@ -1,17 +1,49 @@
+import { useState } from "react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { BarChart3, Dot, ListTodo, Plus, UserPlus } from "lucide-react"
+import { ChartAreaInteractive } from "@/components/project/area-chart-interactive"
+import {
+  Dot,
+  CheckCircle2,
+  Clock,
+  ListTodo,
+  BookX,
+  Plus,
+  UserPlus,
+  CalendarDays,
+  ArrowUp,
+  ArrowRight,
+  ArrowDown,
+  BarChart3,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
+import type { ChartDataItem } from "@/types"
 
 import useProject from "@/hooks/useProject"
 
 function Overview() {
   const { project } = useProject()
 
+  if (!project) return null
+
+const [chartData, setChartData] = useState<ChartDataItem[]>([
+  { date: "2026-05-09", completed: 0,  created: 8  },
+  { date: "2026-05-12", completed: 3,  created: 5  },
+  { date: "2026-05-15", completed: 7,  created: 10 },
+  { date: "2026-05-19", completed: 12, created: 6  },
+  { date: "2026-05-22", completed: 9,  created: 14 },
+  { date: "2026-05-26", completed: 15, created: 4  },
+  { date: "2026-05-29", completed: 11, created: 9  },
+  { date: "2026-06-02", completed: 18, created: 12 },
+  { date: "2026-06-05", completed: 6,  created: 7  },
+  { date: "2026-06-09", completed: 20, created: 3  },
+])
+
+
   return (
-    <div className="grid grid-cols-4 px-3 py-6">
+    <div className="grid grid-cols-4 px-0 py-6 sm:px-3">
       <div className="col-span-4 p-4 md:col-span-3 md:p-0 md:pr-10">
         <header>
           <div className="flex items-center gap-2">
@@ -39,40 +71,76 @@ function Overview() {
           </div>
         </header>
 
-        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatsCard />
-          <StatsCard />
-          <StatsCard />
-          <StatsCard />
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+          <StatsCard
+            title="Total Tasks"
+            value="123"
+            icon={<ListTodo className="size-4" />}
+            change={8}
+          />
+          <StatsCard
+            title="Completed"
+            value="89"
+            icon={<CheckCircle2 className="size-4" />}
+            change={5}
+          />
+          <StatsCard
+            title="Pending"
+            value="34"
+            icon={<Clock className="size-4" />}
+            change={-3}
+          />
+          <StatsCard
+            title="Cancelled"
+            value="0"
+            icon={<BookX className="size-4" />}
+            change={0}
+          />
         </div>
 
-        <div className="mt-6">
-          <h2 className="text-md mb-3 font-semibold text-neutral-800 dark:text-neutral-200">
-            Recent Activity
-          </h2>
-          <div className="">
-            <ActivityItem />
-            <ActivityItem />
-            <ActivityItem />
-            <ActivityItem />
-            <ActivityItem />
-          </div>
+        <div className="mt-4">
+          <ChartAreaInteractive
+            data={chartData}
+            setData={setChartData}
+            start={new Date(format(project.start_date, "yyyy-MM-dd"))}
+            end={new Date(format(project.end_date, "yyyy-MM-dd"))}
+          />
         </div>
+
         <div className="mt-6 space-y-6">
           <div>
             <h2 className="text-md mb-3 font-semibold text-neutral-800 dark:text-neutral-200">
               Upcoming Deadlines
             </h2>
             <div className="space-y-2">
-              <DeadlineItem />
-              <DeadlineItem />
-              <DeadlineItem />
-              <DeadlineItem />
-              <DeadlineItem />
+              <DeadlineItem
+                name="Design mockups"
+                dueDate="May 10"
+                priority="high"
+              />
+              <DeadlineItem
+                name="API integration"
+                dueDate="May 12"
+                priority="medium"
+              />
+              <DeadlineItem
+                name="Write unit tests"
+                dueDate="May 15"
+                priority="low"
+              />
+              <DeadlineItem
+                name="Deploy to staging"
+                dueDate="May 18"
+                priority="high"
+              />
+              <DeadlineItem
+                name="Client review"
+                dueDate="May 20"
+                priority="medium"
+              />
             </div>
           </div>
 
-          {/* Quick Actions */}
           <div>
             <h2 className="text-md mb-3 font-semibold text-neutral-800 dark:text-neutral-200">
               Quick Actions
@@ -178,21 +246,95 @@ function Overview() {
 
 export default Overview
 
-function StatsCard() {
-  return <div className="min-h-24 rounded-lg border bg-card p-4"></div>
-}
-
-// Activity Item Component
-function ActivityItem() {
+function StatsCard({
+  title,
+  value,
+  icon,
+  change,
+}: {
+  title: string
+  value: string
+  icon?: React.ReactNode
+  change?: number
+}) {
   return (
-    <div className="flex min-h-14 items-start gap-3 border-b px-2 py-2"></div>
+    <div className="rounded-lg border bg-card p-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+        {icon && <span className="text-muted-foreground">{icon}</span>}
+      </div>
+      <p className="mt-1 text-3xl font-bold text-neutral-800 dark:text-neutral-200">
+        {value}
+      </p>
+      {change !== undefined && (
+        <p
+          className={cn(
+            "mt-1 text-xs",
+            change > 0 && "text-emerald-500",
+            change < 0 && "text-destructive",
+            change === 0 && "text-muted-foreground"
+          )}
+        >
+          {change > 0 ? `+${change}` : change === 0 ? "No change" : change} this
+          week
+        </p>
+      )}
+    </div>
   )
 }
 
-// Deadline Item Component
-function DeadlineItem() {
+const priorityConfig = {
+  high: {
+    label: "High",
+    icon: <ArrowUp className="size-3" />,
+    className: "text-destructive border-destructive/40",
+  },
+  medium: {
+    label: "Medium",
+    icon: <ArrowRight className="size-3" />,
+    className: "text-amber-500 border-amber-500/40",
+  },
+  low: {
+    label: "Low",
+    icon: <ArrowDown className="size-3" />,
+    className: "text-muted-foreground border-muted-foreground/40",
+  },
+}
+
+function DeadlineItem({
+  name,
+  dueDate,
+  priority,
+}: {
+  name: string
+  dueDate: string
+  priority: "high" | "medium" | "low"
+}) {
+  const p = priorityConfig[priority]
   return (
-    <div className="flex min-h-12 items-center justify-between rounded-md border px-3 py-2"></div>
+    <div className="flex min-h-12 items-center justify-between rounded-md border bg-card px-3 py-2">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
+          {name}
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Badge
+          variant="outline"
+          className={cn(
+            "flex h-5 items-center gap-1 rounded-sm text-xs",
+            p.className
+          )}
+        >
+          {p.icon}
+          {p.label}
+        </Badge>
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <CalendarDays className="size-3" />
+          {dueDate}
+        </div>
+      </div>
+    </div>
   )
 }
 

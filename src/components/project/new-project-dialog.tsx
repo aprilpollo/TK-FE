@@ -38,9 +38,11 @@ const schema = z.object({
     .string()
     .max(500, "Description must be 500 characters or less")
     .optional(),
-  due_date: z
-    .object({ start: z.string(), end: z.string(), allDay: z.boolean() })
-    .optional(),
+  due_date: z.object({
+    start: z.string(),
+    end: z.string(),
+    allDay: z.boolean(),
+  }, "Due date must include start and end times"),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -157,10 +159,11 @@ function NewProjectDialog({ open, onOpenChange, onCreated }: Props) {
                       placeholder="Pick a due date"
                       displayAllDaySwitch={false}
                       buttonProps={{
-                        size: "sm",
+                        // size: "sm",
                         variant: "outline",
-                        className: "w-max justify-start",
+                        className: "w-max justify-start cursor-pointer",
                       }}
+                      lockStartToNow
                     />
                   </FormControl>
                   <FormMessage />

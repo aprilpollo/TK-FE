@@ -14,7 +14,7 @@ export type {
   TaskPriority,
 } from "./kanban"
 export type { DragStartEvent, DragOverEvent, DragEndEvent } from "@dnd-kit/core"
-export type { Project, ProjectStatus, ProjectContextType } from "./project"
+export type { Project, ProjectStatus, ProjectContextType, ChartDataItem, ChartAreaInteractiveProps } from "./project"
 export type {
   CalendarView,
   EventCategory,

@@ -303,7 +303,9 @@ function GeneralSettings() {
                           buttonProps={{
                             size: "sm",
                             variant: "outline",
+                            className: "cursor-pointer",
                           }}
+                          lockStartToNow
                         />
                       </FormControl>
                       <FormMessage />

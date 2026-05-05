@@ -214,7 +214,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
 
   return (
     <ScrollArea ref={scrollAreaRef}>
-      <div id="kanban-board" ref={boardRef} className="flex h-[calc(100svh-160px)] space-x-3">
+      <div id="kanban-board" ref={boardRef} className="flex h-[calc(100svh-165px)] space-x-3">
         <div id="kanban-space" />
         <DndContext
           sensors={sensors}

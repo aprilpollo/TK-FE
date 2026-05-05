@@ -94,6 +94,7 @@ type DateTimePickerProps = {
   footer?: React.ReactNode
   align?: "start" | "center" | "end"
   displayAllDaySwitch?: boolean
+  lockStartToNow?: boolean
 }
 
 // ── helpers ──
@@ -146,19 +147,22 @@ export function PopoverDateTimePicker({
   footer,
   align = "start",
   displayAllDaySwitch = true,
+  lockStartToNow = false,
 }: DateTimePickerProps = {}) {
   const today = new Date()
   const todayString = toDateString(today)
 
   const [allDay, setAllDay] = useState(value?.allDay ?? true)
   const [range, setRange] = useState<DateRange>({
-    from: getDatePart(value?.start),
+    from: lockStartToNow ? today : getDatePart(value?.start),
     to: getDatePart(value?.end),
   })
   const [singleDate, setSingleDate] = useState<Date | undefined>(
-    getDatePart(value?.start)
+    lockStartToNow ? getDatePart(value?.end) : getDatePart(value?.start)
   )
-  const [startTime, setStartTime] = useState(getTimePart(value?.start))
+  const [startTime, setStartTime] = useState(
+    lockStartToNow ? getNowTimeString() : getTimePart(value?.start)
+  )
   const [endTime, setEndTime] = useState(getTimePart(value?.end, startTime))
   const isTodaySelected = singleDate
     ? toDateString(singleDate) === todayString
@@ -169,7 +173,7 @@ export function PopoverDateTimePicker({
   useEffect(() => {
     if (!value) {
       setAllDay(true)
-      setRange({ from: undefined, to: undefined })
+      setRange({ from: lockStartToNow ? today : undefined, to: undefined })
       setSingleDate(undefined)
       setStartTime(getNowTimeString())
       setEndTime(getNowTimeString())
@@ -252,12 +256,23 @@ export function PopoverDateTimePicker({
   // ── trigger label ──
 
   let triggerLabel = placeholder
-  if (allDay && range.from) {
+  if (lockStartToNow) {
+    if (allDay && range.to) triggerLabel = format(range.to, "PP")
+    else if (!allDay && singleDate) triggerLabel = `${format(singleDate, "EEEEEE d")}  ${endTime}`
+  } else if (allDay && range.from) {
     triggerLabel = range.to
       ? `${format(range.to, "PP")}`
       : format(range.from, "PP")
   } else if (!allDay && singleDate) {
     triggerLabel = `${format(singleDate, "EEEEEE d")}  ${startTime} – ${endTime}`
+  }
+
+  // ── allDay calendar handler for lockStartToNow ──
+
+  function handleEndOnlySelect(date: Date | undefined) {
+    const next: DateRange = { from: today, to: date }
+    setRange(next)
+    emit({ isAllDay: allDay, nextRange: next })
   }
 
   return (
@@ -271,14 +286,25 @@ export function PopoverDateTimePicker({
       <PopoverContent className="w-auto p-0 shadow-none" align={align}>
         <div className="flex">
           {allDay ? (
-            <Calendar
-              disabled={[{ before: today }]}
-              mode="range"
-              numberOfMonths={2}
-              selected={range}
-              onSelect={handleRangeSelect}
-              defaultMonth={range.from}
-            />
+            lockStartToNow ? (
+              <Calendar
+                disabled={[{ before: today }]}
+                mode="single"
+                numberOfMonths={1}
+                selected={range.to}
+                onSelect={handleEndOnlySelect}
+                defaultMonth={range.to ?? today}
+              />
+            ) : (
+              <Calendar
+                disabled={[{ before: today }]}
+                mode="range"
+                numberOfMonths={2}
+                selected={range}
+                onSelect={handleRangeSelect}
+                defaultMonth={range.from}
+              />
+            )
           ) : (
             <Calendar
               disabled={[{ before: today }]}
@@ -297,6 +323,7 @@ export function PopoverDateTimePicker({
               startValue={startTime}
               onStartChange={handleTimeChange}
               startMinTime={startMinTime}
+              hideStart={lockStartToNow}
               endTitle="End Time"
               endDescription="Select the end time"
               endValue={endTime}
@@ -494,6 +521,7 @@ type TimeSlotPickerProps = {
   startValue?: string // "HH:mm"
   onStartChange?: (value: string) => void
   startMinTime?: string // "HH:mm" - min time for start (e.g., current time)
+  hideStart?: boolean
   endTitle: string
   endDescription: string
   endValue?: string // "HH:mm"
@@ -507,6 +535,7 @@ function TimeSlotPicker({
   startValue,
   onStartChange,
   startMinTime,
+  hideStart = false,
   endTitle,
   endDescription,
   endValue,
@@ -628,8 +657,8 @@ function TimeSlotPicker({
 
   return (
     <div className="w-[18rem] space-y-4 py-2">
-      <div className="grid grid-cols-2 gap-2">
-        <section className="space-y-4">
+      <div className={cn("grid gap-2", hideStart ? "grid-cols-1" : "grid-cols-2")}>
+        <section className={cn("space-y-4", hideStart && "hidden")}>
           <header className="flex h-7 flex-col px-2 font-medium">
             <span>{startTitle}</span>
             <span className="text-[10px] text-muted-foreground">
