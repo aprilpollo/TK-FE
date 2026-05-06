@@ -52,7 +52,7 @@ function Overview() {
     { date: "2026-05-15", completed: 3, created: 7 },
   ])
 
-  const [taskDeadlines, setTaskDeadlines] = useState<TaskDeadlines[]>([
+  const [taskDeadlines, _setTaskDeadlines] = useState<TaskDeadlines[]>([
     {
       id: 1,
       key: "design-mockups",
