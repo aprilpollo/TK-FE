@@ -232,7 +232,7 @@ function Calendar() {
             ]}
             initialView={view}
             headerToolbar={false}
-            height="calc(100vh - 147px)"
+            height="calc(100vh - 160px)"
             timeZone="Asia/Bangkok"
             events={events}
             editable

@@ -328,13 +328,30 @@ body #splash-screen {
   margin: 0;
 }
 
-.fc .fc-scrollgrid {
-  border-left: none;
+/* .fc thead {
+  border-bottom: 1px solid var(--border);
+} */
+
+.fc .fc-scroller {
+  
+  scrollbar-width: none;
 }
 
+.fc .fc-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid td,
+.fc .fc-scrollgrid th {
+  border-right: none;
+  border-left: none;
+}
 @media (max-width: 639px) {
-  .fc .fc-scrollgrid {
-    border-right: none;
+  .fc .fc-scrollgrid,
+  .fc .fc-scrollgrid td,
+  .fc .fc-scrollgrid th {
+    border: none;
   }
 }
 
