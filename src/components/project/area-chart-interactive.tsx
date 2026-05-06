@@ -46,6 +46,7 @@ function tickLabel(value: string): string {
   return new Date(value).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
+    year: "2-digit",
   })
 }
 
@@ -134,14 +135,14 @@ export function ChartAreaInteractive({
               type="monotone"
               fill="url(#fillCreated)"
               stroke="var(--color-created)"
-              strokeWidth={2}
+              strokeWidth={1}
             />
             <Area
               dataKey="completed"
               type="monotone"
               fill="url(#fillCompleted)"
               stroke="var(--color-completed)"
-              strokeWidth={2}
+              strokeWidth={1}
             />
             <ChartLegend content={<ChartLegendContent />} />
           </AreaChart>

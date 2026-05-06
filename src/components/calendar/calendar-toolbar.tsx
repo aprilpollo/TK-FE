@@ -37,7 +37,7 @@ function CalendarToolbar({
   legend?: React.ReactNode
 }) {
   return (
-    <header className="flex items-center justify-between px-2">
+    <header className="flex items-center justify-between gap-2 px-2">
       <div className="flex items-center gap-1">
         <Button variant="outline" size="xs" onClick={onToday}>
           Today
@@ -48,7 +48,7 @@ function CalendarToolbar({
         <Button variant="outline" size="icon-xs" onClick={onNext}>
           <ChevronRight />
         </Button>
-        <h2 className="ml-2 text-lg font-semibold">{title}</h2>
+        <h2 className="ml-2 text-lg font-semibold text-nowrap">{title}</h2>
       </div>
 
       <div className="flex items-center gap-1">

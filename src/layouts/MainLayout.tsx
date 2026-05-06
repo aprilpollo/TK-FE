@@ -5,6 +5,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "./components/AppSidebar"
 import { AppHeader } from "./components/AppHeader"
 import { Helmet } from "react-helmet-async"
+// import { ScrollArea } from "@/components/ui/scroll-area"
 import useLayoutSettings from "@/layouts/hooks/useLayoutSettings"
 import useSettings from "@/settings/hooks/useSettings"
 // import Loading from "@/shared/Loading"
@@ -24,7 +25,7 @@ function MainLayout(props: LayoutProps) {
   const showNavebar = config?.navbar?.display !== false
   const showSidebar = config?.leftSidePanel?.display !== false
   const pageMeta = currentSettings?.page
-  
+
   const sidebar_state = useMemo(
     () =>
       document.cookie
@@ -53,10 +54,13 @@ function MainLayout(props: LayoutProps) {
         {showSidebar && <AppSidebar />}
         <SidebarInset>
           {showNavebar && <AppHeader showSidebar={showSidebar} />}
-          <main className="@container/main bg-background">
+          <div
+            id="main-scroll"
+            className="@container/main h-[calc(100svh-48px)] overflow-y-auto bg-background [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
             {children}
             <Outlet />
-          </main>
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </>

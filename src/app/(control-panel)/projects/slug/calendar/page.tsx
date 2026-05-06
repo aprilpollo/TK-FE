@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Flag } from "lucide-react"
 import CalendarToolbar from "@/components/calendar/calendar-toolbar"
 import EventDialog from "@/components/calendar/event-dialog"
@@ -135,86 +136,89 @@ function Calendar() {
 
   return (
     <div className="space-y-3 pt-3">
-      <CalendarToolbar
-        title={title || api()?.view.title || ""}
-        view={view}
-        onViewChange={handleViewChange}
-        onPrev={() => {
-          api()?.prev()
-          syncTitle()
-        }}
-        onNext={() => {
-          api()?.next()
-          syncTitle()
-        }}
-        onToday={() => {
-          api()?.today()
-          syncTitle()
-        }}
-        onCreate={() => openCreateDialog()}
-        legend={
-          <>
-            <Select
-              value={selectedPriority}
-              onValueChange={setSelectedPriority}
-            >
-              <SelectTrigger
-                className="cursor-pointer font-medium capitalize"
-                size="sm"
+      <ScrollArea>
+        <CalendarToolbar
+          title={title || api()?.view.title || ""}
+          view={view}
+          onViewChange={handleViewChange}
+          onPrev={() => {
+            api()?.prev()
+            syncTitle()
+          }}
+          onNext={() => {
+            api()?.next()
+            syncTitle()
+          }}
+          onToday={() => {
+            api()?.today()
+            syncTitle()
+          }}
+          onCreate={() => openCreateDialog()}
+          legend={
+            <>
+              <Select
+                value={selectedPriority}
+                onValueChange={setSelectedPriority}
               >
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent position="popper">
-                <SelectGroup>
-                  <SelectLabel className="font-medium">Priority</SelectLabel>
-                  {priority.map((p) => (
-                    <SelectItem
-                      key={p.id}
-                      value={p.id.toString()}
-                      className="cursor-pointer space-x-0 font-medium capitalize"
-                    >
-                      <Flag
-                        className="size-3.5"
-                        style={{ color: p.color, fill: p.color }}
-                      />
-                      {p.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedGroup} onValueChange={setSelectedGroup}>
-              <SelectTrigger
-                className="cursor-pointer font-medium capitalize"
-                size="sm"
-              >
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent position="popper">
-                <SelectGroup>
-                  <SelectLabel className="font-medium">Status</SelectLabel>
-                  {group.map((g) => (
-                    <SelectItem
-                      key={g.id}
-                      value={g.id.toString()}
-                      className="cursor-pointer font-medium capitalize"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="size-2 rounded-full"
-                          style={{ backgroundColor: g.color }}
+                <SelectTrigger
+                  className="cursor-pointer font-medium capitalize"
+                  size="sm"
+                >
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent position="popper">
+                  <SelectGroup>
+                    <SelectLabel className="font-medium">Priority</SelectLabel>
+                    {priority.map((p) => (
+                      <SelectItem
+                        key={p.id}
+                        value={p.id.toString()}
+                        className="cursor-pointer space-x-0 font-medium capitalize"
+                      >
+                        <Flag
+                          className="size-3.5"
+                          style={{ color: p.color, fill: p.color }}
                         />
-                        {g.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </>
-        }
-      />
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+                <SelectTrigger
+                  className="cursor-pointer font-medium capitalize"
+                  size="sm"
+                >
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent position="popper">
+                  <SelectGroup>
+                    <SelectLabel className="font-medium">Status</SelectLabel>
+                    {group.map((g) => (
+                      <SelectItem
+                        key={g.id}
+                        value={g.id.toString()}
+                        className="cursor-pointer font-medium capitalize"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="size-2 rounded-full"
+                            style={{ backgroundColor: g.color }}
+                          />
+                          {g.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </>
+          }
+        />
+        <ScrollBar orientation="horizontal" className="hidden" />
+      </ScrollArea>
 
       <div ref={wrapperRef}>
         <DraggingContext.Provider value={dragging}>

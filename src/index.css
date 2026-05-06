@@ -332,6 +332,12 @@ body #splash-screen {
   border-left: none;
 }
 
+@media (max-width: 639px) {
+  .fc .fc-scrollgrid {
+    border-right: none;
+  }
+}
+
 .fc-daygrid-event:hover {
   background-color: transparent !important;
 }

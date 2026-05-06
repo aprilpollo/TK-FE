@@ -12,35 +12,88 @@ import {
   Plus,
   UserPlus,
   CalendarDays,
-  ArrowUp,
-  ArrowRight,
-  ArrowDown,
   BarChart3,
+  GitMerge,
+  Flag,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
+import useProject from "@/hooks/useProject"
+import Link from "@/shared/Link"
 import type { ChartDataItem } from "@/types"
 
-import useProject from "@/hooks/useProject"
+type TaskDeadlines = {
+  id: number | string
+  key: string
+  name: string
+  dueDate: string
+  priority: {
+    name: string
+    color: string
+  }
+  status: {
+    name: string
+    color: string
+  }
+}
 
 function Overview() {
   const { project } = useProject()
 
   if (!project) return null
 
-const [chartData, setChartData] = useState<ChartDataItem[]>([
-  { date: "2026-05-09", completed: 0,  created: 8  },
-  { date: "2026-05-12", completed: 3,  created: 5  },
-  { date: "2026-05-15", completed: 7,  created: 10 },
-  { date: "2026-05-19", completed: 12, created: 6  },
-  { date: "2026-05-22", completed: 9,  created: 14 },
-  { date: "2026-05-26", completed: 15, created: 4  },
-  { date: "2026-05-29", completed: 11, created: 9  },
-  { date: "2026-06-02", completed: 18, created: 12 },
-  { date: "2026-06-05", completed: 6,  created: 7  },
-  { date: "2026-06-09", completed: 20, created: 3  },
-])
+  const [chartData, setChartData] = useState<ChartDataItem[]>([
+    { date: "2026-05-09", completed: 0, created: 8 },
+    { date: "2026-05-10", completed: 0, created: 12 },
+    { date: "2026-05-11", completed: 0, created: 6 },
+    { date: "2026-05-12", completed: 0, created: 5 },
+    { date: "2026-05-13", completed: 1, created: 10 },
+    { date: "2026-05-14", completed: 2, created: 4 },
+    { date: "2026-05-15", completed: 3, created: 7 },
+  ])
 
+  const [taskDeadlines, setTaskDeadlines] = useState<TaskDeadlines[]>([
+    {
+      id: 1,
+      key: "design-mockups",
+      name: "Design mockups",
+      dueDate: "May 10",
+      priority: { name: "High", color: "#C20E4D" },
+      status: { name: "In Progress", color: "#005BC4" },
+    },
+    {
+      id: 2,
+      key: "api-integration",
+      name: "API integration",
+      dueDate: "May 12",
+      priority: { name: "Medium", color: "#F97316" },
+      status: { name: "Pending", color: "#D97706" },
+    },
+    {
+      id: 3,
+      key: "write-tests",
+      name: "Write tests",
+      dueDate: "May 14",
+      priority: { name: "Low", color: "#10B981" },
+      status: { name: "Not Started", color: "#047857" },
+    },
+    {
+      id: 4,
+      key: "review-code",
+      name: "Review code",
+      dueDate: "May 16",
+      priority: { name: "High", color: "#C20E4D" },
+      status: { name: "In Progress", color: "#005BC4" },
+    },
+    {
+      id: 5,
+      key: "deploy-application",
+      name: "Deploy application",
+      dueDate: "May 18",
+      priority: { name: "High", color: "#C20E4D" },
+      status: { name: "Not Started", color: "#047857" },
+    },
+  ])
 
   return (
     <div className="grid grid-cols-4 px-0 py-6 sm:px-3">
@@ -108,37 +161,26 @@ const [chartData, setChartData] = useState<ChartDataItem[]>([
         </div>
 
         <div className="mt-6 space-y-6">
-          <div>
+          <div className="">
             <h2 className="text-md mb-3 font-semibold text-neutral-800 dark:text-neutral-200">
-              Upcoming Deadlines
+              Upcoming Deadlines of the Week
             </h2>
-            <div className="space-y-2">
-              <DeadlineItem
-                name="Design mockups"
-                dueDate="May 10"
-                priority="high"
-              />
-              <DeadlineItem
-                name="API integration"
-                dueDate="May 12"
-                priority="medium"
-              />
-              <DeadlineItem
-                name="Write unit tests"
-                dueDate="May 15"
-                priority="low"
-              />
-              <DeadlineItem
-                name="Deploy to staging"
-                dueDate="May 18"
-                priority="high"
-              />
-              <DeadlineItem
-                name="Client review"
-                dueDate="May 20"
-                priority="medium"
-              />
-            </div>
+            {taskDeadlines.length > 0 ? (
+              taskDeadlines.map((task) => (
+                <DeadlineItem
+                  key={task.key}
+                  to={`./tasks/${task.key}`}
+                  name={task.name}
+                  dueDate={task.dueDate}
+                  priority={task.priority}
+                  status={task.status}
+                />
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                No upcoming deadlines
+              </p>
+            )}
           </div>
 
           <div>
@@ -166,6 +208,7 @@ const [chartData, setChartData] = useState<ChartDataItem[]>([
           </div>
         </div>
       </div>
+      
       <div className="col-span-1 hidden space-y-4 md:block">
         <div id="about">
           <h1 className="text-lg font-bold text-neutral-800 dark:text-neutral-200">
@@ -180,9 +223,9 @@ const [chartData, setChartData] = useState<ChartDataItem[]>([
           </p>
         </div>
         <div className="border-b" />
-        <div id="contributors" className="">
+        <div id="assignees" className="">
           <h1 className="flex items-center text-lg font-bold text-neutral-800 dark:text-neutral-200">
-            Contributors
+            Assignees members
             <Badge
               className="ml-2 h-5 min-w-5 rounded-full px-1 font-mono tabular-nums"
               variant="outline"
@@ -215,7 +258,7 @@ const [chartData, setChartData] = useState<ChartDataItem[]>([
               )} */}
 
             <span className="text-xs text-muted-foreground italic">
-              No contributors
+              No assignees
             </span>
           </div>
         </div>
@@ -283,56 +326,53 @@ function StatsCard({
   )
 }
 
-const priorityConfig = {
-  high: {
-    label: "High",
-    icon: <ArrowUp className="size-3" />,
-    className: "text-destructive border-destructive/40",
-  },
-  medium: {
-    label: "Medium",
-    icon: <ArrowRight className="size-3" />,
-    className: "text-amber-500 border-amber-500/40",
-  },
-  low: {
-    label: "Low",
-    icon: <ArrowDown className="size-3" />,
-    className: "text-muted-foreground border-muted-foreground/40",
-  },
-}
-
 function DeadlineItem({
   name,
+  to,
   dueDate,
   priority,
+  status,
 }: {
   name: string
+  to: string
   dueDate: string
-  priority: "high" | "medium" | "low"
+  priority: { name: string; color: string }
+  status: { name: string; color: string }
 }) {
-  const p = priorityConfig[priority]
   return (
-    <div className="flex min-h-12 items-center justify-between rounded-md border bg-card px-3 py-2">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
-          {name}
-        </span>
-      </div>
+    <div className="flex min-h-12 items-center justify-between border-b bg-card px-3 py-2">
+      <Link
+        to={to}
+        className="flex items-center gap-1 text-sm font-medium text-neutral-800 dark:text-neutral-200"
+      >
+        {/* <GitMerge className="h-3.5 w-3.5" /> */}
+        {name}
+      </Link>
       <div className="flex items-center gap-2">
         <Badge
-          variant="outline"
-          className={cn(
-            "flex h-5 items-center gap-1 rounded-sm text-xs",
-            p.className
-          )}
+          className="line-clamp-1 flex items-center gap-1 rounded-sm capitalize"
+          style={{
+            backgroundColor: `${status.color}1a`,
+            color: status.color,
+          }}
         >
-          {p.icon}
-          {p.label}
+          <GitMerge className="h-3.5 w-3.5" />
+          {status.name}
         </Badge>
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+        <Badge variant="secondary" className="rounded-sm capitalize">
+          <Flag
+            className="size-3"
+            style={{
+              color: priority.color,
+              fill: priority.color,
+            }}
+          />
+          {priority.name}
+        </Badge>
+        <Badge variant="secondary" className="rounded-sm text-xs">
           <CalendarDays className="size-3" />
           {dueDate}
-        </div>
+        </Badge>
       </div>
     </div>
   )

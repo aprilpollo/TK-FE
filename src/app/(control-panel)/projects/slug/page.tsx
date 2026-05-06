@@ -59,9 +59,15 @@ function Slug() {
   const isTabActive = (path: string) => {
     const targetPath = path === "." ? basePath : `${basePath}/${path}`
     if (path === ".") {
-      return location.pathname === targetPath || location.pathname === `${targetPath}/`
+      return (
+        location.pathname === targetPath ||
+        location.pathname === `${targetPath}/`
+      )
     }
-    return location.pathname === targetPath || location.pathname.startsWith(`${targetPath}/`)
+    return (
+      location.pathname === targetPath ||
+      location.pathname.startsWith(`${targetPath}/`)
+    )
   }
 
   if (isLoading) {
@@ -78,43 +84,43 @@ function Slug() {
           {project?.name ? `${project.name} | Project` : "Project Details"}
         </title>
       </Helmet>
-      <nav className="border-b bg-background sm:px-2 pt-4">
+      <nav className="border-b bg-background pt-4 sm:px-2">
         <ScrollArea>
-        <ul className="flex items-center">
-          {tabs.map((tab) => (
-            <li key={tab.path}>
-              <Link to={tab.path}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="cursor-pointer rounded-sm"
-                  aria-current={isTabActive(tab.path) ? "page" : undefined}
-                >
-                  <tab.icon
-                    strokeWidth={2.5}
-                    className={cn(
-                      isTabActive(tab.path)
-                        ? "text-foreground"
-                        : "text-muted-foreground"
-                    )}
-                  />
-                  {tab.label}
-                </Button>
-              </Link>
-              {isTabActive(tab.path) && (
-                <div className="h-0.5 rounded-t bg-blue-700" />
-              )}
-            </li>
-          ))}
-        </ul>
-        <ScrollBar orientation="horizontal" className="hidden"/>
+          <ul className="flex items-center">
+            {tabs.map((tab) => (
+              <li key={tab.path}>
+                <Link to={tab.path}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="cursor-pointer rounded-sm"
+                    aria-current={isTabActive(tab.path) ? "page" : undefined}
+                  >
+                    <tab.icon
+                      strokeWidth={2.5}
+                      className={cn(
+                        isTabActive(tab.path)
+                          ? "text-foreground"
+                          : "text-muted-foreground"
+                      )}
+                    />
+                    {tab.label}
+                  </Button>
+                </Link>
+                {isTabActive(tab.path) && (
+                  <div className="h-0.5 rounded-t bg-blue-700" />
+                )}
+              </li>
+            ))}
+          </ul>
+          <ScrollBar orientation="horizontal" className="hidden" />
         </ScrollArea>
       </nav>
-        <main id="project-content">
-          <ProjectContext value={{ project, setProject, isLoading }}>
-            <Outlet />
-          </ProjectContext>
-        </main>
+      <main id="project-content">
+        <ProjectContext value={{ project, setProject, isLoading }}>
+          <Outlet />
+        </ProjectContext>
+      </main>
     </>
   )
 }

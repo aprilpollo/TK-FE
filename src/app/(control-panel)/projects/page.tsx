@@ -28,10 +28,15 @@ import { format } from "date-fns"
 import { fetchProjects, fetchProjectStatuses } from "@/api/project"
 import { SkeletonProject } from "@/components/project/skeleton"
 import { EmptyProject } from "@/components/project/empty"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { getPageNumbers } from "@/utils/pagination"
-import type { Project, Pagination as PaginationType, ProjectStatus } from "@/types"
+import type {
+  Project,
+  Pagination as PaginationType,
+  ProjectStatus,
+} from "@/types"
 import Link from "@/shared/Link"
-import { AreaChart, Area, ResponsiveContainer } from "recharts"
+import { AreaChart, Area } from "recharts"
 import NewProjectDialog from "@/components/project/new-project-dialog"
 
 const SPARK_COLOR = "var(--chart-1)"
@@ -40,26 +45,29 @@ function Sparkline({ data }: { data: number[] }) {
   const uid = useId().replace(/:/g, "")
   const chartData = data.map((v, i) => ({ i, v }))
   return (
-    <div className="h-10 w-30 md:w-48 shrink-0">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={chartData} margin={{ top: 2, right: 0, bottom: 2, left: 0 }}>
-          <defs>
-            <linearGradient id={`sg-${uid}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={SPARK_COLOR} stopOpacity={0.3} />
-              <stop offset="95%" stopColor={SPARK_COLOR} stopOpacity={0.05} />
-            </linearGradient>
-          </defs>
-          <Area
-            type="monotone"
-            dataKey="v"
-            stroke={SPARK_COLOR}
-            strokeWidth={1.5}
-            fill={`url(#sg-${uid})`}
-            dot={false}
-            isAnimationActive={false}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+    <div className="h-10 w-30 shrink-0 overflow-hidden md:w-48">
+      <AreaChart
+        data={chartData}
+        width={192}
+        height={40}
+        margin={{ top: 2, right: 0, bottom: 2, left: 0 }}
+      >
+        <defs>
+          <linearGradient id={`sg-${uid}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={SPARK_COLOR} stopOpacity={0.3} />
+            <stop offset="95%" stopColor={SPARK_COLOR} stopOpacity={0.05} />
+          </linearGradient>
+        </defs>
+        <Area
+          type="monotone"
+          dataKey="v"
+          stroke={SPARK_COLOR}
+          strokeWidth={1.5}
+          fill={`url(#sg-${uid})`}
+          dot={false}
+          isAnimationActive={false}
+        />
+      </AreaChart>
     </div>
   )
 }
@@ -126,7 +134,9 @@ function Projects() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
     loadProjects(page)
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    document
+      .getElementById("main-scroll")
+      ?.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   useEffect(() => {
@@ -157,75 +167,78 @@ function Projects() {
         </div>
       </div>
 
-      <div className="sticky top-2 z-10 flex items-center gap-2 bg-background">
-        <div className="relative w-full">
-          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search projects..."
-            className="pl-9"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
-        </div>
-        <Select onValueChange={setStatus}>
-          <SelectTrigger className="w-44 cursor-pointer capitalize">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent position="popper">
-            <SelectGroup>
-              <SelectLabel>Status</SelectLabel>
-              {statusFilter.map((status) => (
+      <ScrollArea>
+        <div className="flex items-center gap-2 bg-background">
+          <div className="relative w-full">
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search projects..."
+              className="pl-9"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+          </div>
+          <Select onValueChange={setStatus}>
+            <SelectTrigger className="w-44 cursor-pointer capitalize">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              <SelectGroup>
+                <SelectLabel>Status</SelectLabel>
+                {statusFilter.map((status) => (
+                  <SelectItem
+                    key={status.id}
+                    value={status.id.toString()}
+                    className="cursor-pointer capitalize"
+                  >
+                    <Dot
+                      strokeWidth={12}
+                      className={cn(
+                        status.id === 1 && "text-green-700",
+                        status.id === 2 && "text-sky-700",
+                        status.id === 3 && "text-purple-700",
+                        status.id === 4 && "text-red-700"
+                      )}
+                    />
+                    {status.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Select>
+            <SelectTrigger className="w-44 cursor-pointer capitalize">
+              <SelectValue placeholder="Sort" />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              <SelectGroup>
+                <SelectLabel>Sort</SelectLabel>
+                <SelectItem value="name" className="cursor-pointer capitalize">
+                  Name
+                </SelectItem>
                 <SelectItem
-                  key={status.id}
-                  value={status.id.toString()}
+                  value="recently_updated"
                   className="cursor-pointer capitalize"
                 >
-                  <Dot
-                    strokeWidth={12}
-                    className={cn(
-                      status.id === 1 && "text-green-700",
-                      status.id === 2 && "text-sky-700",
-                      status.id === 3 && "text-purple-700",
-                      status.id === 4 && "text-red-700"
-                    )}
-                  />
-                  {status.name}
+                  Recently updated
                 </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <Select>
-          <SelectTrigger className="w-44 cursor-pointer capitalize">
-            <SelectValue placeholder="Sort" />
-          </SelectTrigger>
-          <SelectContent position="popper">
-            <SelectGroup>
-              <SelectLabel>Sort</SelectLabel>
-              <SelectItem value="name" className="cursor-pointer capitalize">
-                Name
-              </SelectItem>
-              <SelectItem
-                value="recently_updated"
-                className="cursor-pointer capitalize"
-              >
-                Recently updated
-              </SelectItem>
-              <SelectItem
-                value="due_date"
-                className="cursor-pointer capitalize"
-              >
-                Due date
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <NewProjectDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          onCreated={loadProjects}
-        />
-      </div>
+                <SelectItem
+                  value="due_date"
+                  className="cursor-pointer capitalize"
+                >
+                  Due date
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <NewProjectDialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            onCreated={loadProjects}
+          />
+        </div>
+        <ScrollBar orientation="horizontal" className="hidden" />
+      </ScrollArea>
 
       <main id="projects-list">
         {loading ? (
@@ -239,7 +252,7 @@ function Projects() {
             <Link key={project.key} to={`/projects/${project.key}`}>
               <Card className="rounded-none border-b bg-background ring-0">
                 <div className="flex items-center gap-4">
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 font-semibold">
                       <Avatar className="size-6">
                         <AvatarImage src={project.logo_url} />
@@ -248,7 +261,10 @@ function Projects() {
                         </AvatarFallback>
                       </Avatar>
                       {project.name}
-                      <Badge variant="outline" className="font-medium capitalize">
+                      <Badge
+                        variant="outline"
+                        className="font-medium capitalize"
+                      >
                         <Dot
                           strokeWidth={12}
                           className={cn(
@@ -287,7 +303,8 @@ function Projects() {
                 let msg = "No projects"
                 if (status) {
                   const statusName =
-                    statusFilter.find((s) => s.id.toString() === status)?.name ?? ""
+                    statusFilter.find((s) => s.id.toString() === status)
+                      ?.name ?? ""
                   msg += ` with status "${statusName.replace(/^\w/, (c) => c.toUpperCase())}"`
                 }
                 if (search) {
