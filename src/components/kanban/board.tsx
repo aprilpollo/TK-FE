@@ -86,7 +86,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
     }),
   )
 
-  const columnsId = useMemo(() => columns.map((col) => col.uuid), [columns])
+  const columnsId = useMemo(() => columns.filter((col) => !col.is_complete).map((col) => col.uuid), [columns])
 
   // Pre-compute per-column task lists once instead of re-filtering inside every column render
   const tasksByColumn = useMemo(() => {
@@ -124,6 +124,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
     const isActiveColumn = active.data.current?.type === "Column"
     if (isActiveColumn) {
       if (!over || activeId === overId) return
+      if (active.data.current?.column?.is_complete || over.data.current?.column?.is_complete) return
       setColumns((columns) => {
         const activeIndex = columns.findIndex((col) => col.uuid === activeId)
         const overIndex = columns.findIndex((col) => col.uuid === overId)

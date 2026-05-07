@@ -57,6 +57,7 @@ export async function createListTaskStatus({
     name: string
     description?: string
     color: string
+    is_complete?: boolean
   }[]
 }): Promise<Response> {
   return apiFetch(`/api/v1/tasks/statuses/list/${project_id}`, {

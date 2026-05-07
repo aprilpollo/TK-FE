@@ -2,6 +2,7 @@ export type Status = {
   id: string
   name: string
   color: string
+  is_complete?: boolean
   uuid?: string
 }
 
@@ -9,6 +10,7 @@ export type StatusTemplate = {
   id: string
   name: string
   description: string
+  is_complete?: boolean
   statuses: Omit<Status, "id">[]
 }
 

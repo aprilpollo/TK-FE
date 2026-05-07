@@ -18,7 +18,10 @@ import {
 } from "@dnd-kit/modifiers"
 import SettingsPageHeader from "@/components/project/settings-page-header"
 import SettingsSection from "@/components/project/settings-section"
-import { SortableStatusRow } from "@/components/project/status/sortable-row"
+import {
+  SortableStatusRow,
+  StatusRow,
+} from "@/components/project/status/sortable-row"
 import {
   STATUS_TEMPLATES,
   type Status,
@@ -69,12 +72,14 @@ function StatusSettings() {
           uuid: string
           name: string
           color: string
+          is_complete: boolean
         }[]
       }
       const fetched = data.payload.map((s) => ({
         id: s.id.toString(),
         uuid: s.uuid,
         name: s.name,
+        is_complete: s.is_complete,
         color: s.color,
       }))
       apiStatusesRef.current = fetched
@@ -94,12 +99,13 @@ function StatusSettings() {
     setStatuses((prev) => {
       const oldIndex = prev.findIndex((s) => s.id === active.id)
       const newIndex = prev.findIndex((s) => s.id === over.id)
-      return arrayMove(prev, oldIndex, newIndex)
+      const moved = arrayMove(prev, oldIndex, newIndex)
+      return [...moved.filter((s) => !s.is_complete), ...moved.filter((s) => s.is_complete)]
     })
   }
 
   function applyTemplate(template: StatusTemplate) {
-setStatuses([
+    setStatuses([
       ...apiStatusesRef.current,
       ...template.statuses.map((s) => ({ ...s, id: randomId() })),
     ])
@@ -120,7 +126,11 @@ setStatuses([
       name: "",
       color: "#94a3b8",
     }
-    setStatuses((prev) => [...prev, newStatus])
+    setStatuses((prev) => [
+      ...prev.filter((s) => !s.is_complete),
+      newStatus,
+      ...prev.filter((s) => s.is_complete),
+    ])
     setEditingId(newStatus.id)
     setDraft(newStatus)
     setIsAdding(true)
@@ -141,7 +151,7 @@ setStatuses([
       return
     }
     setStatuses((prev) => prev.map((s) => (s.id === draft.id ? draft : s)))
-    toast.success(isAdding ? "Status added" : "Status updated")
+    // toast.success(isAdding ? "Status added" : "Status updated")
     setIsAdding(false)
     setEditingId(null)
     setDraft(null)
@@ -224,25 +234,50 @@ setStatuses([
             modifiers={[restrictToVerticalAxis, restrictToParentElement]}
           >
             <SortableContext
-              items={statuses.map((s) => s.id)}
+              items={statuses.filter((s) => !s.is_complete).map((s) => s.id)}
               strategy={verticalListSortingStrategy}
             >
-              {statuses.map((status) => (
-                <SortableStatusRow
-                  key={status.id}
-                  status={status}
-                  isEditing={editingId === status.id}
-                  isDelete={status.uuid ? true : false}
-                  draft={draft}
-                  setDraft={setDraft}
-                  onEdit={() => startEdit(status)}
-                  onSave={save}
-                  onCancel={cancel}
-                  onRemove={() => remove(status.id)}
-                />
-              ))}
+              {statuses
+                .filter((s) => !s.is_complete)
+                .map((status) => (
+                  <SortableStatusRow
+                    key={status.id}
+                    status={status}
+                    isEditing={editingId === status.id}
+                    isDelete={status.uuid ? true : false}
+                    draft={draft}
+                    setDraft={setDraft}
+                    onEdit={() => startEdit(status)}
+                    onSave={save}
+                    onCancel={cancel}
+                    onRemove={() => remove(status.id)}
+                  />
+                ))}
             </SortableContext>
           </DndContext>
+          <div className="flex flex-col items-start py-3">
+            <span className="text-sm">Complete</span>
+            <span className="text-xs text-muted-foreground">
+              Tasks in this status are considered completed and will be hidden
+              from the default task view.
+            </span>
+          </div>
+          {statuses
+            .filter((s) => s.is_complete)
+            .map((status) => (
+              <StatusRow
+                key={status.id}
+                status={status}
+                isEditing={editingId === status.id}
+                isDelete={status.uuid ? true : false}
+                draft={draft}
+                setDraft={setDraft}
+                onEdit={() => startEdit(status)}
+                onSave={save}
+                onCancel={cancel}
+                onRemove={() => remove(status.id)}
+              />
+            ))}
           {statuses.length === 0 && (
             <li className="px-4 py-8 text-center text-sm text-muted-foreground italic">
               No statuses yet — apply a template or create one manually.

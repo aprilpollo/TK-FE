@@ -30,9 +30,14 @@ import { toast } from "sonner"
 interface Props {
   column: Column
   onAddTask: () => void
+  is_complete?: boolean
 }
 
-export function DropdownMenuColumn({ column, onAddTask }: Props) {
+export function DropdownMenuColumn({
+  column,
+  onAddTask,
+  is_complete = false,
+}: Props) {
   const { FetchTaskStatuses, setTasks } = useTask()
   const [open, setOpen] = useState(false)
   const [renameOpen, setRenameOpen] = useState(false)
@@ -100,10 +105,12 @@ export function DropdownMenuColumn({ column, onAddTask }: Props) {
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-44" align="start">
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={onAddTask}>
-              <Plus className="h-4 w-4" />
-              Add Task
-            </DropdownMenuItem>
+            {!is_complete && (
+              <DropdownMenuItem onClick={onAddTask}>
+                <Plus className="h-4 w-4" />
+                Add Task
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               onClick={() => {
                 setNameInput(column.name)
@@ -133,14 +140,18 @@ export function DropdownMenuColumn({ column, onAddTask }: Props) {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={() => setDeleteOpen(true)}
-          >
-            <Trash2 className="h-4 w-4 hover:text-destructive" />
-            Delete
-          </DropdownMenuItem>
+          {!is_complete && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => setDeleteOpen(true)}
+              >
+                <Trash2 className="h-4 w-4 hover:text-destructive" />
+                Delete
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

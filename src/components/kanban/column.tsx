@@ -12,10 +12,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
+  CircleCheck,
   GitMerge,
   GripVertical,
   Loader2,
   MoreHorizontal,
+  PackageCheck,
   Plus,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -49,6 +51,7 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
     isDragging,
   } = useSortable({
     id: column.uuid,
+    disabled: column.is_complete,
     data: {
       type: "Column",
       column,
@@ -147,9 +150,16 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
               {...listeners}
               variant="ghost"
               size="icon"
-              className="h-6 w-6 cursor-grab rounded-sm active:cursor-grabbing"
+              className={cn(
+                "h-6 w-6 rounded-sm",
+                !column.is_complete && "cursor-grab active:cursor-grabbing"
+              )}
             >
-              <GripVertical className="h-4 w-4" />
+              {column.is_complete ? (
+                <PackageCheck className="h-4 w-4" />
+              ) : (
+                <GripVertical className="h-4 w-4" />
+              )}
             </Button>
             <Badge
               className="line-clamp-1 flex items-center gap-1 rounded-sm font-bold uppercase"
@@ -158,7 +168,11 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
                 color: column.color,
               }}
             >
-              <GitMerge className="h-3.5 w-3.5" />
+              {column.is_complete ? (
+                <CircleCheck className="h-4 w-4" />
+              ) : (
+                <GitMerge className="h-3.5 w-3.5" />
+              )}
               {column.name}
             </Badge>
             <Badge
@@ -169,17 +183,20 @@ export function KanbanColumn({ column, tasks }: KanbanColumnProps) {
             </Badge>
           </div>
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 cursor-pointer rounded-full"
-              onClick={() => setAddTaskOpen(!addTaskOpen)}
-            >
-              <Plus className={cn("h-4 w-4", addTaskOpen && "rotate-45")} />
-            </Button>
+            {!column.is_complete && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 cursor-pointer rounded-full"
+                onClick={() => setAddTaskOpen(!addTaskOpen)}
+              >
+                <Plus className={cn("h-4 w-4", addTaskOpen && "rotate-45")} />
+              </Button>
+            )}
             <DropdownMenuColumn
               column={column}
               onAddTask={() => setAddTaskOpen(true)}
+              is_complete={column.is_complete}
             />
           </div>
         </div>

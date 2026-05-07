@@ -8,6 +8,7 @@ export interface Column {
   created_at: Date
   updated_at: Date
   position: number
+  is_complete: boolean
 }
 
 export interface Task {
