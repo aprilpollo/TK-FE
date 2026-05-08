@@ -29,7 +29,6 @@ export type ChartDataItem = {
 
 export interface ChartAreaInteractiveProps {
   data: ChartDataItem[]
-  setData: React.Dispatch<React.SetStateAction<ChartDataItem[]>>
   start: Date
   end: Date
 }

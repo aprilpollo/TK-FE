@@ -52,3 +52,55 @@ export async function updateLogo(projectId: string | number, file: File): Promis
     body: formData,
   })
 }
+
+export async function fetchProjectNotifications(projectId: string | number): Promise<Response> {
+  return apiFetch(`/api/v1/projects/${projectId}/notification`, {
+    method: "GET",
+  })
+}
+
+export async function updateProjectNotifications(projectId: string | number, data: {
+  task_assigned_email?: boolean
+  task_assigned_inapp?: boolean
+  task_status_changed_email?: boolean
+  task_status_changed_inapp?: boolean
+  mentioned_in_comment_email?: boolean
+  mentioned_in_comment_inapp?: boolean
+  due_date_approaching_email?: boolean
+  due_date_approaching_inapp?: boolean
+  project_updates_email?: boolean
+  project_updates_inapp?: boolean
+  new_member_joined_email?: boolean
+  new_member_joined_inapp?: boolean
+  daily_digest?: boolean
+  weekly_digest?: boolean
+}): Promise<Response> {
+  return apiFetch(`/api/v1/projects/${projectId}/notification`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  })
+}
+
+export async function fetchProjectTaskSummary(projectId: string | number): Promise<Response> {
+  return apiFetch(`/api/v1/projects/${projectId}/task_summary`, {
+    method: "GET",
+  })
+}
+
+export async function fetchProjectChart(projectId: string | number): Promise<Response> {
+  return apiFetch(`/api/v1/projects/${projectId}/chart`, {
+    method: "GET",
+  })
+}
+
+export async function fetchProjectAssignees(projectId: string | number): Promise<Response> {
+  return apiFetch(`/api/v1/projects/${projectId}/members`, {
+    method: "GET",
+  })
+}
+
+export async function fetchProjectTaskDeadlines(projectId: string | number): Promise<Response> {
+  return apiFetch(`/api/v1/projects/${projectId}/task_deadlines?_limit=5`, {
+    method: "GET",
+  })
+}

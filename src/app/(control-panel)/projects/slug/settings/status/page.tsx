@@ -109,7 +109,6 @@ function StatusSettings() {
       ...apiStatusesRef.current,
       ...template.statuses.map((s) => ({ ...s, id: randomId() })),
     ])
-    setSelectedTemplate("")
     setIsAdding(false)
     setEditingId(null)
     setDraft(null)

@@ -1,5 +1,11 @@
-import { useState } from "react"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { useState, useEffect } from "react"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarGroup,
+  AvatarGroupCount,
+  AvatarImage,
+} from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ChartAreaInteractive } from "@/components/project/area-chart-interactive"
@@ -21,6 +27,23 @@ import { format } from "date-fns"
 import useProject from "@/hooks/useProject"
 import Link from "@/shared/Link"
 import type { ChartDataItem } from "@/types"
+import {
+  fetchProjectTaskSummary,
+  fetchProjectChart,
+  fetchProjectAssignees,
+  fetchProjectTaskDeadlines,
+} from "@/api/project"
+
+type TaskSummary = {
+  total: number
+  total_this_week: number
+  completed: number
+  completed_this_week: number
+  pending: number
+  pending_this_week: number
+  cancelled: number
+  cancelled_this_week: number
+}
 
 type TaskDeadlines = {
   id: number | string
@@ -37,63 +60,83 @@ type TaskDeadlines = {
   }
 }
 
+type Assignee = {
+  id: number | string
+  name: string
+  email: string
+  avatar?: string
+}
+
 function Overview() {
   const { project } = useProject()
 
   if (!project) return null
 
-  const [chartData, setChartData] = useState<ChartDataItem[]>([
-    { date: "2026-05-09", completed: 0, created: 8 },
-    { date: "2026-05-10", completed: 0, created: 12 },
-    { date: "2026-05-11", completed: 0, created: 6 },
-    { date: "2026-05-12", completed: 0, created: 5 },
-    { date: "2026-05-13", completed: 1, created: 10 },
-    { date: "2026-05-14", completed: 2, created: 4 },
-    { date: "2026-05-15", completed: 3, created: 7 },
-  ])
+  const [taskSummary, setTaskSummary] = useState<TaskSummary | null>(null)
+  const [chartData, setChartData] = useState<ChartDataItem[]>([])
+  const [assignees, setAssignees] = useState<Assignee[] | null>(null)
+  const [taskDeadlines, setTaskDeadlines] = useState<TaskDeadlines[] | null>(
+    null
+  )
 
-  const [taskDeadlines, _setTaskDeadlines] = useState<TaskDeadlines[]>([
-    {
-      id: 1,
-      key: "design-mockups",
-      name: "Design mockups",
-      dueDate: "May 10",
-      priority: { name: "High", color: "#C20E4D" },
-      status: { name: "In Progress", color: "#005BC4" },
-    },
-    {
-      id: 2,
-      key: "api-integration",
-      name: "API integration",
-      dueDate: "May 12",
-      priority: { name: "Medium", color: "#F97316" },
-      status: { name: "Pending", color: "#D97706" },
-    },
-    {
-      id: 3,
-      key: "write-tests",
-      name: "Write tests",
-      dueDate: "May 14",
-      priority: { name: "Low", color: "#10B981" },
-      status: { name: "Not Started", color: "#047857" },
-    },
-    {
-      id: 4,
-      key: "review-code",
-      name: "Review code",
-      dueDate: "May 16",
-      priority: { name: "High", color: "#C20E4D" },
-      status: { name: "In Progress", color: "#005BC4" },
-    },
-    {
-      id: 5,
-      key: "deploy-application",
-      name: "Deploy application",
-      dueDate: "May 18",
-      priority: { name: "High", color: "#C20E4D" },
-      status: { name: "Not Started", color: "#047857" },
-    },
-  ])
+  async function fetchData() {
+    if (!project) return
+    try {
+      const [taskSummaryRes, chartDataRes, assigneesRes, taskDeadlinesRes] =
+        await Promise.all([
+          fetchProjectTaskSummary(project.id),
+          fetchProjectChart(project.id),
+          fetchProjectAssignees(project.id),
+          fetchProjectTaskDeadlines(project.id),
+        ])
+
+      if (taskSummaryRes.ok) {
+        const data = (await taskSummaryRes.json()) as {
+          code: number
+          error: string | null
+          message: string
+          payload: TaskSummary
+        }
+        setTaskSummary(data.payload)
+      }
+
+      if (chartDataRes.ok) {
+        const data = (await chartDataRes.json()) as {
+          code: number
+          error: string | null
+          message: string
+          payload: ChartDataItem[]
+        }
+        setChartData(data.payload)
+      }
+
+      if (assigneesRes.ok) {
+        const data = (await assigneesRes.json()) as {
+          code: number
+          error: string | null
+          message: string
+          payload: Assignee[]
+        }
+        setAssignees(data.payload)
+      }
+
+      if (taskDeadlinesRes.ok) {
+        const data = (await taskDeadlinesRes.json()) as {
+          code: number
+          error: string | null
+          message: string
+          payload: TaskDeadlines[]
+        }
+        setTaskDeadlines(data.payload)
+      }
+    } catch (error) {
+      console.error("Error fetching project data:", error)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [project.id])
 
   return (
     <div className="grid grid-cols-4 px-0 py-6 sm:px-3">
@@ -127,34 +170,33 @@ function Overview() {
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
           <StatsCard
             title="Total Tasks"
-            value="123"
+            value={taskSummary?.total.toString() || "0"}
             icon={<ListTodo className="size-4" />}
-            change={8}
+            change={taskSummary?.total_this_week ?? 0}
           />
           <StatsCard
             title="Completed"
-            value="89"
+            value={taskSummary?.completed.toString() || "0"}
             icon={<CheckCircle2 className="size-4" />}
-            change={5}
+            change={taskSummary?.completed_this_week ?? 0}
           />
           <StatsCard
             title="Pending"
-            value="34"
+            value={taskSummary?.pending.toString() || "0"}
             icon={<Clock className="size-4" />}
-            change={-3}
+            change={taskSummary?.pending_this_week ?? 0}
           />
           <StatsCard
             title="Cancelled"
-            value="0"
+            value={taskSummary?.cancelled.toString() || "0"}
             icon={<BookX className="size-4" />}
-            change={0}
+            change={taskSummary?.cancelled_this_week ?? 0}
           />
         </div>
 
         <div className="mt-4">
           <ChartAreaInteractive
             data={chartData}
-            setData={setChartData}
             start={new Date(format(project.start_date, "yyyy-MM-dd"))}
             end={new Date(format(project.end_date, "yyyy-MM-dd"))}
           />
@@ -165,13 +207,13 @@ function Overview() {
             <h2 className="text-md mb-3 font-semibold text-neutral-800 dark:text-neutral-200">
               Upcoming Deadlines of the Week
             </h2>
-            {taskDeadlines.length > 0 ? (
+            {taskDeadlines && taskDeadlines.length > 0 ? (
               taskDeadlines.map((task) => (
                 <DeadlineItem
                   key={task.key}
                   to={`./tasks/${task.key}`}
                   name={task.name}
-                  dueDate={task.dueDate}
+                  dueDate={format(task.dueDate, "MMM dd, yyyy")}
                   priority={task.priority}
                   status={task.status}
                 />
@@ -208,10 +250,10 @@ function Overview() {
           </div>
         </div>
       </div>
-      
+
       <div className="col-span-1 hidden space-y-4 md:block">
         <div id="about">
-          <h1 className="text-lg font-bold text-neutral-800 dark:text-neutral-200">
+          <h1 className="text-md font-medium text-neutral-800 dark:text-neutral-200">
             About
           </h1>
           <p className="min-h-12 text-xs text-neutral-500 dark:text-neutral-400">
@@ -224,42 +266,30 @@ function Overview() {
         </div>
         <div className="border-b" />
         <div id="assignees" className="">
-          <h1 className="flex items-center text-lg font-bold text-neutral-800 dark:text-neutral-200">
-            Assignees members
-            <Badge
-              className="ml-2 h-5 min-w-5 rounded-full px-1 font-mono tabular-nums"
-              variant="outline"
-            >
-              {0}
-            </Badge>
+          <h1 className="flex items-center text-md font-medium text-neutral-800 dark:text-neutral-200">
+            Assignees
           </h1>
-          <div className="min-h-12">
-            {/* {project?.contributors && project?.contributors?.length > 0 ? (
-                project?.contributors?.map((contributor) => (
-                  <div className="flex items-center gap-2">
-                    <Avatar>
-                      <AvatarImage src={contributor.avatar_url} />
-                      <AvatarFallback className="capitalize">
-                        {contributor.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm">{contributor.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {contributor.email}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <span className="text-xs text-muted-foreground italic">
-                  No contributors
-                </span>
-              )} */}
-
-            <span className="text-xs text-muted-foreground italic">
-              No assignees
-            </span>
+          <div className="min-h-10">
+            {assignees && assignees.length > 0 ? (
+              <AvatarGroup className="grayscale">
+                {assignees.slice(0, 5).map((assignee) => (
+                  <Avatar key={assignee.id} className="size-7">
+                    <AvatarImage
+                      src={assignee.avatar}
+                      alt={`@${assignee.name}`}
+                    />
+                    <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                ))}
+                {assignees.length > 5 && (
+                  <AvatarGroupCount>+{assignees.length - 5}</AvatarGroupCount>
+                )}
+              </AvatarGroup>
+            ) : (
+              <span className="text-xs text-muted-foreground italic">
+                No contributors
+              </span>
+            )}
           </div>
         </div>
 
@@ -267,7 +297,7 @@ function Overview() {
           <>
             <div className="border-b" />
             <div id="due-date" className="">
-              <h1 className="text-lg font-bold text-neutral-800 dark:text-neutral-200">
+              <h1 className="text-md font-medium text-neutral-800 dark:text-neutral-200">
                 Due Date
               </h1>
               <div className="flex items-center gap-2">

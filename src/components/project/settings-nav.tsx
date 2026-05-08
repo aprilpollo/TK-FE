@@ -30,7 +30,6 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { to: "general", label: "General", icon: SlidersHorizontal },
-  { to: "members", label: "Members", icon: Users, group: "access" },
   { to: "status", label: "Statuses", icon: GitMerge, group: "workflow" },
   {
     to: "notifications",
@@ -81,21 +80,25 @@ export function SettingsNav({ basePath }: { basePath: string }) {
 
                 return (
                   <li key={item.to}>
-                    <Link to={href}>
-                      <Button
-                        variant="ghost"
-                        className={cn("w-full cursor-pointer justify-start", {
-                          "bg-muted dark:bg-muted/50": active,
-                          "bg-destructive/10 dark:bg-destructive/50":
-                            active && isDanger,
-                          "text-destructive hover:bg-destructive/10 hover:text-destructive":
-                            isDanger,
-                        })}
+                    <Button
+                      variant="ghost"
+                      disabled={item.to === "integrations"}
+                      className={cn("w-full cursor-pointer justify-start", {
+                        "bg-muted dark:bg-muted/50": active,
+                        "bg-destructive/10 dark:bg-destructive/50":
+                          active && isDanger,
+                        "text-destructive hover:bg-destructive/10 hover:text-destructive":
+                          isDanger,
+                      })}
+                    >
+                      <Link
+                        to={href}
+                        className="flex w-full items-center gap-1"
                       >
                         {item.icon && <item.icon className="size-4" />}
                         {item.label}
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </li>
                 )
               })}
