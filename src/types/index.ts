@@ -23,3 +23,4 @@ export type {
   CalendarPriority,
 } from "./calendar"
 export type { Pagination } from "./pagination"
+export type { TaskWeeklyOverview } from "./tasks"

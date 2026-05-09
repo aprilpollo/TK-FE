@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import type { EventContentArg } from "@fullcalendar/core"
-import { ClockFading, Dot } from "lucide-react"
+import { CircleDotDashed, ClockFading, Dot } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import {
   Item,
@@ -77,7 +77,10 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
   const rounded = getSegmentRounded(arg.isStart, arg.isEnd, isMonth)
 
   const statusStyle = status?.color
-    ? { color: getContrastColor(status.color), backgroundColor: `${status.color}80` }
+    ? {
+        color: getContrastColor(status.color),
+        backgroundColor: `${status.color}80`,
+      }
     : undefined
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -88,7 +91,7 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
   if (isList) {
     return (
       <div className="flex items-center gap-2">
-        <span className={cn("size-2 rounded-full", dotClass)} />
+        <CircleDotDashed className="size-4" color={status?.color} />
         <span className="font-medium">{arg.event.title}</span>
       </div>
     )

@@ -359,6 +359,16 @@ body #splash-screen {
   background-color: transparent !important;
 }
 
+.fc .fc-list-event-dot {
+  display: none;
+}
+
+.fc .fc-list {
+  border: 0px solid var(--border);
+  border-radius: 0%;
+}
+
+
 @media (prefers-color-scheme: dark) {
   .moon-loader {
     --loading-text-color: #a0a098;
