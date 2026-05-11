@@ -119,6 +119,10 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
   }
   body {
     @apply bg-background text-foreground;
@@ -332,14 +336,13 @@ body #splash-screen {
   border-bottom: 1px solid var(--border);
 } */
 
-.fc .fc-scroller {
-  
+/* .fc .fc-scroller {
   scrollbar-width: none;
-}
+} */
 
-.fc .fc-scroller::-webkit-scrollbar {
+/* .fc .fc-scroller::-webkit-scrollbar {
   display: none;
-}
+} */
 
 .fc .fc-scrollgrid,
 .fc .fc-scrollgrid td,
@@ -367,7 +370,6 @@ body #splash-screen {
   border: 0px solid var(--border);
   border-radius: 0%;
 }
-
 
 @media (prefers-color-scheme: dark) {
   .moon-loader {

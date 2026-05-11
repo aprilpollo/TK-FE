@@ -30,6 +30,17 @@ export async function fetchTasks(
   )
 }
 
+export async function fetchMyTasksToday(
+  query?: string
+): Promise<Response> {
+  return apiFetch(
+    `/api/v1/tasks/me/today${query ? `?${query}` : ""}`,
+    {
+      method: "GET",
+    }
+  )
+}
+
 export async function createTaskStatus({
   project_id,
   name,

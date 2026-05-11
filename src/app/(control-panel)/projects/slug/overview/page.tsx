@@ -370,7 +370,7 @@ function DeadlineItem({
   status: { name: string; color: string }
 }) {
   return (
-    <div className="flex min-h-12 items-center justify-between border-b bg-card px-3 py-2">
+    <div className="flex min-h-12 items-center justify-between border-b px-3 py-2">
       <Link
         to={to}
         className="flex items-center gap-1 text-sm font-medium text-neutral-800 dark:text-neutral-200"
