@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Badge } from "@/components/ui/badge"
 import {
   CalendarDays,
@@ -8,7 +8,7 @@ import {
   Search,
 } from "lucide-react"
 import { format } from "date-fns"
-import type { TaskWeeklyOverview as Task } from "@/types"
+import type { TaskWeeklyOverview as Task, Pagination } from "@/types"
 import { cn } from "@/lib/utils"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
@@ -21,31 +21,129 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { fetchMyTasksToday } from "@/api/task"
+import { fetchMyTasksToday, fetchMyTasksOverdue } from "@/api/task"
+
+type ApiResponse = {
+  code: number
+  error: string | null
+  message: string | null
+  pagination: Pagination | null
+  payload: Task[]
+}
 
 function MyWork() {
   const [tasks, setTasks] = useState<Task[]>([])
-  const [tasksOverdue, _setTasksOverdue] = useState<Task[]>([])
+  const [tasksPagination, setTasksPagination] = useState<Pagination | null>(null)
+  const [tasksPage, setTasksPage] = useState(1)
+  const [isLoadingMoreTasks, setIsLoadingMoreTasks] = useState(false)
+
+  const [tasksOverdue, setTasksOverdue] = useState<Task[]>([])
+  const [tasksOverduePagination, setTasksOverduePagination] = useState<Pagination | null>(null)
+  const [tasksOverduePage, setTasksOverduePage] = useState(1)
+  const [isLoadingMoreOverdue, setIsLoadingMoreOverdue] = useState(false)
+
+  const loadingMoreTodayRef = useRef(false)
+  const loadingMoreOverdueRef = useRef(false)
 
   const now = new Date()
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      const response = await fetchMyTasksToday()
-      const data = (await response.json()) as {
-        code: number
-        error: string | null
-        message: string | null
-        payload: Task[]
-      }
-      setTasks(data.payload)
+  const LIMIT = 20
+
+  const fetchTasks = async () => {
+    const query = new URLSearchParams()
+    query.append("_page", "1")
+    query.append("_limit", String(LIMIT))
+
+    const [responseOverdue, responseToday] = await Promise.all([
+      fetchMyTasksOverdue(query.toString()),
+      fetchMyTasksToday(query.toString()),
+    ])
+
+    if (responseOverdue.ok) {
+      const dataOverdue = (await responseOverdue.json()) as ApiResponse
+      setTasksOverdue(dataOverdue.payload)
+      setTasksOverduePagination(dataOverdue.pagination)
     }
 
+    if (responseToday.ok) {
+      const dataToday = (await responseToday.json()) as ApiResponse
+      setTasks(dataToday.payload)
+      setTasksPagination(dataToday.pagination)
+    }
+  }
+
+  const loadMoreToday = async () => {
+    if (loadingMoreTodayRef.current) return
+    if (!tasksPagination || tasksPagination.page * tasksPagination.limit >= tasksPagination.total) return
+
+    loadingMoreTodayRef.current = true
+    setIsLoadingMoreTasks(true)
+
+    try {
+      const nextPage = tasksPage + 1
+      const query = new URLSearchParams()
+      query.append("_page", String(nextPage))
+      query.append("_limit", String(LIMIT))
+
+      const response = await fetchMyTasksToday(query.toString())
+      if (response.ok) {
+        const data = (await response.json()) as ApiResponse
+        setTasks((prev) => [...prev, ...data.payload])
+        setTasksPagination(data.pagination)
+        setTasksPage(nextPage)
+      }
+    } finally {
+      loadingMoreTodayRef.current = false
+      setIsLoadingMoreTasks(false)
+    }
+  }
+
+  const loadMoreOverdue = async () => {
+    if (loadingMoreOverdueRef.current) return
+    if (!tasksOverduePagination || tasksOverduePagination.page * tasksOverduePagination.limit >= tasksOverduePagination.total) return
+
+    loadingMoreOverdueRef.current = true
+    setIsLoadingMoreOverdue(true)
+
+    try {
+      const nextPage = tasksOverduePage + 1
+      const query = new URLSearchParams()
+      query.append("_page", String(nextPage))
+      query.append("_limit", String(LIMIT))
+
+      const response = await fetchMyTasksOverdue(query.toString())
+      if (response.ok) {
+        const data = (await response.json()) as ApiResponse
+        setTasksOverdue((prev) => [...prev, ...data.payload])
+        setTasksOverduePagination(data.pagination)
+        setTasksOverduePage(nextPage)
+      }
+    } finally {
+      loadingMoreOverdueRef.current = false
+      setIsLoadingMoreOverdue(false)
+    }
+  }
+
+  const handleTodayScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 60) {
+      loadMoreToday()
+    }
+  }
+
+  const handleOverdueScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 60) {
+      loadMoreOverdue()
+    }
+  }
+
+  useEffect(() => {
     fetchTasks()
   }, [])
 
   return (
-    <main className="px-3">
+    <main className="px-3 pb-6">
       <header className="flex items-center justify-between py-5">
         <div className="">
           <h1 className="text-2xl font-bold tracking-tight">
@@ -61,7 +159,7 @@ function MyWork() {
       </header>
       <div className="space-y-4">
         <ScrollArea>
-          <div className="flex items-center gap-2 bg-background">
+          <div className="flex items-center gap-2 bg-background p-1">
             <div className="relative w-full">
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -133,34 +231,60 @@ function MyWork() {
           <ScrollBar orientation="horizontal" className="hidden" />
         </ScrollArea>
 
-        <Section
-          title="Today"
-          description="My tasks today"
-          className="max-h-[50svh] overflow-y-auto"
-          // tone="blue"
-        >
-          {tasks.map((task) => (
-            <TaskItem key={task.id} task={task} />
-          ))}
-        </Section>
         {tasksOverdue.length > 0 && (
           <Section
             title="Overdue"
             description="Tasks that are past their due date"
             className="max-h-[50svh] overflow-y-auto"
             tone="danger"
+            onScroll={handleOverdueScroll}
+            badge={
+              tasksOverduePagination && (
+                <Badge variant="destructive" className="rounded-sm text-xs">
+                  {tasksOverduePagination.total} Tasks
+                </Badge>
+              )
+            }
           >
             {tasksOverdue.map((task) => (
               <TaskItem key={task.id} task={task} />
             ))}
+            {isLoadingMoreOverdue && <LoadingMore />}
           </Section>
         )}
+
+        <Section
+          title="Today"
+          description="My tasks today"
+          className="max-h-[50svh] overflow-y-auto"
+          onScroll={handleTodayScroll}
+          badge={
+            tasksPagination && (
+              <Badge variant="secondary" className="rounded-sm text-xs">
+                {tasksPagination.total} Tasks
+              </Badge>
+            )
+          }
+        >
+          {tasks.map((task) => (
+            <TaskItem key={task.id} task={task} />
+          ))}
+          {isLoadingMoreTasks && <LoadingMore />}
+        </Section>
       </div>
     </main>
   )
 }
 
 export default MyWork
+
+function LoadingMore() {
+  return (
+    <div className="flex items-center justify-center py-3 text-xs text-muted-foreground">
+      Loading...
+    </div>
+  )
+}
 
 function Section({
   title,
@@ -169,6 +293,8 @@ function Section({
   tone = "default",
   children,
   className,
+  badge,
+  onScroll,
 }: {
   title?: string
   description?: string
@@ -176,6 +302,8 @@ function Section({
   tone?: "default" | "danger" | "blue"
   children: React.ReactNode
   className?: string
+  badge?: React.ReactNode
+  onScroll?: (e: React.UIEvent<HTMLDivElement>) => void
 }) {
   return (
     <section
@@ -211,15 +339,10 @@ function Section({
               </p>
             )}
           </div>
-          <Badge
-            variant={tone === "danger" ? "destructive" : "secondary"}
-            className="rounded-sm text-xs"
-          >
-            +10 Tasks
-          </Badge>
+          {badge}
         </header>
       )}
-      <div className={cn("px-2 py-1", className)}>{children}</div>
+      <div className={cn("px-2 py-1", className)} onScroll={onScroll}>{children}</div>
       {footer && (
         <div className="flex items-center justify-end gap-2 py-3">{footer}</div>
       )}

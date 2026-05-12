@@ -41,6 +41,17 @@ export async function fetchMyTasksToday(
   )
 }
 
+export async function fetchMyTasksOverdue(
+  query?: string
+): Promise<Response> {
+  return apiFetch(
+    `/api/v1/tasks/me/overdue${query ? `?${query}` : ""}`,
+    {
+      method: "GET",
+    }
+  )
+}
+
 export async function createTaskStatus({
   project_id,
   name,
