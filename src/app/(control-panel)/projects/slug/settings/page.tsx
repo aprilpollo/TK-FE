@@ -5,8 +5,8 @@ import {
 } from "@/components/project/settings-nav"
 
 function Setting() {
-  const { id } = useParams()
-  const basePath = `/projects/${id}/settings`
+  const { projectId } = useParams()
+  const basePath = `/projects/${projectId}/settings`
 
   return (
     <div className="space-y-6 px-3 py-6">

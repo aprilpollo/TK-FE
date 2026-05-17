@@ -30,26 +30,22 @@ export async function fetchTasks(
   )
 }
 
-export async function fetchMyTasksToday(
-  query?: string
-): Promise<Response> {
-  return apiFetch(
-    `/api/v1/tasks/me/today${query ? `?${query}` : ""}`,
-    {
-      method: "GET",
-    }
-  )
+export async function fetchTaskByKey(key: string): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/key/${key}`, {
+    method: "GET",
+  })
 }
 
-export async function fetchMyTasksOverdue(
-  query?: string
-): Promise<Response> {
-  return apiFetch(
-    `/api/v1/tasks/me/overdue${query ? `?${query}` : ""}`,
-    {
-      method: "GET",
-    }
-  )
+export async function fetchMyTasksToday(query?: string): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/me/today${query ? `?${query}` : ""}`, {
+    method: "GET",
+  })
+}
+
+export async function fetchMyTasksOverdue(query?: string): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/me/overdue${query ? `?${query}` : ""}`, {
+    method: "GET",
+  })
 }
 
 export async function createTaskStatus({

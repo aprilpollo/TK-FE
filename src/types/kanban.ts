@@ -14,6 +14,7 @@ export interface Column {
 export interface Task {
   id: number | string
   columnId: number | string
+  key: string
   title: string
   description?: string
   priority?: {

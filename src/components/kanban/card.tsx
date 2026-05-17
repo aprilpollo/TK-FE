@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/card"
 import { DropdownMenuTask } from "@/components/kanban/dropdown-menu-task"
 import { format } from "date-fns"
+import Link from "@/shared/Link"
 
 export function KanbanCard({
   task,
@@ -148,7 +149,9 @@ export function KanbanCard({
     >
       <CardHeader className="px-2">
         <CardTitle className="flex items-center justify-between text-sm">
-          <span className="line-clamp-1">{task.title}</span>
+          <Link to={`./${task.key}`} className="w-full">
+            <span className="line-clamp-1">{task.title}</span>
+          </Link>
           <DropdownMenuTask task={task} />
         </CardTitle>
         <CardDescription className="space-y-2 pb-2">

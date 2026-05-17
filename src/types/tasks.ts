@@ -20,5 +20,6 @@ export interface TaskWeeklyOverview {
     is_complete: boolean
   }
   project_id: string | number
+  project_key: string
   project_name: string
 }

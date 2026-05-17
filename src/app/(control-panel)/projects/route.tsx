@@ -5,6 +5,7 @@ import Projects from "@/app/(control-panel)/projects/page"
 import Slug from "@/app/(control-panel)/projects/slug/page"
 import Overview from "@/app/(control-panel)/projects/slug/overview/page"
 import Tasks from "@/app/(control-panel)/projects/slug/tasks/page"
+import TaskByKey from "@/app/(control-panel)/projects/slug/tasks/key/page"
 import Calendar from "@/app/(control-panel)/projects/slug/calendar/page"
 import Files from "@/app/(control-panel)/projects/slug/files/page"
 import Settings from "@/app/(control-panel)/projects/slug/settings/page"
@@ -16,7 +17,6 @@ import IntegrationsSettings from "@/app/(control-panel)/projects/slug/settings/i
 import StatusSettings from "@/app/(control-panel)/projects/slug/settings/status/page"
 import DangerSettings from "@/app/(control-panel)/projects/slug/settings/danger/page"
 
-
 const ProjectsRoute: RouteItemType = {
   path: "projects",
   element: <Outlet />,
@@ -27,7 +27,7 @@ const ProjectsRoute: RouteItemType = {
       element: <Projects />,
     },
     {
-      path: ":id",
+      path: ":projectId",
       element: <Slug />,
       children: [
         {
@@ -36,7 +36,17 @@ const ProjectsRoute: RouteItemType = {
         },
         {
           path: "tasks",
-          element: <Tasks />,
+          element: <Outlet />,
+          children: [
+            {
+              index: true,
+              element: <Tasks />,
+            },
+            {
+              path: ":taskId",
+              element: <TaskByKey />,
+            },
+          ],
         },
         {
           path: "calendar",

@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { fetchMyTasksToday, fetchMyTasksOverdue } from "@/api/task"
+import Link from "@/shared/Link"
 
 type ApiResponse = {
   code: number
@@ -352,7 +353,7 @@ function Section({
 
 function TaskItem({ task }: { task: Task }) {
   return (
-    <div className="flex cursor-pointer items-center justify-between border-b px-2 py-2 hover:rounded-md hover:border-none hover:bg-accent">
+    <Link to={`/projects/${task.project_key}/tasks/${task.key}`} className="flex cursor-pointer items-center justify-between border-b px-2 py-2 hover:rounded-md hover:border-none hover:bg-accent">
       <div className="flex items-center gap-1">
         <CircleDotDashed className="size-4 text-muted-foreground" />
         <h3 className="text-sm font-medium">{task.title}</h3>
@@ -387,6 +388,6 @@ function TaskItem({ task }: { task: Task }) {
           </Badge>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }

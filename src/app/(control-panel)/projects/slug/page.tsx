@@ -25,17 +25,17 @@ const tabs = [
 ]
 
 function Slug() {
-  const { id } = useParams()
+  const { projectId } = useParams()
   const location = useLocation()
   const [project, setProject] = useState<Project | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!id) return
+    if (!projectId) return
     const fetchProject = async () => {
       try {
-        const response = await fetchProjectByKey(id)
+        const response = await fetchProjectByKey(projectId)
         if (!response.ok) {
           throw new Error(`Failed to fetch project: ${response.statusText}`)
         }
@@ -53,9 +53,9 @@ function Slug() {
       }
     }
     fetchProject()
-  }, [id])
+  }, [projectId])
 
-  const basePath = `/projects/${id}`
+  const basePath = `/projects/${projectId}`
   const isTabActive = (path: string) => {
     const targetPath = path === "." ? basePath : `${basePath}/${path}`
     if (path === ".") {

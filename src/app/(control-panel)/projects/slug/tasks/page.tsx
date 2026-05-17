@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Outlet } from "react-router"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Plus, Flag, CalendarClock, StickyNote, X } from "lucide-react"
@@ -469,6 +470,7 @@ function Tasks() {
           />
         </TaskContext>
       </div>
+      <Outlet />
     </div>
   )
 }
