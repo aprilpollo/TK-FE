@@ -4,32 +4,10 @@ import { fetchTaskByKey } from "@/api/task"
 import { toast } from "sonner"
 import type { Task } from "@/types"
 import { format } from "date-fns"
-import { cn } from "@/lib/utils"
-import {
-  ArrowLeft,
-  Flag,
-  CalendarClock,
-  MessageCircle,
-  Paperclip,
-  User,
-  Tag,
-  Clock,
-  CheckSquare,
-  AlignLeft,
-  Circle,
-} from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  AvatarGroup,
-  AvatarGroupCount,
-} from "@/components/ui/avatar"
+import useProject from "@/hooks/useProject"
 
 type TaskDetail = Task & {
   status?: {
@@ -70,30 +48,9 @@ function TaskDetailSkeleton() {
   )
 }
 
-function SidebarRow({
-  icon,
-  label,
-  children,
-}: {
-  icon: React.ReactNode
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="flex min-h-6 items-start justify-between gap-2">
-      <div className="flex min-w-24 shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
-        {icon}
-        {label}
-      </div>
-      <div className="flex flex-1 flex-wrap items-center justify-end gap-1">
-        {children}
-      </div>
-    </div>
-  )
-}
-
 function TaskByKey() {
   const { taskId } = useParams()
+  const { project } = useProject()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [task, setTask] = useState<TaskDetail | null>(null)
@@ -129,7 +86,7 @@ function TaskByKey() {
     )
   }
 
-  if (loading) return <TaskDetailSkeleton />
+  if (loading || !project) return <TaskDetailSkeleton />
 
   if (!task) {
     return (
@@ -137,26 +94,30 @@ function TaskByKey() {
     )
   }
 
-  const isOverdue = task.endDate ? new Date(task.endDate) < new Date() : false
+  // const isOverdue = task.endDate ? new Date(task.endDate) < new Date() : false
 
   return (
-      <main className="">
-        <div className="mb-6 flex items-start gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="mt-0.5 shrink-0"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="size-4" />
+    <main className="">
+      <header className="flex h-11 items-center justify-between border-b px-2">
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="size-3.5" />
           </Button>
-
-          
+          <h2 className="text-sm font-medium">
+            {task.title} / {project.name}
+          </h2>
         </div>
-
-       
-      </main>
+        <div className="flex items-center gap-4">
+          <span className="text-xs text-muted-foreground">
+            Created at {format(new Date(task.created_at), "MMM d, yyyy")}
+          </span>
+        </div>
+      </header>
+      <div className="grid grid-cols-7">
+        <div id="task-details" className="col-span-4 border-r px-6 py-8" />
+        <div id="chat-messages" className="col-span-3 border-r px-6 py-8" />
+      </div>
+    </main>
   )
 }
 

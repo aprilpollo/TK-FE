@@ -24,6 +24,9 @@ const LayoutConfig = {
 		leftSidePanel: {
 			display: true
 		},
+		navTabs: {
+			display: true
+		},
 		rightSidePanel: {
 			display: true
 		}

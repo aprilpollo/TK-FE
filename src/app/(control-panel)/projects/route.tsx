@@ -45,6 +45,15 @@ const ProjectsRoute: RouteItemType = {
             {
               path: ":taskId",
               element: <TaskByKey />,
+              settings: {
+                layout: {
+                  config: {
+                    navTabs: {
+                      display: false,
+                    },
+                  },
+                },
+              },
             },
           ],
         },
