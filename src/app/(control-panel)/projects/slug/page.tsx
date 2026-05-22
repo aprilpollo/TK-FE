@@ -14,7 +14,9 @@ import {
 } from "lucide-react"
 import Link from "@/shared/Link"
 import ProjectContext from "@/context/ProjectContext"
+import useLayoutSettings from "@/layouts/hooks/useLayoutSettings"
 import type { Project } from "@/types"
+import type { LayoutConfigDefaultsType } from "@/layouts/configs/LayoutConfig"
 
 const tabs = [
   { path: ".", label: "Overview", icon: FolderArchive },
@@ -25,11 +27,15 @@ const tabs = [
 ]
 
 function Slug() {
-  const { projectId } = useParams()
   const location = useLocation()
+  const settings = useLayoutSettings()
+
+  const { projectId } = useParams()
   const [project, setProject] = useState<Project | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
   const navigate = useNavigate()
+  const config = settings.config as LayoutConfigDefaultsType
 
   useEffect(() => {
     if (!projectId) return
