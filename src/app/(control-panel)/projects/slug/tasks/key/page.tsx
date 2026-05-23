@@ -2,51 +2,16 @@ import { useParams, useNavigate } from "react-router"
 import { useState, useEffect } from "react"
 import { fetchTaskByKey } from "@/api/task"
 import { toast } from "sonner"
-import type { Task } from "@/types"
-import { format } from "date-fns"
-import { ArrowLeft } from "lucide-react"
+import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
 import useProject from "@/hooks/useProject"
-
-type TaskDetail = Task & {
-  status?: {
-    id: number | string
-    name: string
-    color: string
-    is_complete?: boolean
-  }
-}
-
-function TaskDetailSkeleton() {
-  return (
-    <div className="px-4 py-6 sm:px-6">
-      <div className="mb-6 flex items-center gap-3">
-        <Skeleton className="size-8 rounded-lg" />
-        <Skeleton className="h-5 w-16 rounded-md" />
-        <Skeleton className="h-7 w-64 rounded-md" />
-      </div>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="space-y-4 md:col-span-2">
-          <Skeleton className="h-4 w-24 rounded" />
-          <Skeleton className="h-32 w-full rounded-lg" />
-          <div className="mt-4 flex gap-4">
-            <Skeleton className="h-6 w-20 rounded-md" />
-            <Skeleton className="h-6 w-20 rounded-md" />
-          </div>
-        </div>
-        <div className="space-y-5">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="space-y-1.5">
-              <Skeleton className="h-3 w-16 rounded" />
-              <Skeleton className="h-6 w-full rounded-md" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
+import UploadFiles from "@/components/upload-files"
+import { TaskDetailSkeleton } from "@/components/task/task-detail-skeleton"
+import { TaskHeader } from "@/components/task/task-header"
+import { TaskInfoCards } from "@/components/task/task-info-cards"
+import { SubtaskItem } from "@/components/task/task-subtasks"
+import { TaskActivity } from "@/components/task/task-activity"
+import type { TaskDetail, Subtask } from "@/components/task/types"
 
 function TaskByKey() {
   const { taskId } = useParams()
@@ -54,6 +19,11 @@ function TaskByKey() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [task, setTask] = useState<TaskDetail | null>(null)
+  const [subtask, setSubtask] = useState<Subtask[]>([
+    { id: 1, title: "Subtask 1" },
+    { id: 2, title: "Subtask 2" },
+    { id: 3, title: "Subtask 3" },
+  ])
 
   useEffect(() => {
     if (!taskId) return
@@ -94,28 +64,46 @@ function TaskByKey() {
     )
   }
 
-  // const isOverdue = task.endDate ? new Date(task.endDate) < new Date() : false
-
   return (
-    <main className="">
-      <header className="flex h-11 items-center justify-between border-b px-2">
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="size-3.5" />
-          </Button>
-          <h2 className="text-sm font-medium">
-            {task.title} / {project.name}
-          </h2>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-muted-foreground">
-            Created at {format(new Date(task.created_at), "MMM d, yyyy")}
-          </span>
-        </div>
-      </header>
+    <main>
+      <TaskHeader
+        projectName={project.name}
+        createdAt={task.created_at}
+        onBack={() => navigate(-1)}
+      />
       <div className="grid grid-cols-7">
-        <div id="task-details" className="col-span-4 border-r px-6 py-8" />
-        <div id="chat-messages" className="col-span-3 border-r px-6 py-8" />
+        <div
+          id="task-details"
+          className="col-span-4 space-y-6 border-r px-6 py-8"
+        >
+          <div>
+            <h1 className="text-2xl font-semibold">{task.title}</h1>
+            <span className="text-sm text-muted-foreground">
+              {task.description}
+            </span>
+          </div>
+
+          <TaskInfoCards task={task} />
+
+          <UploadFiles />
+
+          <div className="max-h-96 overflow-y-auto">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="mb-2 text-lg font-medium">Subtasks</h2>
+              <Button size="sm" variant="outline" className="cursor-pointer">
+                <Plus className="size-4" />
+                Add Subtask
+              </Button>
+            </div>
+            <SubtaskItem subtask={subtask} setSubtask={setSubtask} />
+          </div>
+        </div>
+        <div
+          id="chat-messages"
+          className="col-span-3 flex flex-col border-r h-[calc(100vh-94px)]"
+        >
+          <TaskActivity taskId={taskId} />
+        </div>
       </div>
     </main>
   )

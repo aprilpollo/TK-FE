@@ -51,6 +51,7 @@ const ProjectsRoute: RouteItemType = {
                     navTabs: {
                       display: false,
                     },
+                    //leftSidePanel: { display: false }
                   },
                 },
               },
