@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router"
 import { useState, useEffect } from "react"
 import { fetchTaskByKey } from "@/api/task"
 import { toast } from "sonner"
-import { Plus } from "lucide-react"
+import { MessageCircle, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import useProject from "@/hooks/useProject"
 import UploadFiles from "@/components/upload-files"
@@ -74,8 +74,14 @@ function TaskByKey() {
       <div className="grid grid-cols-7">
         <div
           id="task-details"
-          className="col-span-4 space-y-6 border-r px-6 py-8"
+          className="relative col-span-4 space-y-6 border-r px-6 py-8"
         >
+          <div className="absolute top-1 right-1">
+            <Button size="icon-sm" variant="outline" className="cursor-pointer">
+              <MessageCircle />
+            </Button>
+          </div>
+
           <div>
             <h1 className="text-2xl font-semibold">{task.title}</h1>
             <span className="text-sm text-muted-foreground">
@@ -84,9 +90,7 @@ function TaskByKey() {
           </div>
 
           <TaskInfoCards task={task} />
-
           <UploadFiles />
-
           <div className="max-h-96 overflow-y-auto">
             <div className="flex items-center justify-between gap-2">
               <h2 className="mb-2 text-lg font-medium">Subtasks</h2>
@@ -100,7 +104,7 @@ function TaskByKey() {
         </div>
         <div
           id="chat-messages"
-          className="col-span-3 flex flex-col border-r h-[calc(100vh-94px)]"
+          className="col-span-3 flex h-[calc(100vh-94px)] flex-col border-r"
         >
           <TaskActivity taskId={taskId} />
         </div>

@@ -298,7 +298,7 @@ export function TaskActivity({ taskId: _ }: TaskActivityProps) {
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Write a comment... (Enter ส่ง, Shift+Enter ขึ้นบรรทัดใหม่)"
+          placeholder="Write a comment..."
           rows={2}
           className="w-full resize-none bg-transparent px-4 pt-3 text-sm outline-none placeholder:text-muted-foreground"
         />
