@@ -12,12 +12,14 @@ import { TaskInfoCards } from "@/components/task/task-info-cards"
 import { SubtaskItem } from "@/components/task/task-subtasks"
 import { TaskActivity } from "@/components/task/task-activity"
 import type { TaskDetail, Subtask } from "@/components/task/types"
+import { cn } from "@/lib/utils"
 
 function TaskByKey() {
   const { taskId } = useParams()
   const { project } = useProject()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
+  const [chatOpen, setChatOpen] = useState(false)
   const [task, setTask] = useState<TaskDetail | null>(null)
   const [subtask, setSubtask] = useState<Subtask[]>([
     { id: 1, title: "Subtask 1" },
@@ -71,13 +73,21 @@ function TaskByKey() {
         createdAt={task.created_at}
         onBack={() => navigate(-1)}
       />
-      <div className="grid grid-cols-7">
+      <div className={cn(chatOpen && "grid grid-cols-7")}>
         <div
           id="task-details"
-          className="relative col-span-4 space-y-6 border-r px-6 py-8"
+          className={cn(
+           "relative space-y-6 px-6 py-8",
+            chatOpen ? "col-span-4" : "max-w-6xl mx-auto"
+          )}
         >
           <div className="absolute top-1 right-1">
-            <Button size="icon-sm" variant="outline" className="cursor-pointer">
+            <Button
+              size="icon-sm"
+              variant="outline"
+              className="cursor-pointer"
+              onClick={() => setChatOpen((open) => !open)}
+            >
               <MessageCircle />
             </Button>
           </div>
@@ -102,9 +112,13 @@ function TaskByKey() {
             <SubtaskItem subtask={subtask} setSubtask={setSubtask} />
           </div>
         </div>
+
         <div
           id="chat-messages"
-          className="col-span-3 flex h-[calc(100vh-94px)] flex-col border-r"
+          className={cn(
+            "col-span-3 h-[calc(100vh-94px)] border-l",
+            chatOpen ? "block" : "hidden"
+          )}
         >
           <TaskActivity taskId={taskId} />
         </div>
