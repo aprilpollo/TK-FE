@@ -5,6 +5,7 @@ import { fetchTaskByKey } from "@/api/task"
 import { toast } from "sonner"
 import { MessageCircle, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 import useProject from "@/hooks/useProject"
 import UploadFiles from "@/components/upload-files"
 import { TaskDetailSkeleton } from "@/components/task/task-detail-skeleton"
@@ -80,39 +81,55 @@ function TaskByKey() {
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           id="task-details"
           className={cn(
-            "relative space-y-6 px-6 py-8 min-w-0",
+            "min-w-0 px-6 py-8",
             chatOpen ? "flex-1 max-sm:hidden" : "w-full max-w-6xl mx-auto"
           )}
         >
-          <div className="absolute top-1 right-1">
+          {/* Title + chat toggle */}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold">{task.title}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {task.description}
+              </p>
+            </div>
             <Button
-              size="icon-xs"
+              size="icon-sm"
               variant="outline"
-              className="cursor-pointer"
+              className="mt-1 shrink-0 cursor-pointer"
               onClick={() => setChatOpen((open) => !open)}
             >
               <MessageCircle />
             </Button>
           </div>
 
-          <div>
-            <h1 className="text-2xl font-semibold">{task.title}</h1>
-            <span className="text-sm text-muted-foreground">
-              {task.description}
-            </span>
-          </div>
+          <Separator className="my-6" />
 
+          {/* Properties */}
           <TaskInfoCards task={task} />
-          <UploadFiles />
-          <div className="max-h-96 overflow-y-auto">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="mb-2 text-lg font-medium">Subtasks</h2>
+
+          <Separator className="my-6" />
+
+          {/* Subtasks */}
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-base font-medium">Subtasks</h2>
               <Button size="sm" variant="outline" className="cursor-pointer">
                 <Plus className="size-4" />
-                Add Subtask
+                Add
               </Button>
             </div>
-            <SubtaskItem subtask={subtask} setSubtask={setSubtask} />
+            <div className="max-h-80 overflow-y-auto">
+              <SubtaskItem subtask={subtask} setSubtask={setSubtask} />
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Attachments */}
+          <div>
+            <h2 className="mb-3 text-base font-medium">Attachments</h2>
+            <UploadFiles />
           </div>
         </motion.div>
 

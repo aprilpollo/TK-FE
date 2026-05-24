@@ -16,14 +16,13 @@ type TaskInfoCardsProps = {
 
 export function TaskInfoCards({ task }: TaskInfoCardsProps) {
   return (
-    <div className="mt-6 grid grid-cols-2 gap-4">
-      <div className="flex items-center gap-2">
-        <h3 className="flex items-center gap-1 text-sm font-medium">
-          <GitMerge className="h-3.5 w-3.5" />
-          Status
-        </h3>
+    <div className="space-y-2.5">
+      <div className="flex items-center gap-3">
+        <span className="flex w-28 shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
+          <GitMerge className="size-3.5" /> Status
+        </span>
         <Badge
-          className="line-clamp-1 flex items-center gap-1 rounded-sm font-bold uppercase"
+          className="rounded-sm font-bold uppercase"
           style={{
             backgroundColor: `${task.status?.color}1a`,
             color: task.status?.color,
@@ -33,43 +32,36 @@ export function TaskInfoCards({ task }: TaskInfoCardsProps) {
         </Badge>
       </div>
 
-      <div className="flex items-center gap-2">
-        <h3 className="flex items-center gap-1 text-sm font-medium">
-          <CalendarDays className="size-3" />
-          Due Date
-        </h3>
-        <Badge variant="secondary" className="rounded-sm text-xs">
-          {task.startDate
-            ? format(task.startDate, "MMM d, yyyy")
-            : "No Start Date"}{" "}
-          -{" "}
-          {task.endDate
-            ? format(task.endDate, "MMM d, yyyy")
-            : "No End Date"}
-        </Badge>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <h3 className="flex items-center gap-1 text-sm font-medium">
+      <div className="flex items-center gap-3">
+        <span className="flex w-28 shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
           <Flag
-            className="size-3"
+            className="size-3.5"
             style={{
               color: task.priority?.color,
               fill: task.priority?.color,
             }}
-          />
+          />{" "}
           Priority
-        </h3>
+        </span>
         <Badge variant="secondary" className="rounded-md capitalize">
           {task.priority?.name || "No Priority"}
         </Badge>
       </div>
 
-      <div className="flex items-center gap-2">
-        <h3 className="flex items-center gap-1 text-sm font-medium">
-          <User className="size-3" />
-          Assignees
-        </h3>
+      <div className="flex items-center gap-3">
+        <span className="flex w-28 shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
+          <CalendarDays className="size-3.5" /> Due Date
+        </span>
+        <span className="text-sm">
+          {task.startDate ? format(task.startDate, "MMM d, yyyy") : "—"} –{" "}
+          {task.endDate ? format(task.endDate, "MMM d, yyyy") : "—"}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className="flex w-28 shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
+          <User className="size-3.5" /> Assignees
+        </span>
         <AvatarGroup>
           {task.assignees?.slice(0, 3).map((assignee) => (
             <Avatar key={assignee.id} className="size-5">
@@ -79,7 +71,7 @@ export function TaskInfoCards({ task }: TaskInfoCardsProps) {
           ))}
           {task.assignees && task.assignees.length > 3 && (
             <AvatarGroupCount className="size-5 text-xs">
-              {task.assignees.length - 3}
+              +{task.assignees.length - 3}
             </AvatarGroupCount>
           )}
         </AvatarGroup>
