@@ -14,8 +14,8 @@ import {
   CheckSquare,
   Share2,
   Camera,
-  ArrowRight,
-  ChevronDown,
+  SendHorizontal,
+  X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -129,9 +129,13 @@ function getAvatarColor(name: string) {
 
 type TaskActivityProps = {
   taskId: string
+  setChatOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export function TaskActivity({ taskId: _ }: TaskActivityProps) {
+export function TaskActivity({
+  taskId: _,
+  setChatOpen,
+}: TaskActivityProps) {
   const [activities, setActivities] = useState<ActivityItem[]>(MOCK_ACTIVITIES)
   const [comment, setComment] = useState("")
   const feedRef = useRef<HTMLDivElement>(null)
@@ -195,14 +199,24 @@ export function TaskActivity({ taskId: _ }: TaskActivityProps) {
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="flex items-center justify-between border-b px-4 py-2.5">
-        <span className="text-sm font-medium">Activity</span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="sm:hidden"
+            onClick={() => setChatOpen(false)}
+          >
+            <X />
+          </Button>
+          <span className="text-sm font-medium">Chat</span>
+        </div>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" className="size-7">
             <Search className="size-3.5" />
           </Button>
           <Button variant="ghost" size="icon" className="relative size-7">
             <Bell className="size-3.5" />
-            <span className="absolute -right-0.5 -top-0.5 flex size-3.5 items-center justify-center rounded-full bg-muted text-[9px] font-semibold text-muted-foreground">
+            <span className="absolute -top-0.5 -right-0.5 flex size-3.5 items-center justify-center rounded-full bg-muted text-[9px] font-semibold text-muted-foreground">
               0
             </span>
           </Button>
@@ -221,7 +235,8 @@ export function TaskActivity({ taskId: _ }: TaskActivityProps) {
                 <div key={item.id} className="my-3 flex items-center gap-2">
                   <div className="h-px flex-1 bg-border" />
                   <span className="text-center text-[11px] text-muted-foreground">
-                    <span className="font-medium">{item.actor}</span> {item.action} · {item.timestamp}
+                    <span className="font-medium">{item.actor}</span>{" "}
+                    {item.action} · {item.timestamp}
                   </span>
                   <div className="h-px flex-1 bg-border" />
                 </div>
@@ -260,9 +275,16 @@ export function TaskActivity({ taskId: _ }: TaskActivityProps) {
                   </div>
                 )}
 
-                <div className={cn("flex max-w-[72%] flex-col gap-0.5", isMine && "items-end")}>
+                <div
+                  className={cn(
+                    "flex max-w-[72%] flex-col gap-0.5",
+                    isMine && "items-end"
+                  )}
+                >
                   {showName && (
-                    <span className="px-1 text-[11px] text-muted-foreground">{item.actor}</span>
+                    <span className="px-1 text-[11px] text-muted-foreground">
+                      {item.actor}
+                    </span>
                   )}
                   <div
                     className={cn(
@@ -272,18 +294,38 @@ export function TaskActivity({ taskId: _ }: TaskActivityProps) {
                         : "bg-muted text-foreground",
                       // bubble shape — round except corner where grouped messages meet
                       isFirst && isLast && "rounded-2xl",
-                      isFirst && !isLast && isMine && "rounded-2xl rounded-br-md",
-                      isFirst && !isLast && !isMine && "rounded-2xl rounded-bl-md",
-                      !isFirst && !isLast && isMine && "rounded-2xl rounded-r-md",
-                      !isFirst && !isLast && !isMine && "rounded-2xl rounded-l-md",
-                      !isFirst && isLast && isMine && "rounded-2xl rounded-tr-md",
-                      !isFirst && isLast && !isMine && "rounded-2xl rounded-tl-md"
+                      isFirst &&
+                        !isLast &&
+                        isMine &&
+                        "rounded-2xl rounded-br-md",
+                      isFirst &&
+                        !isLast &&
+                        !isMine &&
+                        "rounded-2xl rounded-bl-md",
+                      !isFirst &&
+                        !isLast &&
+                        isMine &&
+                        "rounded-2xl rounded-r-md",
+                      !isFirst &&
+                        !isLast &&
+                        !isMine &&
+                        "rounded-2xl rounded-l-md",
+                      !isFirst &&
+                        isLast &&
+                        isMine &&
+                        "rounded-2xl rounded-tr-md",
+                      !isFirst &&
+                        isLast &&
+                        !isMine &&
+                        "rounded-2xl rounded-tl-md"
                     )}
                   >
                     {item.text}
                   </div>
                   {isLast && (
-                    <span className="px-1 text-[10px] text-muted-foreground">{item.timestamp}</span>
+                    <span className="px-1 text-[10px] text-muted-foreground">
+                      {item.timestamp}
+                    </span>
                   )}
                 </div>
               </div>
@@ -302,7 +344,7 @@ export function TaskActivity({ taskId: _ }: TaskActivityProps) {
           rows={2}
           className="w-full resize-none bg-transparent px-4 pt-3 text-sm outline-none placeholder:text-muted-foreground"
         />
-        <div className="flex items-center justify-between px-3 pb-2.5 pt-1">
+        <div className="flex items-center justify-between px-3 pt-1 pb-2.5">
           <div className="flex items-center gap-0.5">
             {TOOLBAR_ICONS.map(({ icon: Icon, label }) => (
               <Button
@@ -316,25 +358,15 @@ export function TaskActivity({ taskId: _ }: TaskActivityProps) {
               </Button>
             ))}
           </div>
-          <div className="flex items-center">
-            <Button
-              size="icon"
-              className="size-7 rounded-r-none"
-              disabled={!comment.trim()}
-              onClick={handleSend}
-              aria-label="Send comment"
-            >
-              <ArrowRight className="size-3.5" />
-            </Button>
-            <Button
-              size="icon"
-              className="size-7 rounded-l-none border-l border-primary-foreground/20"
-              disabled={!comment.trim()}
-              aria-label="Send options"
-            >
-              <ChevronDown className="size-3" />
-            </Button>
-          </div>
+          <Button
+            size="icon-sm"
+            className="w-9"
+            disabled={!comment.trim()}
+            onClick={handleSend}
+            aria-label="Send comment"
+          >
+            <SendHorizontal />
+          </Button>
         </div>
       </div>
     </div>

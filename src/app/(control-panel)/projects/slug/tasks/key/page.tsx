@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router"
 import { useState, useEffect } from "react"
+import { motion, AnimatePresence } from "motion/react"
 import { fetchTaskByKey } from "@/api/task"
 import { toast } from "sonner"
 import { MessageCircle, Plus } from "lucide-react"
@@ -73,17 +74,19 @@ function TaskByKey() {
         createdAt={task.created_at}
         onBack={() => navigate(-1)}
       />
-      <div className={cn(chatOpen && "grid grid-cols-7")}>
-        <div
+      <div className="flex overflow-hidden">
+        <motion.div
+          layout
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           id="task-details"
           className={cn(
-           "relative space-y-6 px-6 py-8",
-            chatOpen ? "col-span-4" : "max-w-6xl mx-auto"
+            "relative space-y-6 px-6 py-8 min-w-0",
+            chatOpen ? "flex-1 max-sm:hidden" : "w-full max-w-6xl mx-auto"
           )}
         >
           <div className="absolute top-1 right-1">
             <Button
-              size="icon-sm"
+              size="icon-xs"
               variant="outline"
               className="cursor-pointer"
               onClick={() => setChatOpen((open) => !open)}
@@ -111,17 +114,22 @@ function TaskByKey() {
             </div>
             <SubtaskItem subtask={subtask} setSubtask={setSubtask} />
           </div>
-        </div>
+        </motion.div>
 
-        <div
-          id="chat-messages"
-          className={cn(
-            "col-span-3 h-[calc(100vh-94px)] border-l",
-            chatOpen ? "block" : "hidden"
+        <AnimatePresence initial={false}>
+          {chatOpen && (
+            <motion.div
+              key="chat-panel"
+              initial={{ x: "100%", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "100%", opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              className="w-[42.86%] max-sm:w-full shrink-0 h-[calc(100vh-94px)] border-l overflow-hidden"
+            >
+              <TaskActivity taskId={taskId} setChatOpen={setChatOpen} />
+            </motion.div>
           )}
-        >
-          <TaskActivity taskId={taskId} />
-        </div>
+        </AnimatePresence>
       </div>
     </main>
   )
