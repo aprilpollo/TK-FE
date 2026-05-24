@@ -1,4 +1,4 @@
-import { CalendarDays, Flag, GitMerge, User } from "lucide-react"
+import { CalendarDays, Disc2, Flag, GitMerge, User } from "lucide-react"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -22,12 +22,13 @@ export function TaskInfoCards({ task }: TaskInfoCardsProps) {
           <GitMerge className="size-3.5" /> Status
         </span>
         <Badge
-          className="rounded-sm font-bold uppercase"
+          className="rounded-sm font-bold capitalize"
           style={{
             backgroundColor: `${task.status?.color}1a`,
             color: task.status?.color,
           }}
         >
+          <Disc2 />
           {task.status?.name}
         </Badge>
       </div>
@@ -36,14 +37,20 @@ export function TaskInfoCards({ task }: TaskInfoCardsProps) {
         <span className="flex w-28 shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
           <Flag
             className="size-3.5"
-            style={{
-              color: task.priority?.color,
-              fill: task.priority?.color,
-            }}
-          />{" "}
+            // style={{
+            //   color: task.priority?.color,
+            //   fill: task.priority?.color,
+            // }}
+          />
           Priority
         </span>
-        <Badge variant="secondary" className="rounded-md capitalize">
+        <Badge
+          className="rounded-sm font-bold capitalize"
+          style={{
+            backgroundColor: `${task.priority?.color}1a`,
+            color: task.priority?.color,
+          }}
+        >
           {task.priority?.name || "No Priority"}
         </Badge>
       </div>
@@ -52,10 +59,10 @@ export function TaskInfoCards({ task }: TaskInfoCardsProps) {
         <span className="flex w-28 shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
           <CalendarDays className="size-3.5" /> Due Date
         </span>
-        <span className="text-sm">
+        <Badge className="rounded-sm font-bold capitalize" variant="secondary">
           {task.startDate ? format(task.startDate, "MMM d, yyyy") : "—"} –{" "}
           {task.endDate ? format(task.endDate, "MMM d, yyyy") : "—"}
-        </span>
+        </Badge>
       </div>
 
       <div className="flex items-center gap-3">
