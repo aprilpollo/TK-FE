@@ -192,3 +192,43 @@ export async function reorderTasks({
     body: JSON.stringify({ updates }),
   })
 }
+
+export async function fetchTaskComments(
+  task_id: string | number,
+  page = 1,
+  limit = 20
+): Promise<Response> {
+  return apiFetch(
+    `/api/v1/tasks/${task_id}/comments?_page=${page}&_limit=${limit}`,
+    { method: "GET" }
+  )
+}
+
+export async function createTaskComments({
+  task_id,
+  text,
+}: {
+  task_id: string | number
+  text: string
+}): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/${task_id}/comments`, {
+    method: "POST",
+    body: JSON.stringify({ type: "comment", text }),
+  })
+}
+
+export async function createTaskCommentsFiles({
+  task_id,
+  files,
+}: {
+  task_id: string | number
+  files: File[]
+}): Promise<Response> {
+  const formData = new FormData()
+  files.forEach((file) => formData.append("files", file))
+
+  return apiFetch(`/api/v1/tasks/${task_id}/comments/upload`, {
+    method: "POST",
+    body: formData,
+  })
+}

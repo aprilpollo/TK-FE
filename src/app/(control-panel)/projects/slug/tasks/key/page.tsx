@@ -23,11 +23,7 @@ function TaskByKey() {
   const [loading, setLoading] = useState(true)
   const [chatOpen, setChatOpen] = useState(false)
   const [task, setTask] = useState<TaskDetail | null>(null)
-  const [subtask, setSubtask] = useState<Subtask[]>([
-    { id: 1, title: "Subtask 1" },
-    { id: 2, title: "Subtask 2" },
-    { id: 3, title: "Subtask 3" },
-  ])
+  const [subtask, setSubtask] = useState<Subtask[]>([])
 
   useEffect(() => {
     if (!taskId) return
@@ -82,7 +78,7 @@ function TaskByKey() {
           id="task-details"
           className={cn(
             "min-w-0 px-6 py-8",
-            chatOpen ? "flex-1 max-sm:hidden" : "w-full max-w-6xl mx-auto"
+            chatOpen ? "flex-1 max-sm:hidden" : "mx-auto w-full max-w-6xl"
           )}
         >
           {/* Title + chat toggle */}
@@ -141,9 +137,9 @@ function TaskByKey() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0 }}
               transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-              className="w-[42.86%] max-sm:w-full shrink-0 h-[calc(100vh-94px)] border-l overflow-hidden"
+              className="h-[calc(100vh-94px)] w-[42.86%] shrink-0 overflow-hidden border-l max-sm:w-full"
             >
-              <TaskActivity taskId={taskId} setChatOpen={setChatOpen} />
+              <TaskActivity taskId={task.id} setChatOpen={setChatOpen} />
             </motion.div>
           )}
         </AnimatePresence>
