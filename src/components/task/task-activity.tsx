@@ -18,14 +18,18 @@ import {
   X,
   ChevronsDown,
   FileText,
-  FileImage,
-  File,
   Download,
+  FileCode,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { fetchTaskComments, createTaskComments, createTaskCommentsFiles } from "@/api/task"
+import {
+  fetchTaskComments,
+  createTaskComments,
+  createTaskCommentsFiles,
+} from "@/api/task"
+import { formatBytes } from "@/hooks/use-file-upload"
 import useUser from "@/auth/hooks/useUser"
 
 type ActivityFile = {
@@ -104,59 +108,113 @@ function formatTimestamp(unix: number) {
   })
 }
 
-function FileAttachment({
-  file,
-  isMine,
-}: {
-  file: ActivityFile
-  isMine: boolean
-}) {
-  const isImage = file.type.startsWith("image/")
-  const isPdf = file.type === "application/pdf"
+function ImageGrid({ images }: { images: ActivityFile[] }) {
+  const count = images.length
+  const visible = images.slice(0, 4)
+  const extra = count - 4
 
-  if (isImage) {
+  const cell = (img: ActivityFile, overlay?: React.ReactNode) => (
+    <a
+      key={img.url}
+      href={img.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group relative block overflow-hidden bg-muted"
+    >
+      <img
+        src={img.url}
+        alt={img.name}
+        className="h-36 w-36 object-cover transition-opacity group-hover:opacity-90"
+      />
+      {overlay}
+    </a>
+  )
+
+  if (count === 1) {
     return (
       <a
-        href={file.url}
+        href={images[0].url}
         target="_blank"
         rel="noopener noreferrer"
-        className="group relative block overflow-hidden rounded-xl"
+        className="group relative block overflow-hidden rounded-xl bg-muted"
       >
         <img
-          src={file.url}
-          alt={file.name}
-          className="max-h-48 w-full max-w-55 object-cover transition-opacity group-hover:opacity-90"
+          src={images[0].url}
+          alt={images[0].name}
+          className="max-h-52 w-full max-w-55 object-cover transition-opacity group-hover:opacity-90"
         />
-        <div className="absolute inset-0 flex items-end justify-end p-2 opacity-0 transition-opacity group-hover:opacity-100">
-          <span className="flex items-center gap-1 rounded-lg bg-black/60 px-2 py-1 text-[10px] text-white">
-            <Download className="size-3" />
-            {file.name}
-          </span>
-        </div>
       </a>
     )
   }
 
-  const Icon = isPdf
-    ? FileText
-    : file.type.startsWith("image/")
-      ? FileImage
-      : File
+  if (count === 2) {
+    return (
+      <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl">
+        {visible.map((img) => (
+          <div key={img.url} className="aspect-square">
+            {cell(img)}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (count === 3) {
+    return (
+      <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl">
+        <div className="row-span-2 aspect-1/2">{cell(images[0])}</div>
+        <div className="aspect-square">{cell(images[1])}</div>
+        <div className="aspect-square">{cell(images[2])}</div>
+      </div>
+    )
+  }
 
   return (
-    <a
-      href={file.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={cn(
-        "flex items-center gap-2 rounded-xl px-3 py-2.5 transition-opacity hover:opacity-80",
-        isMine ? "bg-primary-foreground/10" : "bg-background/60"
-      )}
-    >
-      <Icon className="size-4 shrink-0" />
-      <span className="max-w-35 truncate text-xs font-medium">{file.name}</span>
-      <Download className="ml-auto size-3.5 shrink-0 opacity-60" />
-    </a>
+    <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-xl">
+      {visible.map((img, i) => (
+        <div key={img.url} className="aspect-square">
+          {cell(
+            img,
+            i === 3 && extra > 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-lg font-semibold text-white">
+                +{extra + 1}
+              </div>
+            ) : undefined
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function FileAttachment({
+  file,
+}: {
+  file: ActivityFile
+}) {
+  const isPdf = file.type === "application/pdf"
+  const Icon = isPdf ? FileText : FileCode
+
+  return (
+    <div className="flex items-center justify-between gap-2 rounded-lg border bg-background p-2 pe-3 w-73.75">
+      <div className="flex items-center gap-3 overflow-hidden">
+        <div className="flex aspect-square size-10 shrink-0 items-center justify-center rounded border">
+          <Icon className="" />
+        </div>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <p className="truncate text-[13px] font-medium">{file.name}</p>
+          <p className="text-xs text-muted-foreground">{formatBytes(0)}</p>
+        </div>
+      </div>
+      <Button
+        aria-label="Download file"
+        className="-me-2 size-8 text-muted-foreground/80 hover:bg-transparent hover:text-foreground cursor-pointer"
+        size="icon"
+        variant="ghost"
+      >
+        <Download className="size-4" />
+      </Button>
+    </div>
   )
 }
 
@@ -438,13 +496,26 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
                     )}
 
                     {/* Files rendered above text bubble */}
-                    {hasFiles && (
-                      <div className="flex flex-col gap-1">
-                        {item.files!.map((file, i) => (
-                          <FileAttachment key={i} file={file} isMine={isMine} />
-                        ))}
-                      </div>
-                    )}
+                    {hasFiles &&
+                      (() => {
+                        const images = item.files!.filter((f) =>
+                          f.type.startsWith("image/")
+                        )
+                        const others = item.files!.filter(
+                          (f) => !f.type.startsWith("image/")
+                        )
+                        return (
+                          <div className="flex flex-col gap-1">
+                            {images.length > 0 && <ImageGrid images={images} />}
+                            {others.map((file, i) => (
+                              <FileAttachment
+                                key={i}
+                                file={file}
+                              />
+                            ))}
+                          </div>
+                        )
+                      })()}
 
                     {hasText && (
                       <div
