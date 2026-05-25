@@ -36,6 +36,7 @@ type ActivityFile = {
   url: string
   name: string
   type: string
+  size: number
 }
 
 type ActivityActor = {
@@ -203,7 +204,7 @@ function FileAttachment({
         </div>
         <div className="flex min-w-0 flex-col gap-0.5">
           <p className="truncate text-[13px] font-medium">{file.name}</p>
-          <p className="text-xs text-muted-foreground">{formatBytes(0)}</p>
+          <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>
         </div>
       </div>
       <Button
