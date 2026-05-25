@@ -520,7 +520,7 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
                     {hasText && (
                       <div
                         className={cn(
-                          "px-3 py-2 text-sm",
+                          "px-3 py-2 text-sm border w-max",
                           isMine
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted text-foreground",
