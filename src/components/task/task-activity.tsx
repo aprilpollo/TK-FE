@@ -3,17 +3,8 @@ import {
   Search,
   Bell,
   SlidersHorizontal,
-  Plus,
-  Paintbrush,
   Smile,
   Paperclip,
-  AtSign,
-  Laugh,
-  Video,
-  Mic,
-  CheckSquare,
-  Share2,
-  Camera,
   SendHorizontal,
   X,
   ChevronsDown,
@@ -21,8 +12,14 @@ import {
   Download,
   FileCode,
 } from "lucide-react"
+import EmojiPicker, { type EmojiClickData, Theme } from "emoji-picker-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import {
   fetchTaskComments,
@@ -64,18 +61,6 @@ type ActivityItem =
       files?: ActivityFile[]
     }
 
-const TOOLBAR_ICONS = [
-  { icon: Plus, label: "More" },
-  { icon: Paintbrush, label: "Format" },
-  { icon: Smile, label: "Emoji" },
-  { icon: AtSign, label: "Mention" },
-  { icon: Laugh, label: "GIF" },
-  { icon: Video, label: "Video" },
-  { icon: Mic, label: "Audio" },
-  { icon: CheckSquare, label: "Task" },
-  { icon: Share2, label: "Share" },
-  { icon: Camera, label: "Screenshot" },
-]
 
 function getInitials(name: string) {
   return name
@@ -233,6 +218,7 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
   const [loadingMore, setLoadingMore] = useState(false)
   const [isAtBottom, setIsAtBottom] = useState(true)
   const [isSending, setIsSending] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [comment, setComment] = useState("")
   const feedRef = useRef<HTMLDivElement>(null)
@@ -368,6 +354,32 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       handleSend()
+    }
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragging(false)
+    }
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setIsDragging(false)
+    const dropped = Array.from(e.dataTransfer.files)
+    if (dropped.length) setPendingFiles((prev) => [...prev, ...dropped])
+  }
+
+  function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const files = Array.from(e.clipboardData.files)
+    if (files.length) {
+      e.preventDefault()
+      setPendingFiles((prev) => [...prev, ...files])
     }
   }
 
@@ -571,7 +583,12 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
       </div>
 
       {/* Comment Input */}
-      <div className="border-t">
+      <div
+        className={cn("border-t transition-colors", isDragging && "bg-input/50")}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         {/* File preview strip */}
         {pendingFiles.length > 0 && (
           <div className="flex flex-wrap gap-2 px-4 pt-3">
@@ -609,23 +626,13 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           placeholder="Write a comment..."
           rows={2}
           className="w-full resize-none bg-transparent px-4 pt-3 text-sm outline-none placeholder:text-muted-foreground"
         />
         <div className="flex items-center justify-between px-3 pt-1 pb-2.5">
           <div className="flex items-center gap-0.5">
-            {TOOLBAR_ICONS.map(({ icon: Icon, label }) => (
-              <Button
-                key={label}
-                variant="ghost"
-                size="icon"
-                className="size-7 text-muted-foreground hover:text-foreground"
-                aria-label={label}
-              >
-                <Icon className="size-3.5" />
-              </Button>
-            ))}
             <input
               ref={fileInputRef}
               type="file"
@@ -636,13 +643,35 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="size-7 text-muted-foreground hover:text-foreground"
+              className="size-7 text-muted-foreground hover:text-foreground cursor-pointer"
               aria-label="Attach"
               disabled={isSending}
               onClick={() => fileInputRef.current?.click()}
             >
               <Paperclip className="size-3.5" />
             </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 text-muted-foreground hover:text-foreground cursor-pointer"
+                  aria-label="Emoji"
+                  disabled={isSending}
+                >
+                  <Smile className="size-3.5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 border-none shadow-lg" side="top" align="start">
+                <EmojiPicker
+                  theme={Theme.AUTO}
+                  onEmojiClick={(emojiData: EmojiClickData) =>
+                    setComment((prev) => prev + emojiData.emoji)
+                  }
+                  lazyLoadEmojis
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <Button
             size="icon-sm"
