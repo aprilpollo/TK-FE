@@ -225,14 +225,16 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
   const [comment, setComment] = useState("")
   const feedRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const isInitialLoad = useRef(true)
   const isAtBottomRef = useRef(true)
   const wsRef = useRef<WebSocket | null>(null)
   const wsReconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function scrollToBottom() {
-    if (feedRef.current)
-      feedRef.current.scrollTop = feedRef.current.scrollHeight
+    if (!feedRef.current) return
+    feedRef.current.scrollTop = feedRef.current.scrollHeight
+    isAtBottomRef.current = true
+    setIsAtBottom(true)
+    setNewMsgCount(0)
   }
 
   function handleFeedScroll() {
@@ -328,18 +330,10 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
   }
 
   useEffect(() => {
-    isInitialLoad.current = true
     setActivities([])
     setMeta({ page: 1, limit: 20, total: 0 })
-    fetchPage(1)
+    fetchPage(1).then(() => requestAnimationFrame(scrollToBottom))
   }, [taskId])
-
-  useEffect(() => {
-    if (isInitialLoad.current && feedRef.current) {
-      isInitialLoad.current = false
-      requestAnimationFrame(scrollToBottom)
-    }
-  }, [activities])
 
   async function handleLoadMore() {
     if (loadingMore || !hasMore) return
