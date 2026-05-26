@@ -232,3 +232,16 @@ export async function createTaskCommentsFiles({
     body: formData,
   })
 }
+
+export async function createSubtask(task_id: string | number, payload: { name: string }): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/${task_id}/subtasks`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function fetchSubtask(task_id: string | number): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/${task_id}/subtasks`, {
+    method: "GET",
+  })
+}

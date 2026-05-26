@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router"
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { fetchTaskByKey } from "@/api/task"
+import { fetchTaskByKey, fetchSubtask } from "@/api/task"
 import { toast } from "sonner"
 import { MessageCircle, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,7 @@ import UploadFiles from "@/components/upload-files"
 import { TaskDetailSkeleton } from "@/components/task/task-detail-skeleton"
 import { TaskHeader } from "@/components/task/task-header"
 import { TaskInfoCards } from "@/components/task/task-info-cards"
-import { SubtaskItem } from "@/components/task/task-subtasks"
+import { SubtaskItem, CreateSubtaskInput } from "@/components/task/task-subtasks"
 import { TaskActivity } from "@/components/task/task-activity"
 import type { TaskDetail, Subtask } from "@/components/task/types"
 import { cn } from "@/lib/utils"
@@ -24,6 +24,7 @@ function TaskByKey() {
   const [chatOpen, setChatOpen] = useState(false)
   const [task, setTask] = useState<TaskDetail | null>(null)
   const [subtask, setSubtask] = useState<Subtask[]>([])
+  const [showAddSubtask, setShowAddSubtask] = useState(false)
 
   useEffect(() => {
     if (!taskId) return
@@ -49,6 +50,28 @@ function TaskByKey() {
     }
     loadTask()
   }, [taskId])
+
+  useEffect(() => {
+    if (!task) return
+    const loadSubtasks = async () => {
+      try {
+        const response = await fetchSubtask(task.id)
+        const subtaskData = (await response.json()) as {
+          code: number
+          error: string | null
+          message: string
+          payload: Subtask[]
+        }
+        setSubtask(subtaskData.payload)
+      } catch (error) {
+        toast.warning("Failed to load subtasks. Please try again.", {
+          position: "top-center",
+        })
+        console.error("Error fetching subtasks:", error)
+      }
+    }
+    loadSubtasks()
+  }, [task])
 
   if (!taskId) {
     return (
@@ -110,13 +133,30 @@ function TaskByKey() {
           <div>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-base font-medium">Subtasks</h2>
-              <Button size="sm" variant="outline" className="cursor-pointer">
+              <Button
+                size="sm"
+                variant="outline"
+                className="cursor-pointer"
+                onClick={() => setShowAddSubtask(true)}
+              >
                 <Plus className="size-4" />
                 Add
               </Button>
             </div>
             <div className="max-h-80 overflow-y-auto">
               <SubtaskItem subtask={subtask} setSubtask={setSubtask} />
+              {showAddSubtask && (
+                <ul>
+                  <CreateSubtaskInput
+                    taskId={task.id}
+                    onCreated={(newSubtask) => {
+                      setSubtask((prev) => [...prev, newSubtask])
+                      setShowAddSubtask(false)
+                    }}
+                    onCancel={() => setShowAddSubtask(false)}
+                  />
+                </ul>
+              )}
             </div>
           </div>
 

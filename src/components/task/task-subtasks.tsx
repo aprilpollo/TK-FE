@@ -1,6 +1,10 @@
-import { GripVertical } from "lucide-react"
+import { useState } from "react"
+import { GripVertical, Check, X } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+import { createSubtask } from "@/api/task"
+import { FetchApiError } from "@/utils/apiFetch"
 import {
   DndContext,
   PointerSensor,
@@ -65,6 +69,84 @@ export function SubtaskItem({ subtask, setSubtask }: SubtaskItemProps) {
   )
 }
 
+type CreateSubtaskInputProps = {
+  taskId: string | number
+  onCreated: (subtask: Subtask) => void
+  onCancel: () => void
+}
+
+export function CreateSubtaskInput({
+  taskId,
+  onCreated,
+  onCancel,
+}: CreateSubtaskInputProps) {
+  const [name, setName] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit() {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    setLoading(true)
+    try {
+      const res = await createSubtask(taskId, { name: trimmed })
+      const data = (await res.json()) as {
+        code: number
+        error: string | null
+        message: string
+        payload: Subtask
+      }
+      if (data.error) throw new Error(data.error)
+      onCreated(data.payload)
+      setName("")
+    } catch (err) {
+      let message = "Failed to create subtask."
+      if (err instanceof FetchApiError) {
+        const body = err.data as { message?: string } | null
+        message = body?.message ?? message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      toast.warning(message, { position: "top-center" })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <li className="flex items-center gap-2 py-2">
+      <span className="size-4 shrink-0" />
+      <input
+        autoFocus
+        className="flex-1 border-b border-input bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
+        placeholder="Subtask name..."
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleSubmit()
+          if (e.key === "Escape") onCancel()
+        }}
+        disabled={loading}
+      />
+      <button
+        onClick={handleSubmit}
+        disabled={loading || !name.trim()}
+        className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+        aria-label="Confirm"
+      >
+        <Check className="size-4" />
+      </button>
+      <button
+        onClick={onCancel}
+        disabled={loading}
+        className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+        aria-label="Cancel"
+      >
+        <X className="size-4" />
+      </button>
+    </li>
+  )
+}
+
 function SortableSubtask({ st }: { st: Subtask }) {
   const {
     setNodeRef,
@@ -92,7 +174,7 @@ function SortableSubtask({ st }: { st: Subtask }) {
       >
         <GripVertical className="size-4" />
       </button>
-      <span className="line-clamp-1 flex-1 text-sm">{st.title}</span>
+      <span className="line-clamp-1 flex-1 text-sm">{st.name}</span>
       <Checkbox />
     </li>
   )

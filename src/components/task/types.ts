@@ -11,5 +11,10 @@ export type TaskDetail = Task & {
 
 export type Subtask = {
   id: number | string
-  title: string
+  name: string,
+  task_id: number | string
+  position: number
+  is_success: boolean
+  created_at: string
+  updated_at: string
 }
