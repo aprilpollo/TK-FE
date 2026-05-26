@@ -28,6 +28,7 @@ import {
 } from "@/api/task"
 import { formatBytes } from "@/hooks/use-file-upload"
 import useUser from "@/auth/hooks/useUser"
+import { globalHeaders, getApiBaseUrl } from "@/utils/apiFetch"
 
 type ActivityFile = {
   url: string
@@ -217,6 +218,7 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
   const [meta, setMeta] = useState<FeedMeta>({ page: 1, limit: 20, total: 0 })
   const [loadingMore, setLoadingMore] = useState(false)
   const [isAtBottom, setIsAtBottom] = useState(true)
+  const [newMsgCount, setNewMsgCount] = useState(0)
   const [isSending, setIsSending] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
@@ -224,6 +226,9 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
   const feedRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const isInitialLoad = useRef(true)
+  const isAtBottomRef = useRef(true)
+  const wsRef = useRef<WebSocket | null>(null)
+  const wsReconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function scrollToBottom() {
     if (feedRef.current)
@@ -233,10 +238,67 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
   function handleFeedScroll() {
     const el = feedRef.current
     if (!el) return
-    setIsAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 80)
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80
+    isAtBottomRef.current = atBottom
+    setIsAtBottom(atBottom)
+    if (atBottom) setNewMsgCount(0)
   }
 
   const hasMore = activities.length < meta.total
+
+  function buildWsUrl(id: string | number) {
+    const base = window.__ENV__?.WS_BASE_URL ?? (getApiBaseUrl() ?? "").replace(/^https/, "wss").replace(/^http/, "ws")
+    const token = (globalHeaders["Authorization"] ?? "").replace("Bearer ", "")
+    const orgId = globalHeaders["Organization-ID"] ?? ""
+    return `${base}/api/v1/tasks/${id}/comments/live?token=${encodeURIComponent(token)}&org_id=${encodeURIComponent(orgId)}`
+  }
+
+  useEffect(() => {
+    let active = true
+
+    function connect() {
+      if (!active) return
+      const ws = new WebSocket(buildWsUrl(taskId))
+      wsRef.current = ws
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data as string)
+          if (msg.type === "created" && msg.comment) {
+            const incoming: ActivityItem = {
+              ...msg.comment,
+              id: String(msg.comment.id),
+              type: "comment",
+            }
+            setActivities((prev) => [...prev, incoming])
+            setMeta((m) => ({ ...m, total: m.total + 1 }))
+            if (isAtBottomRef.current) {
+              requestAnimationFrame(scrollToBottom)
+            } else {
+              setNewMsgCount((n) => n + 1)
+            }
+          }
+        } catch {
+          // ignore malformed messages
+        }
+      }
+
+      ws.onclose = () => {
+        if (active) wsReconnectTimer.current = setTimeout(connect, 3000)
+      }
+
+      ws.onerror = () => ws.close()
+    }
+
+    connect()
+
+    return () => {
+      active = false
+      if (wsReconnectTimer.current) clearTimeout(wsReconnectTimer.current)
+      wsRef.current?.close()
+      wsRef.current = null
+    }
+  }, [taskId])
 
   const fetchPage = async (page: number, prepend = false) => {
     try {
@@ -256,8 +318,9 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
       }
       const { page: currentPage, limit, total } = data.pagination
       setMeta({ page: currentPage, limit, total })
+      const ordered = [...(data.payload ?? [])].reverse()
       setActivities((prev) =>
-        prepend ? [...(data.payload ?? []), ...prev] : (data.payload ?? [])
+        prepend ? [...ordered, ...prev] : ordered
       )
     } catch (error) {
       console.error("Error fetching comments:", error)
@@ -271,11 +334,10 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
     fetchPage(1)
   }, [taskId])
 
-  // scroll to bottom only on initial load and after sending
   useEffect(() => {
     if (isInitialLoad.current && feedRef.current) {
-      scrollToBottom()
       isInitialLoad.current = false
+      requestAnimationFrame(scrollToBottom)
     }
   }, [activities])
 
@@ -341,8 +403,8 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
         const res = await createTaskComments({ task_id: taskId, text })
         if (!res.ok) throw new Error("Failed to send comment")
       }
-      isInitialLoad.current = true
-      await fetchPage(1)
+      setNewMsgCount(0)
+      requestAnimationFrame(scrollToBottom)
     } catch (error) {
       console.error("Error sending:", error)
     } finally {
@@ -418,11 +480,16 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
       <div className="relative min-h-0 flex-1">
         {!isAtBottom && (
           <Button
-            onClick={scrollToBottom}
-            className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 cursor-pointer items-center gap-1.5 rounded-full border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-md transition-colors hover:text-foreground"
+            onClick={() => { scrollToBottom(); setNewMsgCount(0) }}
+            className={cn(
+              "absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium shadow-md transition-colors",
+              newMsgCount > 0
+                ? "bg-primary text-primary-foreground hover:bg-primary/90 border-primary"
+                : "bg-background text-muted-foreground hover:text-foreground"
+            )}
           >
             <ChevronsDown className="size-3.5" />
-            Last message
+            {newMsgCount > 0 ? `${newMsgCount} new message${newMsgCount > 1 ? "s" : ""}` : "Last message"}
           </Button>
         )}
         <div

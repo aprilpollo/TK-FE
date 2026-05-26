@@ -199,7 +199,7 @@ export async function fetchTaskComments(
   limit = 20
 ): Promise<Response> {
   return apiFetch(
-    `/api/v1/tasks/${task_id}/comments?_page=${page}&_limit=${limit}`,
+    `/api/v1/tasks/${task_id}/comments?_page=${page}&_limit=${limit}&_sort=time_stamp&_order=desc`,
     { method: "GET" }
   )
 }
