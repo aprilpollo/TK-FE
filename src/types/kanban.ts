@@ -30,7 +30,6 @@ export interface Task {
     name: string
     avatar: string
   }[]
-  subtasks?: number
   tags?: string[]
   created_at: Date
   comments_count?: number
