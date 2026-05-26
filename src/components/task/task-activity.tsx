@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react"
 import {
   Search,
   Bell,
-  SlidersHorizontal,
   Smile,
   Paperclip,
   SendHorizontal,
@@ -463,9 +462,6 @@ export function TaskActivity({ taskId, setChatOpen }: TaskActivityProps) {
             <span className="absolute -top-0.5 -right-0.5 flex size-3.5 items-center justify-center rounded-full bg-muted text-[9px] font-semibold text-muted-foreground">
               0
             </span>
-          </Button>
-          <Button variant="ghost" size="icon" className="size-7">
-            <SlidersHorizontal className="size-3.5" />
           </Button>
         </div>
       </div>
