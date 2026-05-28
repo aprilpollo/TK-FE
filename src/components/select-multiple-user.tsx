@@ -28,9 +28,11 @@ type UserItem = {
 export function SelectMultipleUser({
   user,
   setUser,
+  align = "end",
 }: {
   user: UserItem[]
   setUser: (user: UserItem[]) => void
+  align?: "start" | "end"
 }) {
   const [items, setItems] = useState<UserItem[]>([])
   const [open, setOpen] = useState(false)
@@ -136,7 +138,7 @@ export function SelectMultipleUser({
             </AvatarGroup>
           }
         />
-        <ComboboxContent className="min-w-48" align="end">
+        <ComboboxContent className="min-w-48" align={align}>
           <ComboboxInput
             showTrigger={false}
             placeholder="Search"

@@ -144,7 +144,6 @@ function TaskByKey() {
               </Button>
             </div>
             <div className="max-h-80 overflow-y-auto">
-              <SubtaskItem subtask={subtask} setSubtask={setSubtask} />
               {showAddSubtask && (
                 <ul>
                   <CreateSubtaskInput
@@ -157,6 +156,7 @@ function TaskByKey() {
                   />
                 </ul>
               )}
+              <SubtaskItem subtask={subtask} setSubtask={setSubtask} />
             </div>
           </div>
 
