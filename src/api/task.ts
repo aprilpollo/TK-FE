@@ -233,14 +233,26 @@ export async function createTaskCommentsFiles({
   })
 }
 
-export async function createSubtask(task_id: string | number, payload: { name: string }): Promise<Response> {
+export async function createSubtask(
+  task_id: string | number,
+  payload: {
+    name: string
+    start_date: number
+    end_date: number
+    all_day?: boolean
+    priority_id?: string | number
+    assignee_ids?: number[]
+  }
+): Promise<Response> {
   return apiFetch(`/api/v1/tasks/${task_id}/subtasks`, {
     method: "POST",
     body: JSON.stringify(payload),
   })
 }
 
-export async function fetchSubtask(task_id: string | number): Promise<Response> {
+export async function fetchSubtask(
+  task_id: string | number
+): Promise<Response> {
   return apiFetch(`/api/v1/tasks/${task_id}/subtasks`, {
     method: "GET",
   })

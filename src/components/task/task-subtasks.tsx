@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { GripVertical, Check, X, Flag } from "lucide-react"
+import { GripVertical, Flag } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -94,13 +94,28 @@ export function CreateSubtaskInput({
 }: CreateSubtaskInputProps) {
   const [name, setName] = useState("")
   const [loading, setLoading] = useState(false)
+  const [priorityId, setPriorityId] = useState<string | number | undefined>(
+    undefined
+  )
+  const [dateTime, setDateTime] = useState<
+    { start: string; end: string; allDay: boolean } | undefined
+  >(undefined)
+  const [users, setUsers] = useState<UserItem[]>([])
 
   async function handleSubmit() {
     const trimmed = name.trim()
     if (!trimmed) return
     setLoading(true)
     try {
-      const res = await createSubtask(taskId, { name: trimmed })
+      const payload: Parameters<typeof createSubtask>[1] = {
+        name: trimmed,
+        start_date: dateTime ? new Date(dateTime.start).getTime() : Date.now(),
+        end_date: dateTime ? new Date(dateTime.end).getTime() : Date.now(),
+        all_day: dateTime?.allDay,
+        priority_id: Number(priorityId),
+        assignee_ids: users.length > 0 ? users.map((u) => u.id) : undefined,
+      }
+      const res = await createSubtask(taskId, payload)
       const data = (await res.json()) as {
         code: number
         error: string | null
@@ -110,6 +125,9 @@ export function CreateSubtaskInput({
       if (data.error) throw new Error(data.error)
       onCreated(data.payload)
       setName("")
+      setPriorityId(undefined)
+      setDateTime(undefined)
+      setUsers([])
     } catch (err) {
       let message = "Failed to create subtask."
       if (err instanceof FetchApiError) {
@@ -159,7 +177,14 @@ export function CreateSubtaskInput({
           Cancel
         </Button>
       </div>
-      <SelectPriority />
+      <SelectOrther
+        priorityId={priorityId}
+        onPriorityChange={setPriorityId}
+        dateTime={dateTime}
+        onDateTimeChange={setDateTime}
+        users={users}
+        onUsersChange={setUsers}
+      />
     </li>
   )
 }
@@ -204,12 +229,28 @@ type UserItem = {
   avatar: string
 }
 
-function SelectPriority() {
+type SelectOrtherProps = {
+  priorityId: string | number | undefined
+  onPriorityChange: (id: string | number | undefined) => void
+  dateTime: { start: string; end: string; allDay: boolean } | undefined
+  onDateTimeChange: (
+    value: { start: string; end: string; allDay: boolean } | undefined
+  ) => void
+  users: UserItem[]
+  onUsersChange: React.Dispatch<React.SetStateAction<UserItem[]>>
+}
+
+function SelectOrther({
+  priorityId,
+  onPriorityChange,
+  dateTime,
+  onDateTimeChange,
+  users,
+  onUsersChange,
+}: SelectOrtherProps) {
   const [priority, setPriority] = useState<
     { id: string | number; name: string; color: string }[]
   >([])
-
-  const [user, setUser] = useState<UserItem[]>([])
 
   useEffect(() => {
     async function loadPriorities() {
@@ -235,7 +276,10 @@ function SelectPriority() {
 
   return (
     <div className="flex items-center gap-2">
-      <Select>
+      <Select
+        value={priorityId?.toString() ?? ""}
+        onValueChange={(v) => onPriorityChange(v || undefined)}
+      >
         <SelectTrigger size="sm" className="cursor-pointer capitalize">
           <SelectValue placeholder="Select a priority" />
         </SelectTrigger>
@@ -259,13 +303,15 @@ function SelectPriority() {
         </SelectContent>
       </Select>
       <PopoverDateTimePicker
+        value={dateTime}
+        onChange={onDateTimeChange}
         buttonProps={{
           size: "sm",
           variant: "outline",
           className: "cursor-pointer",
         }}
       />
-      <SelectMultipleUser user={user} setUser={setUser} align="start" />
+      <SelectMultipleUser user={users} setUser={onUsersChange} align="start" />
     </div>
   )
 }
