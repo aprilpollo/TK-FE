@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router"
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { fetchTaskByKey, fetchSubtask } from "@/api/task"
+import { fetchTaskByKey, fetchSubtask, createTaskAttachments } from "@/api/task"
 import { toast } from "sonner"
 import { MessageCircle, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -165,7 +165,18 @@ function TaskByKey() {
           {/* Attachments */}
           <div>
             <h2 className="mb-3 text-base font-medium">Attachments</h2>
-            <UploadFiles />
+            <UploadFiles
+              onFilesAdded={async (files) => {
+                if (!task) return
+                try {
+                  const res = await createTaskAttachments({ task_id: task.id, files })
+                  if (!res.ok) throw new Error()
+                  toast.success("Uploaded attachments successfully")
+                } catch {
+                  toast.error("Failed to upload attachments")
+                }
+              }}
+            />
           </div>
         </motion.div>
 

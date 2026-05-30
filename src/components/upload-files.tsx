@@ -15,7 +15,7 @@ import {
   VideoIcon,
 } from "lucide-react"
 
-import { formatBytes, useFileUpload, type FileMetadata } from "@/hooks/use-file-upload"
+import { formatBytes, useFileUpload, type FileMetadata, type FileWithPreview } from "@/hooks/use-file-upload"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -69,7 +69,11 @@ const getFileIcon = (file: { file: File | { type: string; name: string } }) => {
   return <FileIcon className="size-4 opacity-60" />
 }
 
-export default function UploadFiles() {
+interface UploadFilesProps {
+  onFilesAdded?: (files: File[]) => void
+}
+
+export default function UploadFiles({ onFilesAdded }: UploadFilesProps) {
   const maxSize = 10 * 1024 * 1024 // 10MB default
   const maxFiles = 10
 
@@ -90,6 +94,12 @@ export default function UploadFiles() {
     maxFiles,
     maxSize,
     multiple: true,
+    onFilesAdded: onFilesAdded
+      ? (added: FileWithPreview[]) => {
+          const rawFiles = added.map((f) => f.file).filter((f): f is File => f instanceof File)
+          if (rawFiles.length > 0) onFilesAdded(rawFiles)
+        }
+      : undefined,
   })
 
   return (

@@ -233,6 +233,22 @@ export async function createTaskCommentsFiles({
   })
 }
 
+export async function createTaskAttachments({
+  task_id,
+  files,
+}: {
+  task_id: string | number
+  files: File[]
+}): Promise<Response> {
+  const formData = new FormData()
+  files.forEach((file) => formData.append("files", file))
+
+  return apiFetch(`/api/v1/tasks/${task_id}/attachments`, {
+    method: "POST",
+    body: formData,
+  })
+}
+
 export async function createSubtask(
   task_id: string | number,
   payload: {

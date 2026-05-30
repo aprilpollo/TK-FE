@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
-import { GripVertical, Flag } from "lucide-react"
-import { Checkbox } from "@/components/ui/checkbox"
+import { GripVertical, Flag, CalendarDays, Ellipsis } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { createSubtask, fetchPriorities } from "@/api/task"
@@ -36,6 +35,24 @@ import {
 import { Button } from "@/components/ui/button"
 import { PopoverDateTimePicker } from "@/components/date-picker"
 import { SelectMultipleUser } from "@/components/select-multiple-user"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarGroup,
+  AvatarGroupCount,
+  AvatarImage,
+} from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { format } from "date-fns"
 
 type SubtaskItemProps = {
   subtask: Subtask[]
@@ -204,20 +221,69 @@ function SortableSubtask({ st }: { st: Subtask }) {
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
       className={cn(
-        "flex items-center gap-2 bg-background py-2",
+        "flex items-center justify-between bg-background py-2",
         isDragging && "opacity-50"
       )}
     >
-      <button
-        {...attributes}
-        {...listeners}
-        className="cursor-grab touch-none text-muted-foreground/50 hover:text-muted-foreground active:cursor-grabbing"
-        aria-label="Drag to reorder"
-      >
-        <GripVertical className="size-4" />
-      </button>
-      <span className="line-clamp-1 flex-1 text-sm">{st.name}</span>
-      <Checkbox />
+      <div className="flex items-center gap-2">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab touch-none text-muted-foreground/50 hover:text-muted-foreground active:cursor-grabbing"
+          aria-label="Drag to reorder"
+        >
+          <GripVertical className="size-4" />
+        </button>
+        <span className="line-clamp-1 text-sm">{st.name}</span>
+
+        <div className="flex items-center gap-1">
+          {st.start_date && st.end_date && (
+            <Badge variant="secondary">
+              <CalendarDays />
+              {st.all_day
+                ? format(new Date(st.start_date), "MMM d, yyyy")
+                : `${format(new Date(st.start_date), "MMM d, yyyy h:mm a")} - ${format(
+                    new Date(st.end_date),
+                    st.start_date === st.end_date
+                      ? "h:mm a"
+                      : "MMM d, yyyy h:mm a"
+                  )}`}
+            </Badge>
+          )}
+
+          {st.priority && (
+            <Badge variant="secondary">
+              <Flag
+                className="size-3"
+                style={{ color: st.priority.color, fill: st.priority.color }}
+              />
+              {st.priority.name}
+            </Badge>
+          )}
+
+          {st.assignees && st.assignees.length > 0 && (
+            <AvatarGroup className="grayscale">
+              {st.assignees.slice(0, 3).map((a) => (
+                <Avatar key={a.id} className="size-5">
+                  <AvatarImage src={a.avatar} alt={a.name} />
+                  <AvatarFallback>{a.name[0]}</AvatarFallback>
+                </Avatar>
+              ))}
+              {st.assignees.length > 3 && (
+                <Avatar className="size-5">
+                  <AvatarGroupCount>
+                    +{st.assignees.length - 3}
+                  </AvatarGroupCount>
+                </Avatar>
+              )}
+            </AvatarGroup>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <DropdownMenuSubtasks />
+      </div>
     </li>
   )
 }
@@ -313,5 +379,29 @@ function SelectOrther({
       />
       <SelectMultipleUser user={users} setUser={onUsersChange} align="start" />
     </div>
+  )
+}
+
+export function DropdownMenuSubtasks() {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon-xs" className="cursor-pointer">
+          <Ellipsis />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuItem>Profile</DropdownMenuItem>
+          <DropdownMenuItem>Billing</DropdownMenuItem>
+          <DropdownMenuItem>Settings</DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>GitHub</DropdownMenuItem>
+        <DropdownMenuItem>Support</DropdownMenuItem>
+        <DropdownMenuItem disabled>API</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
