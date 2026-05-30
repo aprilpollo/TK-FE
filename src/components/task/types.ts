@@ -11,10 +11,12 @@ export type TaskDetail = Task & {
 
 export type Attachment = {
   id: number | string
-  file_name: string
+  task_id: number | string
+  filename: string
+  file_path: string
   file_size: number
   mime_type: string
-  created_at: string
+  uploaded_by: number | string
 }
 
 export type Subtask = {
