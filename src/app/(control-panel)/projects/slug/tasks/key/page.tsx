@@ -1,7 +1,14 @@
 import { useParams, useNavigate } from "react-router"
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { fetchTaskByKey, fetchSubtask, createTaskAttachments } from "@/api/task"
+import {
+  fetchTaskByKey,
+  fetchSubtask,
+  createTaskAttachments,
+  fetchTaskAttachments,
+  deleteTaskAttachment,
+  downloadTaskAttachment,
+} from "@/api/task"
 import { toast } from "sonner"
 import { MessageCircle, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -13,7 +20,7 @@ import { TaskHeader } from "@/components/task/task-header"
 import { TaskInfoCards } from "@/components/task/task-info-cards"
 import { SubtaskItem, CreateSubtaskInput } from "@/components/task/task-subtasks"
 import { TaskActivity } from "@/components/task/task-activity"
-import type { TaskDetail, Subtask } from "@/components/task/types"
+import type { TaskDetail, Subtask, Attachment } from "@/components/task/types"
 import { cn } from "@/lib/utils"
 
 function TaskByKey() {
@@ -25,6 +32,7 @@ function TaskByKey() {
   const [task, setTask] = useState<TaskDetail | null>(null)
   const [subtask, setSubtask] = useState<Subtask[]>([])
   const [showAddSubtask, setShowAddSubtask] = useState(false)
+  const [attachments, setAttachments] = useState<Attachment[]>([])
 
   useEffect(() => {
     if (!taskId) return
@@ -71,6 +79,26 @@ function TaskByKey() {
       }
     }
     loadSubtasks()
+  }, [task])
+
+  const loadAttachments = async (taskId: string | number) => {
+    try {
+      const res = await fetchTaskAttachments(taskId)
+      const data = (await res.json()) as {
+        code: number
+        error: string | null
+        message: string
+        payload: Attachment[]
+      }
+      setAttachments(data.payload ?? [])
+    } catch (error) {
+      console.error("Error fetching attachments:", error)
+    }
+  }
+
+  useEffect(() => {
+    if (!task) return
+    loadAttachments(task.id)
   }, [task])
 
   if (!taskId) {
@@ -166,14 +194,35 @@ function TaskByKey() {
           <div>
             <h2 className="mb-3 text-base font-medium">Attachments</h2>
             <UploadFiles
+              attachments={attachments}
               onFilesAdded={async (files) => {
-                if (!task) return
                 try {
                   const res = await createTaskAttachments({ task_id: task.id, files })
                   if (!res.ok) throw new Error()
                   toast.success("Uploaded attachments successfully")
+                  await loadAttachments(task.id)
                 } catch {
                   toast.error("Failed to upload attachments")
+                }
+              }}
+              onDelete={async (attachmentId) => {
+                try {
+                  const res = await deleteTaskAttachment(task.id, attachmentId)
+                  if (!res.ok) throw new Error()
+                  toast.success("Attachment deleted")
+                  await loadAttachments(task.id)
+                } catch {
+                  toast.error("Failed to delete attachment")
+                }
+              }}
+              onDownload={async (attachmentId) => {
+                try {
+                  const res = await downloadTaskAttachment(task.id, attachmentId)
+                  if (!res.ok) throw new Error()
+                  const data = (await res.json()) as { payload: { url: string } }
+                  window.open(data.payload.url, "_blank")
+                } catch {
+                  toast.error("Failed to get download link")
                 }
               }}
             />

@@ -249,6 +249,31 @@ export async function createTaskAttachments({
   })
 }
 
+export async function fetchTaskAttachments(
+  task_id: string | number
+): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/${task_id}/attachments`, { method: "GET" })
+}
+
+export async function deleteTaskAttachment(
+  task_id: string | number,
+  attachment_id: string | number
+): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/${task_id}/attachments/${attachment_id}`, {
+    method: "DELETE",
+  })
+}
+
+export async function downloadTaskAttachment(
+  task_id: string | number,
+  attachment_id: string | number
+): Promise<Response> {
+  return apiFetch(
+    `/api/v1/tasks/${task_id}/attachments/${attachment_id}/download`,
+    { method: "GET" }
+  )
+}
+
 export async function createSubtask(
   task_id: string | number,
   payload: {
