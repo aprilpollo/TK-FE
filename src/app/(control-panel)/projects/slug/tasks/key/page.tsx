@@ -7,7 +7,6 @@ import {
   createTaskAttachments,
   fetchTaskAttachments,
   deleteTaskAttachment,
-  downloadTaskAttachment,
 } from "@/api/task"
 import { toast } from "sonner"
 import { MessageCircle, Plus } from "lucide-react"
@@ -213,16 +212,6 @@ function TaskByKey() {
                   await loadAttachments(task.id)
                 } catch {
                   toast.error("Failed to delete attachment")
-                }
-              }}
-              onDownload={async (attachmentId) => {
-                try {
-                  const res = await downloadTaskAttachment(task.id, attachmentId)
-                  if (!res.ok) throw new Error()
-                  const data = (await res.json()) as { payload: { url: string } }
-                  window.open(data.payload.url, "_blank")
-                } catch {
-                  toast.error("Failed to get download link")
                 }
               }}
             />

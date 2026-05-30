@@ -97,14 +97,12 @@ interface UploadFilesProps {
   attachments?: Attachment[]
   onFilesAdded?: (files: File[]) => void
   onDelete?: (attachmentId: string | number) => void
-  onDownload?: (attachmentId: string | number) => void
 }
 
 export default function UploadFiles({
   attachments = [],
   onFilesAdded,
   onDelete,
-  onDownload,
 }: UploadFilesProps) {
   const maxSize = 10 * 1024 * 1024
   const maxFiles = 10
@@ -201,7 +199,13 @@ export default function UploadFiles({
                       <Button
                         aria-label={`Download ${attachment.filename}`}
                         className="size-8 text-muted-foreground/80 hover:bg-transparent hover:text-foreground"
-                        onClick={() => onDownload?.(attachment.id)}
+                        onClick={() => {
+                          const a = document.createElement("a")
+                          a.href = attachment.file_path
+                          a.download = attachment.filename
+                          a.target = "_blank"
+                          a.click()
+                        }}
                         size="icon"
                         variant="ghost"
                       >
