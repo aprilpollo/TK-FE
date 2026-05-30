@@ -24,9 +24,9 @@ export type Subtask = {
   name: string,
   task_id: number | string
   position: number
-  start_date: number
-  end_date: number
-  all_day: boolean
+  start_date: number | null
+  end_date: number | null
+  all_day: boolean | null
   priority_id: number | string
   priority?: {
     id: number | string

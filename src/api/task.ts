@@ -298,3 +298,31 @@ export async function fetchSubtask(
     method: "GET",
   })
 }
+
+export async function updateSubtask(
+  task_id: string | number,
+  subtask_id: string | number,
+  payload: Partial<{
+    name: string
+    is_success: boolean
+    start_date: number | null
+    end_date: number | null
+    all_day: boolean
+    priority_id: string | number | null
+    assignee_ids: number[]
+  }>
+): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/${task_id}/subtasks/${subtask_id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteSubtask(
+  task_id: string | number,
+  subtask_id: string | number
+): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/${task_id}/subtasks/${subtask_id}`, {
+    method: "DELETE",
+  })
+}

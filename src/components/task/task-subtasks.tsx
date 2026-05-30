@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { GripVertical, Flag, CalendarDays, Ellipsis } from "lucide-react"
+import { GripVertical, Flag, CalendarDays, Circle, CircleCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { createSubtask, fetchPriorities } from "@/api/task"
@@ -43,15 +43,7 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenuSubTask } from "@/components/task/dropdown-menu-sub-task"
 import { format } from "date-fns"
 
 type SubtaskItemProps = {
@@ -86,7 +78,9 @@ export function SubtaskItem({ subtask, setSubtask }: SubtaskItemProps) {
           strategy={verticalListSortingStrategy}
         >
           {subtask.length > 0 ? (
-            subtask.map((st) => <SortableSubtask key={st.id} st={st} />)
+            subtask.map((st) => (
+              <SortableSubtask key={st.id} st={st} setSubtask={setSubtask} />
+            ))
           ) : (
             <li className="text-sm text-muted-foreground italic">
               No subtasks yet.
@@ -206,7 +200,13 @@ export function CreateSubtaskInput({
   )
 }
 
-function SortableSubtask({ st }: { st: Subtask }) {
+function SortableSubtask({
+  st,
+  setSubtask,
+}: {
+  st: Subtask
+  setSubtask: React.Dispatch<React.SetStateAction<Subtask[]>>
+}) {
   const {
     setNodeRef,
     attributes,
@@ -234,14 +234,26 @@ function SortableSubtask({ st }: { st: Subtask }) {
         >
           <GripVertical className="size-4" />
         </button>
-        <span className="line-clamp-1 text-sm">{st.name}</span>
+        {st.is_success ? (
+          <CircleCheck className="size-4 shrink-0 text-green-500" />
+        ) : (
+          <Circle className="size-4 shrink-0 text-muted-foreground/40" />
+        )}
+        <span
+          className={cn(
+            "line-clamp-1 text-sm",
+            st.is_success && "text-muted-foreground line-through"
+          )}
+        >
+          {st.name}
+        </span>
 
         <div className="flex items-center gap-1">
           {st.start_date && st.end_date && (
             <Badge variant="secondary">
               <CalendarDays />
               {st.all_day
-                ? format(new Date(st.start_date), "MMM d, yyyy")
+                ? format(new Date(st.end_date), "MMM d, yyyy")
                 : `${format(new Date(st.start_date), "MMM d, yyyy h:mm a")} - ${format(
                     new Date(st.end_date),
                     st.start_date === st.end_date
@@ -281,8 +293,8 @@ function SortableSubtask({ st }: { st: Subtask }) {
         </div>
       </div>
 
-      <div>
-        <DropdownMenuSubtasks />
+      <div id="subtask-dropdown" className="px-2">
+        <DropdownMenuSubTask task={st} setSubtask={setSubtask} />
       </div>
     </li>
   )
@@ -379,29 +391,5 @@ function SelectOrther({
       />
       <SelectMultipleUser user={users} setUser={onUsersChange} align="start" />
     </div>
-  )
-}
-
-export function DropdownMenuSubtasks() {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon-xs" className="cursor-pointer">
-          <Ellipsis />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Billing</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>GitHub</DropdownMenuItem>
-        <DropdownMenuItem>Support</DropdownMenuItem>
-        <DropdownMenuItem disabled>API</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   )
 }
