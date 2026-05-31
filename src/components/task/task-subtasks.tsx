@@ -46,12 +46,38 @@ import { Badge } from "@/components/ui/badge"
 import { DropdownMenuSubTask } from "@/components/task/dropdown-menu-sub-task"
 import { format } from "date-fns"
 
+type PriorityItem = { id: string | number; name: string; description: string; color: string }
+
 type SubtaskItemProps = {
   subtask: Subtask[]
   setSubtask: React.Dispatch<React.SetStateAction<Subtask[]>>
 }
 
 export function SubtaskItem({ subtask, setSubtask }: SubtaskItemProps) {
+  const [priorities, setPriorities] = useState<PriorityItem[]>([])
+
+  useEffect(() => {
+    async function loadPriorities() {
+      try {
+        const res = await fetchPriorities()
+        const data = (await res.json()) as {
+          code: number
+          error: string | null
+          message: string
+          payload: PriorityItem[]
+        }
+        if (data.error) throw new Error(data.error)
+        setPriorities(data.payload)
+      } catch (error) {
+        toast.warning("Failed to load priorities. Please try again.", {
+          position: "top-center",
+        })
+        console.error("Error fetching priorities:", error)
+      }
+    }
+    loadPriorities()
+  }, [])
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } })
   )
@@ -79,7 +105,7 @@ export function SubtaskItem({ subtask, setSubtask }: SubtaskItemProps) {
         >
           {subtask.length > 0 ? (
             subtask.map((st) => (
-              <SortableSubtask key={st.id} st={st} setSubtask={setSubtask} />
+              <SortableSubtask key={st.id} st={st} setSubtask={setSubtask} priorities={priorities} />
             ))
           ) : (
             <li className="text-sm text-muted-foreground italic">
@@ -203,9 +229,11 @@ export function CreateSubtaskInput({
 function SortableSubtask({
   st,
   setSubtask,
+  priorities,
 }: {
   st: Subtask
   setSubtask: React.Dispatch<React.SetStateAction<Subtask[]>>
+  priorities: PriorityItem[]
 }) {
   const {
     setNodeRef,
@@ -294,7 +322,7 @@ function SortableSubtask({
       </div>
 
       <div id="subtask-dropdown" className="px-2">
-        <DropdownMenuSubTask task={st} setSubtask={setSubtask} />
+        <DropdownMenuSubTask task={st} setSubtask={setSubtask} priorities={priorities} />
       </div>
     </li>
   )

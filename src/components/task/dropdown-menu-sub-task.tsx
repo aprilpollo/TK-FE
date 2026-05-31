@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -31,7 +31,7 @@ import {
   X,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { createSubtask, updateSubtask , fetchPriorities } from "@/api/task"
+import { createSubtask, updateSubtask, deleteSubtask } from "@/api/task"
 import { toDateTimeStringFromUnixMs } from "@/utils/date"
 import { toast } from "sonner"
 import { DateTimePicker, type DateTimeValue } from "@/components/date-picker"
@@ -41,9 +41,10 @@ import type { Subtask } from "./types"
 interface Props {
   task: Subtask
   setSubtask?: React.Dispatch<React.SetStateAction<Subtask[]>>
+  priorities: { id: string | number; name: string; description: string; color: string }[]
 }
 
-export function DropdownMenuSubTask({ task, setSubtask }: Props) {
+export function DropdownMenuSubTask({ task, setSubtask, priorities: priority }: Props) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [renameOpen, setRenameOpen] = useState(false)
   const [renameInput, setRenameInput] = useState(task.name)
@@ -54,32 +55,6 @@ export function DropdownMenuSubTask({ task, setSubtask }: Props) {
     allDay: task.all_day ?? false,
   })
 
-    const [priority, setPriority] = useState<
-    { id: string | number; name: string; description: string; color: string }[]
-  >([])
-
-
-    useEffect(() => {
-      async function loadPriorities() {
-        try {
-          const res = await fetchPriorities()
-          const data = (await res.json()) as {
-            code: number
-            error: string | null
-            message: string
-            payload: { id: string | number; name: string; description: string; color: string }[]
-          }
-          if (data.error) throw new Error(data.error)
-          setPriority(data.payload)
-        } catch (error) {
-          toast.warning("Failed to load priorities. Please try again.", {
-            position: "top-center",
-          })
-          console.error("Error fetching priorities:", error)
-        }
-      }
-      loadPriorities()
-    }, [])
 
   // ── Rename ─────────────────────────────────────────────────
   const handleRename = async () => {
@@ -120,6 +95,23 @@ export function DropdownMenuSubTask({ task, setSubtask }: Props) {
       )
     } catch {
       toast.error("Failed to update priority")
+    }
+  }
+
+  // ── Toggle Complete ───────────────────────────────────────
+  const handleToggleSuccess = async () => {
+    const nextValue = !task.is_success
+    try {
+      const res = await updateSubtask(task.task_id, task.id, {
+        is_success: nextValue,
+      })
+      if (!res.ok) throw new Error()
+      setSubtask?.((prev) =>
+        prev.map((t) => (t.id === task.id ? { ...t, is_success: nextValue } : t))
+      )
+      toast.success(nextValue ? "Marked complete" : "Marked incomplete")
+    } catch {
+      toast.error("Failed to update subtask status")
     }
   }
 
@@ -171,6 +163,19 @@ export function DropdownMenuSubTask({ task, setSubtask }: Props) {
     }
   }
 
+  // ── Delete ─────────────────────────────────────────────────
+  const handleDelete = async () => {
+    try {
+      const res = await deleteSubtask(task.task_id, task.id)
+      if (!res.ok) throw new Error()
+      setSubtask?.((prev) => prev.filter((t) => t.id !== task.id))
+      setDeleteOpen(false)
+      toast.success("Subtask deleted")
+    } catch {
+      toast.error("Failed to delete subtask")
+    }
+  }
+
   return (
     <>
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -193,6 +198,10 @@ export function DropdownMenuSubTask({ task, setSubtask }: Props) {
             >
               <Pencil className="h-4 w-4 text-muted-foreground" />
               Rename
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleToggleSuccess}>
+              <Check className="h-4 w-4 text-muted-foreground" />
+              {task.is_success ? "Mark as incomplete" : "Mark as complete"}
             </DropdownMenuItem>
           </DropdownMenuGroup>
 
@@ -378,6 +387,7 @@ export function DropdownMenuSubTask({ task, setSubtask }: Props) {
             </Button>
             <Button
               variant="destructive"
+              onClick={handleDelete}
             >
               Delete
             </Button>
