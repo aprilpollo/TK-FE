@@ -3,7 +3,7 @@ import { Navigate } from "react-router"
 import { layoutConfigOnlyMain } from "./layoutConfigTemplates";
 import Error401Page from "@/app/public/401/Error401Page"
 import Error404Page from "@/app/public/404/Error404Page"
-import ErrorBoundary from "@/utils/ErrorBoundary"
+import ErrorBoundary from "@/components/error-boundary"
 import settingsConfig from "./setting"
 
 import App from "@/app/App"

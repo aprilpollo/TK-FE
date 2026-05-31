@@ -11,17 +11,17 @@ import {
   type AuthProviderState,
   type AuthProviderMethods,
 } from "../types/AuthTypes"
-import type { User, Organization, Permissions } from "@/auth/user"
+import type { User, Permissions } from "@/auth/user"
 import { isTokenValid } from "../utils/jwtUtils"
 import {
   authSignIn,
   authSignUp,
   authSignInWithGoogle,
   authProfile,
-  authOrganization,
   authOrganizationPermissions,
   authUpdatePrimaryOrganization,
 } from "../api/authApi"
+import { loadAuthenticatedUser } from "../utils/loadAuthenticatedUser"
 import { removeGlobalHeaders, setGlobalHeaders } from "@/utils/apiFetch"
 import AuthContext, { type AuthContextType } from "../context/JwtAuthContext"
 import useLocalStorage from "@/hooks/useLocalStorage"
@@ -64,57 +64,21 @@ const JwtAuthProvider = forwardRef<
     const attemptAutoLogin = async () => {
       const accessToken = tokenStorageValue
 
-      if (isTokenValid(accessToken)) {
-        try {
-          const result = await Promise.all([
-            authProfile(accessToken),
-            authOrganization(accessToken),
-            authOrganizationPermissions(accessToken),
-          ])
-
-          const [
-            responseProfile,
-            responseOrganization,
-            responseOrganizationPermissions,
-          ] = await Promise.all([
-            result[0].json() as Promise<{
-              code: number
-              error: string | null
-              message: string
-              payload: User
-            }>,
-            result[1].json() as Promise<{
-              code: number
-              error: string | null
-              message: string
-              payload: Organization[]
-            }>,
-            result[2].json() as Promise<{
-              code: number
-              error: string | null
-              message: string
-              payload: Permissions
-            }>,
-          ])
-
-          const userData = {
-            ...responseProfile.payload,
-            organization: responseOrganization.payload,
-            permissions: responseOrganizationPermissions.payload,
-          }
-
-          setGlobalHeaders({
-            Authorization: `Bearer ${accessToken}`,
-            "Organization-ID": userData.permissions.organization_id?.toString() ?? "",
-          })
-
-          return userData
-        } catch (error) {
-          return false
-        }
+      if (!isTokenValid(accessToken)) {
+        return false
       }
 
-      return false
+      try {
+        const userData = await loadAuthenticatedUser(accessToken)
+        setGlobalHeaders({
+          Authorization: `Bearer ${accessToken}`,
+          "Organization-ID":
+            userData.permissions.organization_id?.toString() ?? "",
+        })
+        return userData
+      } catch {
+        return false
+      }
     }
 
     if (!authState.isAuthenticated) {
@@ -146,61 +110,24 @@ const JwtAuthProvider = forwardRef<
         code: number
         error: string | null
         message: string
-        payload: {
-          token: string
-        }
+        payload: { token: string }
       }
 
-      const result = await Promise.all([
-        authProfile(sessionSignIn.payload.token),
-        authOrganization(sessionSignIn.payload.token),
-        authOrganizationPermissions(sessionSignIn.payload.token),
-      ])
+      const token = sessionSignIn.payload.token
+      const userData = await loadAuthenticatedUser(token)
 
-      const [
-        responseProfile,
-        responseOrganization,
-        responseOrganizationPermissions,
-      ] = await Promise.all([
-        result[0].json() as Promise<{
-          code: number
-          error: string | null
-          message: string
-          payload: User
-        }>,
-        result[1].json() as Promise<{
-          code: number
-          error: string | null
-          message: string
-          payload: Organization[]
-        }>,
-        result[2].json() as Promise<{
-          code: number
-          error: string | null
-          message: string
-          payload: Permissions
-        }>,
-      ])
+      setAuthState({
+        authStatus: "authenticated",
+        isAuthenticated: true,
+        user: userData,
+      })
 
-      const userData = {
-        ...responseProfile.payload,
-        organization: responseOrganization.payload,
-        permissions: responseOrganizationPermissions.payload,
-      }
-
-      if (sessionSignIn && userData) {
-        setAuthState({
-          authStatus: "authenticated",
-          isAuthenticated: true,
-          user: userData,
-        })
-
-        setTokenStorageValue(sessionSignIn.payload.token)
-        setGlobalHeaders({
-          Authorization: `Bearer ${sessionSignIn.payload.token}`,
-          "Organization-ID": userData.permissions.organization_id?.toString() ?? "",
-        })
-      }
+      setTokenStorageValue(token)
+      setGlobalHeaders({
+        Authorization: `Bearer ${token}`,
+        "Organization-ID":
+          userData.permissions.organization_id?.toString() ?? "",
+      })
 
       return responseSignIn
     },

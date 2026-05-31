@@ -1,5 +1,5 @@
 /**
- * The authRoles object defines the authorization roles for the Fuse application.
+ * The authRoles object defines the authorization roles for the application.
  */
 const authRoles = {
 	/**

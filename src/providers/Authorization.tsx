@@ -6,7 +6,7 @@ import {
   setSessionRedirectUrl,
 } from "./sessionRedirectUrl";
 import { getRouteParamUtil } from "@/hooks/useRouteParameter";
-import Utils from "@/utils/utils";
+import { hasPermission } from "@/lib/permissions";
 import { type RouteObjectType } from "@/layouts/Layout";
 import Loading from "@/shared/Loading";
 
@@ -25,10 +25,6 @@ function isUserGuest(role: string[] | string) {
   return !role || (Array.isArray(role) && role?.length === 0);
 }
 
-/**
- * FuseAuthorization is a higher-order component that wraps its child component which handles the authorization logic of the app.
- * It checks the provided Auth property from FuseRouteItemType (auth property) against the current logged-in user role.
- */
 class Authorization extends Component<AuthorizationProps, State> {
   constructor(props: AuthorizationProps) {
     super(props);
@@ -85,7 +81,7 @@ class Authorization extends Component<AuthorizationProps, State> {
     // is auth is empy array
     const isOnlyGuestAllowed = Array.isArray(auth) && auth.length === 0;
     const isGuest = isUserGuest(userRole);
-    const userHasPermission = Utils.hasPermission(authForPermission, userRole);
+    const userHasPermission = hasPermission(authForPermission, userRole);
 
     if (auth && !userHasPermission && !ignoredPaths.includes(pathname)) {
       setSessionRedirectUrl(pathname);

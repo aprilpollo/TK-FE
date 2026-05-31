@@ -5,7 +5,7 @@ import { type SettingsConfigType } from "@/settings/context/SettingsContext";
 // import i18n from '@i18n/i18n';
 
 /**
- * The settingsConfig object is a configuration object for the Fuse application's settings.
+ * The settingsConfig object is a configuration object for the application's settings.
  */
 const settingsConfig: SettingsConfigType = {
   /**

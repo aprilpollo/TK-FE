@@ -26,8 +26,8 @@ function LayoutConfig(props: SettingsControllerProps) {
       return <NumberFormController name={name} control={control} item={item} />;
     case "group":
       return (
-        <div key={name} className="FuseSettings-formGroup">
-          <span className="FuseSettings-formGroupTitle text-muted-foreground">
+        <div key={name} >
+          <span className="text-muted-foreground">
             {item.title}
           </span>
           <LayoutConfigs
