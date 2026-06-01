@@ -161,7 +161,7 @@ function Tasks() {
 
       setTasks((prevTasks) => {
         const filteredTasks = prevTasks.filter(
-          (t) => t.columnId !== uuidToFilter
+          (t) => t.column_id !== uuidToFilter
         )
         return [...filteredTasks, ...(data.payload || [])]
       })
@@ -270,15 +270,15 @@ function Tasks() {
     const positionByTask = new Map<string | number, number>()
     const columnCursor = new Map<string | number, number>()
     for (const t of currentTasks) {
-      const pos = (columnCursor.get(t.columnId) ?? 0) + 1
-      columnCursor.set(t.columnId, pos)
+      const pos = (columnCursor.get(t.column_id) ?? 0) + 1
+      columnCursor.set(t.column_id, pos)
       positionByTask.set(t.id, pos)
     }
 
     // Sync column totals from actual task count after drag
     const countByUuid = new Map<string | number, number>()
     for (const t of currentTasks) {
-      countByUuid.set(t.columnId, (countByUuid.get(t.columnId) ?? 0) + 1)
+      countByUuid.set(t.column_id, (countByUuid.get(t.column_id) ?? 0) + 1)
     }
     setColumnPagination((prev) => {
       const next = { ...prev }
@@ -296,7 +296,7 @@ function Tasks() {
     const updates = currentTasks.map((t) => ({
       id: t.id,
       position: positionByTask.get(t.id) ?? 1,
-      status_id: t.columnId,
+      status_id: t.column_id,
     }))
 
     reorderTasks({

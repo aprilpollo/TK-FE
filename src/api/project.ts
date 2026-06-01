@@ -82,7 +82,7 @@ export async function updateProjectNotifications(projectId: string | number, dat
 }
 
 export async function fetchProjectTaskSummary(projectId: string | number): Promise<Response> {
-  return apiFetch(`/api/v1/projects/${projectId}/task_summary`, {
+  return apiFetch(`/api/v1/projects/${projectId}/task-summary`, {
     method: "GET",
   })
 }
@@ -100,7 +100,7 @@ export async function fetchProjectAssignees(projectId: string | number): Promise
 }
 
 export async function fetchProjectTaskDeadlines(projectId: string | number): Promise<Response> {
-  return apiFetch(`/api/v1/projects/${projectId}/task_deadlines?_limit=5`, {
+  return apiFetch(`/api/v1/projects/${projectId}/task-deadlines?_limit=5`, {
     method: "GET",
   })
 }

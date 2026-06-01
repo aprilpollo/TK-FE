@@ -6,6 +6,10 @@ import {
 } from "@/api/calendar"
 import type { CalendarEvent, CalendarPriority, GroupingOption } from "@/types"
 
+type CalendarApiEvent = Omit<CalendarEvent, "allDay"> & {
+  all_day?: boolean
+}
+
 export function useCalendarData(projectId: string) {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [group, setGroup] = useState<GroupingOption[]>([])
@@ -38,8 +42,13 @@ export function useCalendarData(projectId: string) {
       try {
         const res = await fetchCalendarEvents(projectId)
         if (!res.ok) throw new Error("Failed to fetch events")
-        const data = (await res.json()) as { payload: CalendarEvent[] }
-        setEvents(data.payload)
+        const data = (await res.json()) as { payload: CalendarApiEvent[] }
+        setEvents(
+          data.payload.map(({ all_day, ...event }) => ({
+            ...event,
+            allDay: all_day,
+          }))
+        )
       } catch (e) {
         console.error(e)
       }

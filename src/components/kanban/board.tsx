@@ -92,9 +92,9 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
   const tasksByColumn = useMemo(() => {
     const map = new Map<string | number, Task[]>()
     for (const task of tasks) {
-      const list = map.get(task.columnId) ?? []
+      const list = map.get(task.column_id) ?? []
       list.push(task)
-      map.set(task.columnId, list)
+      map.set(task.column_id, list)
     }
     return map
   }, [tasks])
@@ -144,7 +144,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
 
     let newTasks = tasks
     if (activeIndex !== -1 && overIndex !== -1 &&
-        tasks[activeIndex].columnId === tasks[overIndex].columnId) {
+        tasks[activeIndex].column_id === tasks[overIndex].column_id) {
       newTasks = arrayMove(tasks, activeIndex, overIndex)
       setTasks(newTasks)
     }
@@ -170,7 +170,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
 
       if (activeIndex === -1) return prev
 
-      const activeColumnId = prev[activeIndex].columnId
+      const activeColumnId = prev[activeIndex].column_id
 
       const isOverColumn = over.data.current?.type === "Column"
       let overColumnId: number | string
@@ -182,7 +182,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
         if (overIndex === -1) return prev // Safety check
         const overTask = prev[overIndex]
         if (!overTask) return prev // Safety check
-        overColumnId = overTask.columnId
+        overColumnId = overTask.column_id
       }
 
       // 1. If columns are the SAME, do nothing in onDragOver.
@@ -194,7 +194,7 @@ export function Board({ onDragEndColumn, onDragEndItem }: BoardProps) {
       const newTasks = [...prev]
       newTasks[activeIndex] = {
         ...newTasks[activeIndex],
-        columnId: overColumnId,
+        column_id: overColumnId,
       }
 
       if (isOverColumn) {

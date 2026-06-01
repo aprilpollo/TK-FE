@@ -64,11 +64,11 @@ export function KanbanCard({
               {task.description}
             </div>
             <div className="flex items-center gap-1">
-              {task.startDate && task.endDate && (
+              {task.start_date && task.end_date && (
                 <Badge
                   variant={
-                    task.endDate
-                      ? new Date(task.endDate) < new Date()
+                    task.end_date
+                      ? new Date(task.end_date) < new Date()
                         ? "destructive"
                         : "secondary"
                       : "secondary"
@@ -76,12 +76,12 @@ export function KanbanCard({
                   className="rounded-md"
                 >
                   <CalendarClock className="size-3" />
-                  {task.allDay ? (
-                    <>{format(task.endDate, "PP")}</>
+                  {task.all_day ? (
+                    <>{format(task.end_date, "PP")}</>
                   ) : (
                     <>
-                      {format(task.startDate, "EEEEEE d HH:mm")}
-                      <span>{` - ${format(task.endDate, "HH:mm")}`}</span>
+                      {format(task.start_date, "EEEEEE d HH:mm")}
+                      <span>{` - ${format(task.end_date, "HH:mm")}`}</span>
                     </>
                   )}
                 </Badge>
@@ -159,11 +159,11 @@ export function KanbanCard({
             {task.description}
           </div>
           <div className="flex items-center gap-1">
-            {task.startDate && task.endDate && (
+            {task.start_date && task.end_date && (
               <Badge
                 variant={
-                  task.endDate
-                    ? new Date(task.endDate) < new Date()
+                  task.end_date
+                    ? new Date(task.end_date) < new Date()
                       ? "destructive"
                       : "secondary"
                     : "secondary"
@@ -171,12 +171,12 @@ export function KanbanCard({
                 className="rounded-md"
               >
                 <CalendarClock className="size-3" />
-                {task.allDay ? (
-                  <>{format(task.endDate, "PP")}</>
+                {task.all_day ? (
+                  <>{format(task.end_date, "PP")}</>
                 ) : (
                   <>
-                    {format(task.startDate, "EEEEEE d HH:mm")}
-                    <span>{` - ${format(task.endDate, "HH:mm")}`}</span>
+                    {format(task.start_date, "EEEEEE d HH:mm")}
+                    <span>{` - ${format(task.end_date, "HH:mm")}`}</span>
                   </>
                 )}
               </Badge>

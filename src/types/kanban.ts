@@ -13,7 +13,7 @@ export interface Column {
 
 export interface Task {
   id: number | string
-  columnId: number | string
+  column_id: number | string
   key: string
   title: string
   description?: string
@@ -22,9 +22,9 @@ export interface Task {
     name: string
     color: string
   }
-  startDate?: number
-  endDate?: number
-  allDay?: boolean
+  start_date?: number
+  end_date?: number
+  all_day?: boolean
   assignees?: {
     id: number | string
     name: string

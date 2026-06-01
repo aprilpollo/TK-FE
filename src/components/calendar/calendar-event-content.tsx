@@ -11,8 +11,7 @@ import {
 } from "@/components/ui/item"
 import { cn } from "@/lib/utils"
 import { getContrastColor } from "@/utils/color"
-import { CATEGORY_META } from "@/components/calendar/event-dialog"
-import type { EventCategory, GroupingOption } from "@/types"
+import type { GroupingOption } from "@/types"
 
 export const DraggingContext = createContext(false)
 
@@ -69,9 +68,9 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
     if (dragging) setCursor(null)
   }, [dragging])
 
-  const cat = arg.event.extendedProps.category as EventCategory | undefined
+  //const cat = arg.event.extendedProps.category as EventCategory | undefined
   const status = arg.event.extendedProps.status as GroupingOption | undefined
-  const dotClass = cat ? CATEGORY_META[cat].dotClass : "bg-primary"
+  //const dotClass = cat ? CATEGORY_META[cat].dotClass : "bg-primary"
   const isList = arg.view.type === "listWeek"
   const isMonth = arg.view.type === "dayGridMonth"
   const rounded = getSegmentRounded(arg.isStart, arg.isEnd, isMonth)

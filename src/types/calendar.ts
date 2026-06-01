@@ -9,8 +9,8 @@ export type EventCategory = "task" | "milestone" | "meeting" | "deadline"
 export type CalendarEvent = {
   id: string
   title: string
-  start: string
-  end?: string
+  start: string | number
+  end?: string | number
   allDay?: boolean
   category: EventCategory
   description?: string
