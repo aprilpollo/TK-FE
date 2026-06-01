@@ -183,7 +183,7 @@ function TaskByKey() {
                   />
                 </ul>
               )}
-              <SubtaskItem subtask={subtask} setSubtask={setSubtask} />
+              <SubtaskItem taskId={task.id} subtask={subtask} setSubtask={setSubtask} />
             </div>
           </div>
 

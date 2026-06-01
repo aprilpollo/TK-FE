@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { GripVertical, Flag, CalendarDays, Circle, CircleCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import { createSubtask, fetchPriorities } from "@/api/task"
+import { createSubtask, fetchPriorities, reorderSubtasks } from "@/api/task"
 import { FetchApiError } from "@/utils/apiFetch"
 import {
   DndContext,
@@ -49,11 +49,12 @@ import { format } from "date-fns"
 type PriorityItem = { id: string | number; name: string; description: string; color: string }
 
 type SubtaskItemProps = {
+  taskId: string | number
   subtask: Subtask[]
   setSubtask: React.Dispatch<React.SetStateAction<Subtask[]>>
 }
 
-export function SubtaskItem({ subtask, setSubtask }: SubtaskItemProps) {
+export function SubtaskItem({ taskId, subtask, setSubtask }: SubtaskItemProps) {
   const [priorities, setPriorities] = useState<PriorityItem[]>([])
 
   useEffect(() => {
@@ -85,11 +86,24 @@ export function SubtaskItem({ subtask, setSubtask }: SubtaskItemProps) {
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id) return
-    setSubtask((prev) => {
-      const oldIndex = prev.findIndex((s) => s.id === active.id)
-      const newIndex = prev.findIndex((s) => s.id === over.id)
-      return arrayMove(prev, oldIndex, newIndex)
+
+    const oldIndex = subtask.findIndex((s) => s.id === active.id)
+    const newIndex = subtask.findIndex((s) => s.id === over.id)
+    const reordered = arrayMove(subtask, oldIndex, newIndex)
+
+    setSubtask(reordered)
+
+    reorderSubtasks({
+      task_id: taskId,
+      updates: reordered.map((s, idx) => ({ id: s.id, position: idx })),
     })
+      .then(async (res) => {
+        const data = (await res.json()) as { error: string | null }
+        if (data.error) toast.warning("Failed to reorder subtasks.", { position: "top-center" })
+      })
+      .catch(() => {
+        toast.warning("Failed to reorder subtasks.", { position: "top-center" })
+      })
   }
 
   return (

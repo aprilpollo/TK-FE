@@ -194,6 +194,22 @@ export async function reorderTasks({
   })
 }
 
+export async function reorderSubtasks({
+  task_id,
+  updates,
+}: {
+  task_id: string | number
+  updates: {
+    id: number | string
+    position: number
+  }[]
+}): Promise<Response> {
+  return apiFetch(`/api/v1/tasks/${task_id}/subtasks/reorder`, {
+    method: "PUT",
+    body: JSON.stringify({ updates }),
+  })
+}
+
 export async function fetchTaskComments(
   task_id: string | number,
   page = 1,
