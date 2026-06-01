@@ -140,6 +140,7 @@ export async function updateTask(
     title?: string
     description?: string
     priority_id?: string | number | null
+    status_id?: string | number
     start_date?: number | null
     end_date?: number | null
     all_day?: boolean

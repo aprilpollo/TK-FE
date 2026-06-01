@@ -49,7 +49,7 @@ type TaskDeadlines = {
   id: number | string
   key: string
   name: string
-  dueDate: string
+  due_date: number
   priority: {
     name: string
     color: string
@@ -213,7 +213,7 @@ function Overview() {
                   key={task.key}
                   to={`./tasks/${task.key}`}
                   name={task.name}
-                  dueDate={format(task.dueDate, "MMM dd, yyyy")}
+                  dueDate={format(task.due_date, "MMM dd, yyyy")}
                   priority={task.priority}
                   status={task.status}
                 />

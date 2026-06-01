@@ -4,7 +4,7 @@ export async function authSignIn(credentials: {
   email: string
   password: string
 }): Promise<Response> {
-  return apiFetch("/api/v1/auth/basiclogin", {
+  return apiFetch("/api/v1/auth/basic-login", {
     method: "POST",
     body: JSON.stringify(credentials),
   })
